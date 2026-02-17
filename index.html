@@ -3,40 +3,8 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    
-    <!-- Primary SEO -->
-    <title>Basirah - Al-Quran Digital, Tafsir & Tadabbur Online</title>
-    <meta name="title" content="Basirah - Al-Quran Digital, Tafsir & Tadabbur Online" />
-    <meta name="description" content="Aplikasi Al-Quran Digital Lengkap dengan Terjemahan Bahasa Indonesia, Tafsir, Audio Murottal 30 Juz, Jurnal Tadabbur, dan Fitur Pencarian Ayat. Baca Al-Quran Online dengan nyaman, gratis, dan tanpa iklan." />
-    <meta name="keywords" content="Al-Quran Digital, Quran Online, Baca Quran, Terjemahan Indonesia, Tafsir Jalalayn, Murottal 30 Juz, Tadabbur Quran, Ayat Harian, Basirah, Al-Quran Offline, Quran Web" />
-    <meta name="author" content="AI Projek" />
-    <meta name="robots" content="index, follow" />
-    <meta name="language" content="Indonesian" />
-    <meta name="theme-color" content="#1e3a34" />
-
-    <!-- Open Graph / Facebook / WhatsApp -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://bashirah.pages.dev/" />
-    <meta property="og:title" content="Basirah - Al-Quran Digital & Tadabbur Online" />
-    <meta property="og:description" content="Baca Al-Quran dengan nyaman. Dilengkapi Terjemahan, Tafsir, Audio Murottal, dan Jurnal Tadabbur. Gratis dan Bebas Iklan." />
-    <meta property="og:image" content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop" />
-    <meta property="og:site_name" content="Basirah" />
-    <meta property="og:locale" content="id_ID" />
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://bashirah.pages.dev/" />
-    <meta property="twitter:title" content="Basirah - Al-Quran Digital & Tadabbur Online" />
-    <meta property="twitter:description" content="Baca Al-Quran dengan nyaman. Dilengkapi Terjemahan, Tafsir, Audio Murottal, dan Jurnal Tadabbur." />
-    <meta property="twitter:image" content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop" />
-
-    <!-- Mobile Web App -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Basirah" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Basirah - Al-Quran Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -98,18 +66,5 @@
   <body class="bg-quran-cream text-quran-text font-sans antialiased selection:bg-quran-gold selection:text-white">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('SW registered: ', registration);
-            })
-            .catch(registrationError => {
-              console.log('SW registration failed: ', registrationError);
-            });
-        });
-      }
-    </script>
   </body>
 </html>

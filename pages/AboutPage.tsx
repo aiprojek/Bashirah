@@ -71,17 +71,7 @@ const AboutPage: React.FC = () => {
                 {activeTab === 'about' && (
                     <div className="p-8 flex flex-col items-center justify-center w-full">
                         <div className="w-24 h-24 bg-quran-gold/10 rounded-3xl flex items-center justify-center mb-6 rotate-3 shadow-lg border border-quran-gold/20">
-                            <svg width="64" height="64" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" className="-rotate-3 drop-shadow-sm">
-                              <path d="M256 180C320 160 400 160 432 200V380C400 340 320 340 256 360" stroke="#1e3a34" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M256 180C192 160 112 160 80 200V380C112 340 192 340 256 360" stroke="#1e3a34" strokeWidth="32" strokeLinecap="round" strokeLinejoin="round"/>
-                              <path d="M256 180V400" stroke="#1e3a34" strokeWidth="24" strokeLinecap="round"/>
-                              <path d="M300 240C340 230 380 235 400 250" stroke="#d4af37" strokeWidth="14" strokeLinecap="round" opacity="0.6"/>
-                              <path d="M300 290C340 280 380 285 400 300" stroke="#d4af37" strokeWidth="14" strokeLinecap="round" opacity="0.6"/>
-                              <path d="M212 240C172 230 132 235 112 250" stroke="#d4af37" strokeWidth="14" strokeLinecap="round" opacity="0.6"/>
-                              <path d="M212 290C172 280 132 285 112 300" stroke="#d4af37" strokeWidth="14" strokeLinecap="round" opacity="0.6"/>
-                              <path d="M256 60L275 95L315 100L285 130L295 170L256 150L217 170L227 130L197 100L237 95L256 60Z" fill="#d4af37"/>
-                              <circle cx="256" cy="115" r="10" fill="#1e3a34"/>
-                            </svg>
+                            <BookOpen className="w-12 h-12 text-quran-dark -rotate-3" />
                         </div>
                         
                         <h2 className="text-3xl font-bold text-quran-dark font-serif mb-1 text-center">Basirah</h2>
