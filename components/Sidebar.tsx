@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Book, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart } from 'lucide-react';
+import { X, Book, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info } from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -151,12 +151,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <Settings className={`w-5 h-5 ${isActive('/settings') ? 'text-quran-gold' : ''}`} />
                     <span>Pengaturan</span>
                 </button>
+
+                <button 
+                    onClick={() => handleNavigation('/about')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/about') 
+                        ? 'bg-quran-gold/10 text-quran-dark font-bold' 
+                        : 'text-gray-600 hover:bg-stone-100'
+                    }`}
+                >
+                    <Info className={`w-5 h-5 ${isActive('/about') ? 'text-quran-gold' : ''}`} />
+                    <span>Tentang Aplikasi</span>
+                </button>
             </nav>
 
             {/* Footer */}
             <div className="p-6 bg-stone-50 border-t border-stone-100 text-center">
                 <p className="text-xs text-gray-400 font-serif italic">Basirah</p>
-                <p className="text-[10px] text-gray-300 mt-1">Versi 1.3.0</p>
+                <p className="text-[10px] text-gray-300 mt-1">Versi 20260217</p>
             </div>
         </div>
       </div>

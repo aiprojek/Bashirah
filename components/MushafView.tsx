@@ -144,6 +144,21 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
     }
   };
 
+  // --- KEYBOARD LISTENER ---
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          if (e.key === 'ArrowRight') {
+             handleNextPage();
+          } else if (e.key === 'ArrowLeft') {
+             handlePrevPage();
+          }
+      };
+      
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentPage, isDualPage, isTurning]);
+
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const val = parseInt(e.target.value);
       if (val >= 1 && val <= 604) {
@@ -205,8 +220,9 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
           const touchStart = dragStartRef.current.x;
           const distance = touchStart - touchEnd;
           
-          if (distance > 50) handleNextPage(); // Swipe Left -> Next Page
-          if (distance < -50) handlePrevPage(); // Swipe Right -> Prev Page
+          // Swipe Left -> Next Page, Swipe Right -> Prev Page
+          if (distance > 50) handleNextPage(); 
+          if (distance < -50) handlePrevPage(); 
       }
   };
 
@@ -443,7 +459,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                      </div>
                  )}
 
-                 {/* RIGHT PAGE (Odd Number / Single Page) */}
+                 {/* RIGHT PAGE (Odd Number) */}
                  <div className={`h-full w-auto flex ${isDualPage ? 'justify-start' : 'justify-center'} items-center relative bg-white pointer-events-none [backface-visibility:hidden]`}>
                      {currentImageUrl && (
                         <img 

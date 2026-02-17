@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { MemoryRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, useParams, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import SurahCard from './components/SurahCard';
@@ -13,7 +13,8 @@ import TopicIndexPage from './pages/TopicIndexPage';
 import DuaCollectionPage from './pages/DuaCollectionPage'; 
 import EmotionPage from './pages/EmotionPage'; 
 import QuizPage from './pages/QuizPage'; 
-import TadabburPage from './pages/TadabburPage'; // Import Tadabbur Page
+import TadabburPage from './pages/TadabburPage';
+import AboutPage from './pages/AboutPage'; 
 import NoteEditorModal from './components/NoteEditorModal';
 import WordDetailModal from './components/WordDetailModal';
 import AudioPlayer from './components/AudioPlayer'; 
@@ -21,11 +22,12 @@ import AudioDownloadModal from './components/AudioDownloadModal';
 import KhatamWidget from './components/KhatamWidget'; 
 import MushafView from './components/MushafView'; 
 import AyatOfTheDay from './components/AyatOfTheDay'; 
-import SurahInfoModal from './components/SurahInfoModal'; // NEW IMPORT
-import { getAllSurahs, getSurahDetail, getAvailableEditions, getSurahStartPage, getSurahInfo } from './services/quranService';
+import SurahInfoModal from './components/SurahInfoModal';
+import { getAllSurahs, getSurahDetail, getAvailableEditions, getSurahStartPage, getSurahInfo, getAdjacentSurahs } from './services/quranService';
 import * as StorageService from './services/storageService';
 import { Surah, SurahDetail, LanguageCode, TranslationOption, DEFAULT_EDITIONS, LastReadData, BookmarkData, NoteData, Word, MemorizationLevel, SurahInfo } from './types';
-import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info } from 'lucide-react';
+import { JUZ_DATA, SAJDA_LOCATIONS } from './services/quranMeta';
+import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info, Layers, Bookmark, ArrowRight, ArrowLeft } from 'lucide-react';
 import { AudioProvider, useAudio } from './contexts/AudioContext';
 
 interface HomePageProps {
@@ -48,6 +50,9 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [lastRead, setLastRead] = useState<LastReadData | null>(null);
+  
+  // List Mode State
+  const [listMode, setListMode] = useState<'surah' | 'juz' | 'sajda'>('surah');
   
   // State for Ayat of the Day Modal
   const [showAyatModal, setShowAyatModal] = useState(false);
@@ -91,6 +96,14 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
 
   const handleSurahClick = (id: number) => {
       navigate(`/surah/${id}`);
+  };
+  
+  const handleJuzClick = (surahId: number, verseId: number) => {
+      navigate(`/surah/${surahId}#verse-${verseId}`);
+  };
+
+  const handleSajdaClick = (surahId: number, verseId: number) => {
+      navigate(`/surah/${surahId}#verse-${verseId}`);
   };
 
   const handleContinueReading = () => {
@@ -156,7 +169,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
 
             {/* Last Read */}
             {lastRead && (
-                <div className="mb-10 bg-white border border-stone-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" onClick={handleContinueReading}>
+                <div className="mb-8 bg-white border border-stone-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" onClick={handleContinueReading}>
                     <div className="flex items-center gap-4">
                         <div className="bg-quran-gold/10 p-3 rounded-full text-quran-gold">
                             <Clock className="w-5 h-5" />
@@ -176,19 +189,99 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
         </>
       )}
 
-      {/* Surah Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSurahs.map((surah) => (
-          <SurahCard 
-            key={surah.id} 
-            surah={surah} 
-            onClick={handleSurahClick}
-            showTranslation={showTranslation} 
-          />
-        ))}
-      </div>
+      {/* View Mode Tabs */}
+      {!searchTerm && (
+        <div className="flex justify-center mb-6">
+            <div className="flex bg-stone-100 p-1 rounded-xl">
+                <button
+                    onClick={() => setListMode('surah')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${listMode === 'surah' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                    Surat
+                </button>
+                <button
+                    onClick={() => setListMode('juz')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${listMode === 'juz' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                    Juz
+                </button>
+                <button
+                    onClick={() => setListMode('sajda')}
+                    className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${listMode === 'sajda' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                    Sajdah
+                </button>
+            </div>
+        </div>
+      )}
+
+      {/* --- LIST CONTENT --- */}
       
-      {filteredSurahs.length === 0 && (
+      {/* 1. SURAH LIST */}
+      {(listMode === 'surah' || searchTerm) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSurahs.map((surah) => (
+              <SurahCard 
+                key={surah.id} 
+                surah={surah} 
+                onClick={handleSurahClick}
+                showTranslation={showTranslation} 
+              />
+            ))}
+          </div>
+      )}
+
+      {/* 2. JUZ LIST */}
+      {listMode === 'juz' && !searchTerm && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {JUZ_DATA.map((juz) => (
+                  <button 
+                    key={juz.id}
+                    onClick={() => handleJuzClick(juz.startSurahId, juz.startVerse)}
+                    className="bg-white p-4 rounded-xl border border-stone-200 hover:border-quran-gold hover:shadow-md transition-all text-left group"
+                  >
+                      <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider group-hover:text-quran-gold transition-colors">Juz {juz.id}</span>
+                          <Layers className="w-4 h-4 text-gray-300 group-hover:text-quran-gold transition-colors" />
+                      </div>
+                      <h4 className="font-serif font-bold text-quran-dark text-lg mb-0.5">Mulai</h4>
+                      <p className="text-xs text-gray-500">
+                          {juz.startSurahName} : Ayat {juz.startVerse}
+                      </p>
+                  </button>
+              ))}
+          </div>
+      )}
+
+      {/* 3. SAJDA LIST */}
+      {listMode === 'sajda' && !searchTerm && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {SAJDA_LOCATIONS.map((item, idx) => (
+                  <button
+                     key={idx}
+                     onClick={() => handleSajdaClick(item.surahId, item.verseId)}
+                     className="bg-white p-5 rounded-xl border border-stone-200 hover:border-quran-gold hover:shadow-md transition-all text-left flex items-center justify-between group"
+                  >
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-quran-gold/10 flex items-center justify-center text-quran-dark font-bold text-sm">
+                              {idx + 1}
+                          </div>
+                          <div>
+                              <h4 className="font-bold text-gray-800">{item.surahName}</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-xs bg-stone-100 px-2 py-0.5 rounded text-gray-500 border border-stone-200">Ayat {item.verseId}</span>
+                                  <span className="text-[10px] text-gray-400 italic">{item.recommendation}</span>
+                              </div>
+                          </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-quran-gold transition-colors" />
+                  </button>
+              ))}
+          </div>
+      )}
+      
+      {/* Empty State for Search */}
+      {searchTerm && filteredSurahs.length === 0 && (
           <div className="text-center py-20 text-gray-400">
               <p>Tidak ada surat yang ditemukan.</p>
           </div>
@@ -205,12 +298,16 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
     showTafsir,
     showWordByWord
 }) => {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const [surah, setSurah] = useState<SurahDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'mushaf'>('list'); 
   
+  // Navigation State
+  const [adjacentSurahs, setAdjacentSurahs] = useState<{prev: Surah | null, next: Surah | null}>({prev: null, next: null});
+
   // Surah Info (Asbabun Nuzul) State
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
@@ -239,6 +336,58 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse } = useAudio();
 
+  // --- SWIPE HANDLERS FOR LIST MODE ---
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null); // To detect scroll vs swipe
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setTouchStartY(e.targetTouches[0].clientY);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart || !touchEnd || !touchStartY) return;
+    
+    const distanceX = touchStart - touchEnd;
+    const distanceY = touchStartY - e.changedTouches[0].clientY;
+    const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY);
+    const minSwipeDistance = 50;
+
+    if (isHorizontalSwipe && Math.abs(distanceX) > minSwipeDistance) {
+        if (distanceX > 0 && adjacentSurahs.next) {
+            // Swipe Left -> Go to Next
+            navigate(`/surah/${adjacentSurahs.next.id}`);
+        } else if (distanceX < 0 && adjacentSurahs.prev) {
+            // Swipe Right -> Go to Prev
+            navigate(`/surah/${adjacentSurahs.prev.id}`);
+        }
+    }
+  };
+
+  // --- KEYBOARD HANDLERS ---
+  useEffect(() => {
+      const handleKeyDown = (e: KeyboardEvent) => {
+          // Ignore if user is typing in an input
+          if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+          if (e.key === 'ArrowRight' && adjacentSurahs.next) {
+              navigate(`/surah/${adjacentSurahs.next.id}`);
+          } else if (e.key === 'ArrowLeft' && adjacentSurahs.prev) {
+               navigate(`/surah/${adjacentSurahs.prev.id}`);
+          }
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [adjacentSurahs, navigate]);
+
+
   useEffect(() => {
     if(id) {
         const surahIdInt = parseInt(id);
@@ -252,8 +401,11 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
         const notes = StorageService.getNotes();
         setVersesWithNotes(notes.filter(n => n.surahId === surahIdInt).map(n => n.verseId));
+
+        // Fetch Adjacent Surahs
+        getAdjacentSurahs(surahIdInt, appLang).then(setAdjacentSurahs);
     }
-  }, [id]);
+  }, [id, appLang]);
 
   useEffect(() => {
     const fetchDetail = async () => {
@@ -410,7 +562,13 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   // --- LIST MODE RENDER ---
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in pb-32">
+    <div 
+        className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in pb-32"
+        // Attach Swipe Handlers to Container
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+    >
       
       {/* View Toggle */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
@@ -609,7 +767,34 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         ))}
       </div>
       
-      <div className="mt-12 text-center text-gray-400 text-sm pb-8">
+      {/* Navigation Footer */}
+      <div className="mt-8 flex gap-4">
+           {adjacentSurahs.prev ? (
+               <button 
+                   onClick={() => navigate(`/surah/${adjacentSurahs.prev!.id}`)}
+                   className="flex-1 bg-white p-4 rounded-xl border border-stone-200 hover:border-quran-gold hover:shadow-md transition-all group text-left"
+               >
+                   <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 flex items-center gap-1 group-hover:text-quran-gold">
+                       <ArrowLeft className="w-3 h-3" /> Sebelumnya
+                   </div>
+                   <div className="font-bold text-quran-dark">{adjacentSurahs.prev.transliteration}</div>
+               </button>
+           ) : <div className="flex-1"></div>}
+
+           {adjacentSurahs.next ? (
+               <button 
+                   onClick={() => navigate(`/surah/${adjacentSurahs.next!.id}`)}
+                   className="flex-1 bg-white p-4 rounded-xl border border-stone-200 hover:border-quran-gold hover:shadow-md transition-all group text-right"
+               >
+                   <div className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-1 flex items-center justify-end gap-1 group-hover:text-quran-gold">
+                       Selanjutnya <ArrowRight className="w-3 h-3" />
+                   </div>
+                   <div className="font-bold text-quran-dark">{adjacentSurahs.next.transliteration}</div>
+               </button>
+           ) : <div className="flex-1"></div>}
+      </div>
+      
+      <div className="mt-8 text-center text-gray-400 text-sm pb-8">
          <p>Akhir dari Surat {surah.transliteration}</p>
       </div>
 
@@ -666,7 +851,7 @@ const App: React.FC = () => {
 
   return (
     <AudioProvider>
-        <MemoryRouter>
+        <HashRouter>
         <div className="min-h-screen flex flex-col bg-pattern-overlay h-screen overflow-hidden">
             <Sidebar 
                 isOpen={isSidebarOpen} 
@@ -716,6 +901,11 @@ const App: React.FC = () => {
                     path="/tadabbur" 
                     element={<TadabburPage />} 
                 />
+                {/* NEW ABOUT ROUTE */}
+                <Route 
+                    path="/about" 
+                    element={<AboutPage />} 
+                />
                 <Route 
                     path="/surah/:id" 
                     element={
@@ -759,7 +949,7 @@ const App: React.FC = () => {
             <AudioPlayer />
             <AudioDownloadModal /> 
         </div>
-        </MemoryRouter>
+        </HashRouter>
     </AudioProvider>
   );
 };

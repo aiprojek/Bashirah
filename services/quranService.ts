@@ -3,6 +3,7 @@ import { Surah, SurahDetail, Verse, LanguageCode, TranslationOption, CURATED_EDI
 import * as DB from './db';
 
 const QURAN_LOCAL_URL = '/qruan-json/quran.json';
+const SURAH_INFO_LOCAL_URL = '/qruan-json/surah-info.json';
 const API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_URL = 'https://api.quran.com/api/v4';
 
@@ -16,8 +17,8 @@ const cachedSurahLists: Record<string, Surah[]> = {};
 const cachedContent: Record<string, any[]> = {};
 const cachedWordByWord: Record<string, Record<number, Word[]>> = {};
 
-// Cache for Surah Info (Asbabun Nuzul)
-const cachedSurahInfo: Record<number, SurahInfo> = {};
+// Cache for Surah Info (Asbabun Nuzul) - Loaded all at once now
+let globalSurahInfoCache: Record<number, SurahInfo> | null = null;
 
 // LIST OF INSPIRATIONAL VERSES FOR "AYAT OF THE DAY"
 // { surah: number, verse: number }
@@ -170,23 +171,35 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
   }
 };
 
-// NEW: Get Surah Info (Asbabun Nuzul / Tafsir Intro)
+// NEW: Get Previous and Next Surah Metadata
+export const getAdjacentSurahs = async (currentId: number, lang: LanguageCode = 'id'): Promise<{ prev: Surah | null, next: Surah | null }> => {
+    const all = await getAllSurahs(lang);
+    return {
+        prev: all.find(s => s.id === currentId - 1) || null,
+        next: all.find(s => s.id === currentId + 1) || null
+    };
+};
+
+// NEW: Get Surah Info (Asbabun Nuzul / Tafsir Intro) FROM LOCAL JSON
 export const getSurahInfo = async (surahId: number): Promise<SurahInfo | null> => {
-    if (cachedSurahInfo[surahId]) {
-        return cachedSurahInfo[surahId];
+    // 1. Check Memory Cache
+    if (globalSurahInfoCache && globalSurahInfoCache[surahId]) {
+        return globalSurahInfoCache[surahId];
     }
 
     try {
-        // Fetching from Quran.com API v4 for Surah Info (Indonesian)
-        const response = await fetch(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=id`);
-        const data = await response.json();
-        
-        if (data && data.chapter_info) {
-            cachedSurahInfo[surahId] = data.chapter_info;
-            return data.chapter_info;
+        // 2. Fetch the giant JSON file if not loaded
+        if (!globalSurahInfoCache) {
+             const response = await fetch(SURAH_INFO_LOCAL_URL);
+             if (!response.ok) throw new Error("Failed to load local info");
+             globalSurahInfoCache = await response.json();
+        }
+
+        if (globalSurahInfoCache && globalSurahInfoCache[surahId]) {
+            return globalSurahInfoCache[surahId];
         }
     } catch (e) {
-        console.error("Failed to fetch Surah Info", e);
+        console.error("Failed to fetch Surah Info from local", e);
     }
     return null;
 };
