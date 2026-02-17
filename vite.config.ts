@@ -46,6 +46,9 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // PENTING: Arahkan semua navigasi ke index.html saat offline (SPA support)
+        navigateFallback: '/index.html',
+        
         // Caching strategy for static assets (JS, CSS, Images in public folder)
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
         // Increase limit for caching runtime assets if needed
@@ -82,6 +85,23 @@ export default defineConfig({
             }
           },
           {
+            // Cache Mushaf Images (Quran Pages)
+            // Source: android.quran.com
+            // Strategy: CacheFirst (Images don't change, serve from cache if available, else fetch and cache)
+            urlPattern: /^https:\/\/android\.quran\.com\/.*$/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'quran-mushaf-images-v1', // Must match the cache name in mushafService.ts for consistency
+              expiration: {
+                maxEntries: 1000, // Enough for full Quran (604 pages)
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 Year
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             // Cache API Responses (Quran Text, Translation) - StaleWhileRevalidate for freshness
             urlPattern: /^https:\/\/api\.alquran\.cloud\/v1\/.*$/i,
             handler: 'StaleWhileRevalidate',
@@ -108,8 +128,6 @@ export default defineConfig({
                 }
              }
           }
-          // Note: Mushaf Images and Audio are handled manually in the app services using Cache API directly
-          // to give user explicit control over large downloads.
         ]
       }
     })

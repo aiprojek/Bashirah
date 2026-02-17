@@ -1,7 +1,8 @@
 
 import React from 'react';
-import { BookOpen, Menu, ChevronLeft } from 'lucide-react';
+import { Menu, ChevronLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import Logo from './Logo'; // Import custom logo
 
 interface HeaderProps {
     onOpenSidebar: () => void;
@@ -31,24 +32,14 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-quran-cream/90 backdrop-blur-md border-b border-quran-gold/20 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 bg-[#fcfbf7]/90 backdrop-blur-md border-b border-[#d4af37]/20 shadow-sm transition-all duration-300">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* LEFT SECTION: Logo or Back Button */}
         <div className="flex items-center gap-3">
             {isHome ? (
-                <div 
-                    className="flex items-center gap-3 select-none"
-                >
-                    <div className="bg-quran-dark p-2 rounded-lg shadow-sm">
-                        <BookOpen className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-quran-dark font-serif tracking-tight leading-tight">
-                            Basirah
-                        </h1>
-                        <p className="text-[10px] text-quran-text/60 font-sans tracking-widest uppercase leading-none">Al-Quran Digital</p>
-                    </div>
+                <div className="flex items-center gap-3 select-none cursor-pointer" onClick={() => navigate('/')}>
+                    <Logo className="w-10 h-10" withText={true} />
                 </div>
             ) : (
                 <div className="flex items-center gap-3">

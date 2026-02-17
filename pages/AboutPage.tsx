@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { 
     Info, List, BookOpen, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
-    ChevronRight, ExternalLink, ShieldCheck 
+    ChevronRight, ShieldCheck 
 } from 'lucide-react';
+import Logo from '../components/Logo';
 
 const AboutPage: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'about' | 'features' | 'guide' | 'contact'>('about');
@@ -70,8 +71,8 @@ const AboutPage: React.FC = () => {
                 {/* --- TAB 1: TENTANG --- */}
                 {activeTab === 'about' && (
                     <div className="p-8 flex flex-col items-center justify-center w-full">
-                        <div className="w-24 h-24 bg-quran-gold/10 rounded-3xl flex items-center justify-center mb-6 rotate-3 shadow-lg border border-quran-gold/20">
-                            <BookOpen className="w-12 h-12 text-quran-dark -rotate-3" />
+                        <div className="w-24 h-24 bg-quran-gold/10 rounded-3xl flex items-center justify-center mb-6 shadow-lg border border-quran-gold/20">
+                            <Logo className="w-14 h-14" />
                         </div>
                         
                         <h2 className="text-3xl font-bold text-quran-dark font-serif mb-1 text-center">Basirah</h2>
