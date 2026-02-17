@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Verse, Word, MemorizationLevel } from '../types';
-import { BookOpen, Bookmark, CheckCircle, MoreVertical, FileText, PlayCircle, Volume2, Eye, EyeOff, Hash, Target } from 'lucide-react';
+import { BookOpen, Bookmark, CheckCircle, MoreVertical, FileText, PlayCircle, Volume2, Eye, EyeOff, Hash, Target, Copy, Share2, Check } from 'lucide-react';
 import WordItem from './WordItem';
 import * as StorageService from '../services/storageService'; // Import direct for check
 
@@ -31,6 +31,9 @@ interface VerseItemProps {
   
   // New: Specific Handler for Khatam Update
   onUpdateKhatam?: (verseId: number) => void;
+  
+  // New: Share Handler
+  onShare?: (verse: Verse, surahName: string) => void;
 
   // New Audio Props
   isAudioPlaying?: boolean;
@@ -57,6 +60,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
     onTakeNote,
     onWordClick,
     onUpdateKhatam,
+    onShare,
     isAudioPlaying = false,
     onPlayAudio,
     arabicFontSize = 30, // Default sizes
@@ -66,6 +70,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
   const [revealArabic, setRevealArabic] = useState(false);
   const [revealTranslation, setRevealTranslation] = useState(false);
   const [hasKhatamTarget, setHasKhatamTarget] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -93,6 +98,15 @@ const VerseItem: React.FC<VerseItemProps> = ({
       setRevealArabic(false);
       setRevealTranslation(false);
   }, [memorizationMode.isActive, memorizationMode.level, memorizationMode.hideTranslation]);
+
+  // Handle Copy
+  const handleCopyVerse = () => {
+      const textToCopy = `${verse.text}\n\n"${verseTranslation || ''}"\n(QS. ${surahName}: ${verse.id})\n\nBashirah - Al Quran Digital\nbashirah.pages.dev`;
+      navigator.clipboard.writeText(textToCopy);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+      setIsMenuOpen(false);
+  };
 
   // Function to convert number to Arabic numerals
   const toArabicNumerals = (n: number) => {
@@ -340,6 +354,25 @@ const VerseItem: React.FC<VerseItemProps> = ({
                             <BookOpen className="w-4 h-4 text-quran-gold" />
                             <span>Tandai Terakhir Dibaca</span>
                         </button>
+
+                         <button 
+                            onClick={handleCopyVerse}
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                        >
+                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                            <span>{copied ? 'Tersalin' : 'Salin Ayat'}</span>
+                        </button>
+
+                        {onShare && (
+                            <button 
+                                onClick={() => { onShare(verse, surahName); setIsMenuOpen(false); }}
+                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                            >
+                                <Share2 className="w-4 h-4 text-gray-400" />
+                                <span>Bagikan Gambar</span>
+                            </button>
+                        )}
+
                         <button 
                             onClick={() => { onToggleBookmark(verse.id); setIsMenuOpen(false); }}
                             className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"

@@ -14,7 +14,8 @@ import DuaCollectionPage from './pages/DuaCollectionPage';
 import EmotionPage from './pages/EmotionPage'; 
 import QuizPage from './pages/QuizPage'; 
 import TadabburPage from './pages/TadabburPage';
-import AboutPage from './pages/AboutPage'; // Import About Page
+import AboutPage from './pages/AboutPage';
+import AsmaulHusnaPage from './pages/AsmaulHusnaPage'; 
 import NoteEditorModal from './components/NoteEditorModal';
 import WordDetailModal from './components/WordDetailModal';
 import AudioPlayer from './components/AudioPlayer'; 
@@ -23,11 +24,14 @@ import KhatamWidget from './components/KhatamWidget';
 import MushafView from './components/MushafView'; 
 import AyatOfTheDay from './components/AyatOfTheDay'; 
 import SurahInfoModal from './components/SurahInfoModal';
-import QuickJumpModal from './components/QuickJumpModal'; // NEW IMPORT
-import { getAllSurahs, getSurahDetail, getAvailableEditions, getSurahStartPage, getSurahInfo } from './services/quranService';
+import QuickJumpModal from './components/QuickJumpModal'; 
+import FontSettingsModal from './components/FontSettingsModal';
+import ShareVerseModal from './components/ShareVerseModal'; 
+import MemorizationSettingsModal from './components/MemorizationSettingsModal'; // NEW IMPORT
+import { getAllSurahs, getSurahDetail, getAvailableEditions, getSurahStartPage, getSurahInfo, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList } from './services/quranService';
 import * as StorageService from './services/storageService';
-import { Surah, SurahDetail, LanguageCode, TranslationOption, DEFAULT_EDITIONS, LastReadData, BookmarkData, NoteData, Word, MemorizationLevel, SurahInfo } from './types';
-import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info, ChevronLeft, Compass } from 'lucide-react';
+import { Surah, SurahDetail, LanguageCode, TranslationOption, DEFAULT_EDITIONS, LastReadData, BookmarkData, NoteData, Word, MemorizationLevel, SurahInfo, Verse } from './types';
+import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info, ChevronLeft, Compass, Bookmark, Layout } from 'lucide-react';
 import { AudioProvider, useAudio } from './contexts/AudioContext';
 
 interface HomePageProps {
@@ -54,6 +58,9 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
   // State for Ayat of the Day Modal
   const [showAyatModal, setShowAyatModal] = useState(false);
   const [isDailyAyatEnabled, setIsDailyAyatEnabled] = useState(true);
+  
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'surah' | 'juz' | 'hizb' | 'sajdah'>('surah');
   
   const navigate = useNavigate();
 
@@ -99,6 +106,10 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
       if(lastRead) {
           navigate(`/surah/${lastRead.surahId}#verse-${lastRead.verseId}`);
       }
+  };
+  
+  const handleNavigateToVerse = (surahId: number, verseId: number) => {
+      navigate(`/surah/${surahId}#verse-${verseId}`);
   };
 
   if (loading) return <Loading />;
@@ -178,23 +189,118 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
         </>
       )}
 
-      {/* Surah Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSurahs.map((surah) => (
-          <SurahCard 
-            key={surah.id} 
-            surah={surah} 
-            onClick={handleSurahClick}
-            showTranslation={showTranslation} 
-          />
-        ))}
-      </div>
-      
-      {filteredSurahs.length === 0 && (
-          <div className="text-center py-20 text-gray-400">
-              <p>Tidak ada surat yang ditemukan.</p>
+      {/* TABS NAVIGATION */}
+      {!searchTerm && (
+        <div className="flex justify-center mb-6">
+            <div className="flex bg-stone-100 p-1 rounded-xl">
+                 {(['surah', 'juz', 'hizb', 'sajdah'] as const).map((tab) => (
+                    <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${
+                            activeTab === tab 
+                            ? 'bg-white text-quran-dark shadow-sm' 
+                            : 'text-gray-400 hover:text-gray-600'
+                        }`}
+                    >
+                        {tab === 'surah' ? 'Surat' : tab === 'juz' ? 'Juz' : tab === 'hizb' ? 'Hizb' : 'Sajdah'}
+                    </button>
+                 ))}
+            </div>
+        </div>
+      )}
+
+      {/* CONTENT LISTS */}
+      {/* 1. Surah Grid */}
+      {(activeTab === 'surah' || searchTerm) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSurahs.map((surah) => (
+              <SurahCard 
+                key={surah.id} 
+                surah={surah} 
+                onClick={handleSurahClick}
+                showTranslation={showTranslation} 
+              />
+            ))}
+            {filteredSurahs.length === 0 && (
+              <div className="col-span-full text-center py-20 text-gray-400">
+                  <p>Tidak ada surat yang ditemukan.</p>
+              </div>
+            )}
           </div>
       )}
+
+      {/* 2. Juz Grid */}
+      {activeTab === 'juz' && !searchTerm && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {JUZ_START_MAPPING.map((juz) => (
+                  <button 
+                      key={juz.juz}
+                      onClick={() => handleNavigateToVerse(juz.surahId, juz.verseId)}
+                      className="bg-white p-4 rounded-xl border border-stone-200 hover:border-quran-gold/50 hover:shadow-md transition-all text-left flex items-center justify-between group"
+                  >
+                      <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 bg-stone-50 rounded-full flex items-center justify-center font-bold text-quran-dark border border-stone-100 group-hover:bg-quran-gold group-hover:text-white transition-colors">
+                              {juz.juz}
+                          </div>
+                          <div>
+                              <h4 className="font-bold text-gray-800">Juz {juz.juz}</h4>
+                              <p className="text-xs text-gray-500">Mulai: {juz.label}</p>
+                          </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-quran-gold" />
+                  </button>
+              ))}
+          </div>
+      )}
+
+       {/* 3. Hizb Grid */}
+       {activeTab === 'hizb' && !searchTerm && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {getHizbList().map((hizb) => (
+                  <button 
+                      key={hizb.id}
+                      onClick={() => handleNavigateToVerse(hizb.surahId, hizb.verseId)}
+                      className="bg-white p-3 rounded-xl border border-stone-200 hover:border-quran-gold/50 hover:shadow-sm transition-all text-left flex items-center justify-between group"
+                  >
+                      <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-stone-50 rounded-lg flex items-center justify-center font-bold text-xs text-stone-500 border border-stone-100 group-hover:bg-quran-gold group-hover:text-white transition-colors">
+                              {hizb.id}
+                          </div>
+                          <div>
+                              <h4 className="font-bold text-gray-700 text-sm">Hizb {hizb.id}</h4>
+                              <p className="text-[10px] text-gray-400">Juz {hizb.juz}</p>
+                          </div>
+                      </div>
+                  </button>
+              ))}
+          </div>
+      )}
+
+      {/* 4. Sajdah Grid */}
+      {activeTab === 'sajdah' && !searchTerm && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+               {SAJDAH_VERSES.map((sajdah, idx) => (
+                   <button 
+                      key={idx}
+                      onClick={() => handleNavigateToVerse(sajdah.surahId, sajdah.verseId)}
+                      className="bg-white p-4 rounded-xl border border-stone-200 hover:border-quran-gold/50 hover:shadow-md transition-all text-left flex items-center justify-between group"
+                   >
+                       <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-quran-gold/10 rounded-full flex items-center justify-center text-quran-dark">
+                                <Bookmark className="w-4 h-4 fill-current" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-800">{sajdah.surahName}</h4>
+                                <p className="text-xs text-gray-500">Ayat Sajdah: {sajdah.verseId}</p>
+                            </div>
+                       </div>
+                       <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-quran-gold" />
+                   </button>
+               ))}
+          </div>
+      )}
+      
     </div>
   );
 };
@@ -204,7 +310,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
     translationId, 
     tafsirId, 
     showTranslation, 
-    showTafsir,
+    showTafsir, 
     showWordByWord
 }) => {
   const { id } = useParams<{ id: string }>();
@@ -228,7 +334,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [isMemMode, setIsMemMode] = useState(false);
   const [memLevel, setMemLevel] = useState<MemorizationLevel>('normal');
   const [hideTranslation, setHideTranslation] = useState(true);
-  const [showMemMenu, setShowMemMenu] = useState(false);
+  const [showMemModal, setShowMemModal] = useState(false); // Changed to Modal
 
   // Font Size Settings State
   const [showFontSettings, setShowFontSettings] = useState(false);
@@ -244,6 +350,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [currentNoteText, setCurrentNoteText] = useState('');
   
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
+  
+  // Share Modal State
+  const [shareData, setShareData] = useState<{surahName: string, verse: Verse} | null>(null);
 
   const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse } = useAudio();
 
@@ -388,6 +497,13 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       }
   };
 
+  const handleShareVerse = (verse: Verse, surahName: string) => {
+      setShareData({
+          surahName,
+          verse
+      });
+  };
+
   const handleOpenInfo = async () => {
       if (!surah) return;
       setShowInfoModal(true);
@@ -452,7 +568,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
                        <button 
                            onClick={() => setViewMode('list')}
-                           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-stone-100 transition-colors"
+                           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-stone-100 transition-colors whitespace-nowrap"
                        >
                            <ScrollText className="w-4 h-4" />
                            Mode List
@@ -483,144 +599,66 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in pb-32">
       
-      {/* Top Controls */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-           {/* Memorization & Settings */}
-           <div className="flex flex-wrap items-center gap-2 relative">
-                {isMemMode ? (
-                     <div className="relative">
-                        <button 
-                            onClick={() => setShowMemMenu(!showMemMenu)}
-                            className="flex items-center gap-2 px-4 py-2 bg-quran-dark text-white rounded-xl text-sm font-bold shadow-md hover:bg-quran-dark/90 transition-all"
-                        >
-                            <BrainCircuit className="w-4 h-4" />
-                            <span>{getMemLevelLabel(memLevel)}</span>
-                            <ChevronDown className="w-3 h-3" />
-                        </button>
-                        
-                        {showMemMenu && (
-                            <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden z-20 animate-fade-in">
-                                <div className="p-2 space-y-1">
-                                    {memLevels.map((lvl) => (
-                                        <button
-                                            key={lvl.id}
-                                            onClick={() => {
-                                                setMemLevel(lvl.id);
-                                                setShowMemMenu(false);
-                                            }}
-                                            className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${memLevel === lvl.id ? 'bg-quran-gold/10 text-quran-dark font-bold' : 'text-gray-600 hover:bg-stone-50'}`}
-                                        >
-                                            <div className="flex items-center gap-2">
-                                                <lvl.icon className="w-4 h-4" />
-                                                {lvl.label}
-                                            </div>
-                                            {memLevel === lvl.id && <Check className="w-3 h-3 text-quran-gold" />}
-                                        </button>
-                                    ))}
-                                    <div className="h-px bg-stone-100 my-1"></div>
-                                    <button 
-                                        onClick={() => setIsMemMode(false)}
-                                        className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 font-medium"
-                                    >
-                                        Matikan Mode Hafalan
-                                    </button>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* Backdrop for menu */}
-                        {showMemMenu && <div className="fixed inset-0 z-10" onClick={() => setShowMemMenu(false)}></div>}
-                     </div>
-                ) : (
+      {/* Top Controls - Revised for Mobile */}
+      <div className="flex flex-col gap-4 mb-6">
+           <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                
+                {/* Scrollable Container for Tools on Mobile */}
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+                    
+                    {/* Memorization Button */}
+                    {/* Replaced with simple button to open Modal */}
                     <button 
-                        onClick={() => setIsMemMode(true)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-white border border-stone-200 text-gray-500 hover:border-quran-dark hover:text-quran-dark transition-all"
+                        onClick={() => setShowMemModal(true)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 ${
+                            isMemMode 
+                            ? 'bg-quran-dark text-white shadow-md' 
+                            : 'bg-white border border-stone-200 text-gray-500'
+                        }`}
                     >
                         <BrainCircuit className="w-4 h-4" />
-                        Mode Hafalan
+                        {isMemMode ? <span>{getMemLevelLabel(memLevel)}</span> : 'Mode Hafalan'}
+                        {isMemMode && <ChevronDown className="w-3 h-3 ml-1" />}
                     </button>
-                )}
+                    
+                    {isMemMode && (
+                        <button 
+                            onClick={() => setHideTranslation(!hideTranslation)}
+                            className={`p-2 rounded-xl border transition-colors flex-shrink-0 ${hideTranslation ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-stone-200 text-gray-400 hover:bg-stone-50'}`}
+                            title={hideTranslation ? "Tampilkan Terjemahan" : "Sembunyikan Terjemahan"}
+                        >
+                            {hideTranslation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                    )}
 
-                {isMemMode && (
+                    {/* Font Settings */}
                     <button 
-                        onClick={() => setHideTranslation(!hideTranslation)}
-                        className={`p-2 rounded-xl border transition-colors ${hideTranslation ? 'bg-red-50 border-red-200 text-red-500' : 'bg-white border-stone-200 text-gray-400 hover:bg-stone-50'}`}
-                        title={hideTranslation ? "Tampilkan Terjemahan" : "Sembunyikan Terjemahan"}
-                    >
-                        {hideTranslation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                )}
-
-                {/* Font Size Settings Toggle */}
-                <div className="relative">
-                    <button 
-                         onClick={() => setShowFontSettings(!showFontSettings)}
-                         className={`p-2 rounded-xl border transition-colors ${showFontSettings ? 'bg-stone-100 border-stone-300 text-quran-dark' : 'bg-white border-stone-200 text-gray-400 hover:bg-stone-50'}`}
-                         title="Ukuran Font"
+                            onClick={() => setShowFontSettings(true)}
+                            className="p-2 rounded-xl border bg-white border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-all flex-shrink-0"
+                            title="Ukuran Font"
                     >
                         <Type className="w-4 h-4" />
                     </button>
 
-                    {showFontSettings && (
-                        <>
-                            <div className="fixed inset-0 z-10" onClick={() => setShowFontSettings(false)}></div>
-                            <div className="absolute right-0 sm:left-0 top-full mt-2 w-64 bg-white rounded-xl shadow-xl border border-stone-100 p-4 z-20 animate-fade-in">
-                                <div className="mb-4">
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-xs font-bold text-gray-500 uppercase">Arab</span>
-                                        <span className="text-xs font-bold text-quran-gold">{arabicFontSize}px</span>
-                                    </div>
-                                    <input 
-                                        type="range" 
-                                        min="20" 
-                                        max="60" 
-                                        value={arabicFontSize} 
-                                        onChange={(e) => setArabicFontSize(parseInt(e.target.value))}
-                                        className="w-full h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-quran-gold"
-                                    />
-                                    <div className="font-arabic text-right mt-2 text-quran-dark" style={{fontSize: `${arabicFontSize}px`}}>
-                                        بِسۡمِ ٱللَّهِ
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between items-center mb-1">
-                                        <span className="text-xs font-bold text-gray-500 uppercase">Terjemahan</span>
-                                        <span className="text-xs font-bold text-quran-gold">{translationFontSize}px</span>
-                                    </div>
-                                    <input 
-                                        type="range" 
-                                        min="12" 
-                                        max="24" 
-                                        value={translationFontSize} 
-                                        onChange={(e) => setTranslationFontSize(parseInt(e.target.value))}
-                                        className="w-full h-1.5 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-quran-gold"
-                                    />
-                                    <div className="mt-2 text-gray-600 italic font-serif" style={{fontSize: `${translationFontSize}px`}}>
-                                        Dengan menyebut nama Allah
-                                    </div>
-                                </div>
-                            </div>
-                        </>
-                    )}
+                    {/* Quick Jump */}
+                    <button 
+                        onClick={() => setShowQuickJump(true)}
+                        className="p-2 rounded-xl bg-white border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-all flex-shrink-0"
+                        title="Pindah Cepat (Surat/Ayat)"
+                    >
+                        <Compass className="w-4 h-4" />
+                    </button>
                 </div>
 
-                {/* Quick Jump Toggle */}
+                {/* Mushaf Mode Toggle (Full Width on Mobile usually looks better or top right) */}
                 <button 
-                    onClick={() => setShowQuickJump(true)}
-                    className="p-2 rounded-xl bg-white border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-all"
-                    title="Pindah Cepat (Surat/Ayat)"
+                    onClick={() => setViewMode('mushaf')}
+                    className="flex items-center justify-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-stone-200 text-sm font-bold text-quran-dark hover:border-quran-gold transition-colors flex-shrink-0 w-full sm:w-auto"
                 >
-                    <Compass className="w-4 h-4" />
+                    <BookOpen className="w-4 h-4 text-quran-gold" />
+                    Mode Mushaf
                 </button>
            </div>
-
-           <button 
-               onClick={() => setViewMode('mushaf')}
-               className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-stone-200 text-sm font-bold text-quran-dark hover:border-quran-gold transition-colors"
-           >
-               <BookOpen className="w-4 h-4 text-quran-gold" />
-               Mode Mushaf
-           </button>
       </div>
       
       {/* Top Surah Navigation */}
@@ -693,7 +731,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
              onSetLastRead={handleSetLastRead}
              onTakeNote={handleTakeNote}
              onWordClick={setSelectedWord}
-             onUpdateKhatam={handleUpdateKhatam} 
+             onUpdateKhatam={handleUpdateKhatam}
+             onShare={handleShareVerse}
              isAudioPlaying={audioSurah === surah.id && audioVerse === verse.id}
              onPlayAudio={() => playVerse(surah.id, verse.id, surah.total_verses, surah.transliteration)}
              
@@ -755,6 +794,38 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           currentSurahId={surah.id}
           onNavigate={handleQuickJump}
       />
+
+       {/* Font Settings Modal */}
+       <FontSettingsModal 
+          isOpen={showFontSettings}
+          onClose={() => setShowFontSettings(false)}
+          arabicFontSize={arabicFontSize}
+          onArabicFontSizeChange={setArabicFontSize}
+          translationFontSize={translationFontSize}
+          onTranslationFontSizeChange={setTranslationFontSize}
+       />
+
+       {/* Share Verse Modal */}
+       {shareData && (
+          <ShareVerseModal 
+              isOpen={true}
+              onClose={() => setShareData(null)}
+              surahName={shareData.surahName}
+              verseNumber={shareData.verse.id}
+              arabicText={shareData.verse.text}
+              translationText={shareData.verse.translation || ''}
+          />
+       )}
+       
+       {/* Memorization Settings Modal */}
+       <MemorizationSettingsModal 
+           isOpen={showMemModal}
+           onClose={() => setShowMemModal(false)}
+           level={memLevel}
+           onLevelChange={setMemLevel}
+           isActive={isMemMode}
+           onToggleActive={setIsMemMode}
+       />
 
     </div>
   );
@@ -832,6 +903,11 @@ const App: React.FC = () => {
                  <Route 
                     path="/tadabbur" 
                     element={<TadabburPage />} 
+                />
+                {/* NEW ASMAUL HUSNA ROUTE */}
+                <Route 
+                    path="/asmaul-husna" 
+                    element={<AsmaulHusnaPage />} 
                 />
                 {/* NEW ABOUT ROUTE */}
                 <Route 

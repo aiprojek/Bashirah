@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { BookHeart, Plus, Save, Trash2, X, PenTool, Calendar, Loader2 } from 'lucide-react';
 import * as DB from '../services/db'; // Use DB directly
 import { TadabburData, TadabburTag } from '../types';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const TAGS: { id: TadabburTag; label: string; color: string }[] = [
     { id: 'syukur', label: 'Syukur', color: 'bg-emerald-100 text-emerald-700' },
@@ -23,6 +24,9 @@ const TadabburPage: React.FC = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selectedTag, setSelectedTag] = useState<TadabburTag>('umum');
+
+    // Modal State
+    const [deleteId, setDeleteId] = useState<string | null>(null);
 
     useEffect(() => {
         loadEntries();
@@ -71,11 +75,12 @@ const TadabburPage: React.FC = () => {
         setIsEditorOpen(false);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm("Hapus catatan tadabbur ini?")) {
-            await DB.deleteTadabbur(id);
+    const confirmDelete = async () => {
+        if (deleteId) {
+            await DB.deleteTadabbur(deleteId);
             await loadEntries();
             if (isEditorOpen) setIsEditorOpen(false);
+            setDeleteId(null);
         }
     };
 
@@ -171,7 +176,7 @@ const TadabburPage: React.FC = () => {
                             <div className="flex gap-2">
                                 {currentId && (
                                     <button 
-                                        onClick={() => handleDelete(currentId)}
+                                        onClick={() => setDeleteId(currentId)}
                                         className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
                                         title="Hapus"
                                     >
@@ -235,6 +240,17 @@ const TadabburPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* Confirmation Modal */}
+            <ConfirmationModal 
+                isOpen={!!deleteId}
+                onClose={() => setDeleteId(null)}
+                onConfirm={confirmDelete}
+                title="Hapus Catatan?"
+                message="Catatan tadabbur yang dihapus tidak dapat dikembalikan lagi. Anda yakin?"
+                confirmText="Hapus"
+                variant="danger"
+            />
 
         </div>
     );

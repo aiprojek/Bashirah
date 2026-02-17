@@ -5,6 +5,7 @@ import { getVersesByPage } from '../services/quranService';
 import { getPageUrl } from '../services/mushafService';
 import * as StorageService from '../services/storageService';
 import { LastReadData } from '../types';
+import ConfirmationModal from './ConfirmationModal';
 
 interface MushafViewProps {
   startPage: number;
@@ -33,6 +34,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   
   // Khatam State
   const [hasKhatamTarget, setHasKhatamTarget] = useState(false);
+  const [showKhatamConfirm, setShowKhatamConfirm] = useState(false);
 
   // Fullscreen toggle
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -260,9 +262,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   };
 
   // --- UPDATE KHATAM LOGIC ---
-  const handleUpdateKhatam = async () => {
-      if(!window.confirm("Update progres khatam ke halaman ini?")) return;
-      
+  const performKhatamUpdate = async () => {
       setIsMarkingRead(true);
       try {
            const verses = await getVersesByPage(currentPage, translationId);
@@ -329,7 +329,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                     {/* Update Khatam Button (Only if Active) */}
                     {hasKhatamTarget && (
                          <button 
-                            onClick={handleUpdateKhatam}
+                            onClick={() => setShowKhatamConfirm(true)}
                             disabled={isMarkingRead}
                             className="p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-colors"
                             title="Update Progres Khatam"
@@ -593,6 +593,16 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                 onClick={() => setShowTranslationSheet(false)}
             />
         )}
+
+        <ConfirmationModal 
+            isOpen={showKhatamConfirm}
+            onClose={() => setShowKhatamConfirm(false)}
+            onConfirm={performKhatamUpdate}
+            title="Update Khatam?"
+            message={`Anda akan memperbarui progres khatam Anda ke halaman ${currentPage}. Lanjutkan?`}
+            confirmText="Ya, Update"
+            variant="primary"
+        />
     </div>
   );
 };

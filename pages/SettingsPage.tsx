@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles } from 'lucide-react';
 import { LanguageCode, APP_LANGUAGES, TranslationOption, RECITERS, Surah, MUSHAF_EDITIONS, MushafEdition } from '../types';
 import LanguageModal from '../components/LanguageModal';
+import ConfirmationModal from '../components/ConfirmationModal'; // Import Custom Modal
 import * as DB from '../services/db';
 import * as AudioService from '../services/audioService';
 import * as MushafService from '../services/mushafService';
@@ -80,6 +81,41 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   // Appearance Settings
   const [showDailyAyat, setShowDailyAyat] = useState(true);
 
+  // CONFIRMATION MODAL STATE
+  const [confirmState, setConfirmState] = useState<{
+      isOpen: boolean;
+      title: string;
+      message: string;
+      confirmText: string;
+      variant: 'primary' | 'danger';
+      onConfirm: () => void;
+  }>({
+      isOpen: false,
+      title: '',
+      message: '',
+      confirmText: 'Lanjutkan',
+      variant: 'primary',
+      onConfirm: () => {},
+  });
+
+  const requestConfirmation = (
+      title: string, 
+      message: string, 
+      confirmText: string, 
+      variant: 'primary' | 'danger', 
+      action: () => void
+  ) => {
+      setConfirmState({
+          isOpen: true,
+          title,
+          message,
+          confirmText,
+          variant,
+          onConfirm: action
+      });
+  };
+
+
   useEffect(() => {
     const checkDownloads = async () => {
         const downloads = await DB.getDownloadedEditions();
@@ -135,8 +171,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleToggleDailyAyat = (enabled: boolean) => {
       setShowDailyAyat(enabled);
       StorageService.setShowAyatOfTheDay(enabled);
-      // Trigger a window reload or custom event might be needed if App.tsx doesn't pick it up immediately, 
-      // but simpler is to let user navigate back and App.tsx re-mounts/re-checks.
   };
 
   // --- MUSHAF LOGIC ---
@@ -148,33 +182,45 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleDownloadMushaf = async (mushaf: MushafEdition) => {
       if (isDownloadingMushaf) return;
       
-      const confirmMsg = `Unduh Mushaf ${mushaf.name}? \nUkuran sekitar 200MB - 300MB. Pastikan WiFi aktif.`;
-      if (!window.confirm(confirmMsg)) return;
-
-      setIsDownloadingMushaf(true);
-      setMushafProgress(0);
-      setProcessingId(mushaf.id); // Reuse processing ID for UI state
-
-      try {
-          await MushafService.downloadMushaf(mushaf.id, (progress) => {
-              setMushafProgress(progress);
-          });
-          setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true }));
-          alert("Mushaf berhasil diunduh dan siap digunakan offline.");
-      } catch (e: any) {
-          console.error(e);
-          alert(`Gagal mengunduh: ${e.message}`);
-      } finally {
-          setIsDownloadingMushaf(false);
-          setMushafProgress(0);
-          setProcessingId(null);
-      }
+      requestConfirmation(
+          `Unduh Mushaf ${mushaf.name}?`,
+          "Ukuran file sekitar 200MB - 300MB. Pastikan Anda terhubung ke WiFi untuk menghemat kuota data.",
+          "Unduh Sekarang",
+          "primary",
+          async () => {
+              setIsDownloadingMushaf(true);
+              setMushafProgress(0);
+              setProcessingId(mushaf.id); 
+        
+              try {
+                  await MushafService.downloadMushaf(mushaf.id, (progress) => {
+                      setMushafProgress(progress);
+                  });
+                  setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true }));
+                  // Not calling alert here to keep flow smooth, maybe a toast later
+              } catch (e: any) {
+                  console.error(e);
+                  alert(`Gagal mengunduh: ${e.message}`);
+              } finally {
+                  setIsDownloadingMushaf(false);
+                  setMushafProgress(0);
+                  setProcessingId(null);
+              }
+          }
+      );
   };
 
   const handleDeleteMushaf = async (mushaf: MushafEdition) => {
-      if (!window.confirm(`Hapus data offline untuk Mushaf ${mushaf.name}?`)) return;
-      await MushafService.deleteMushafData(mushaf.id);
-      setMushafDownloads(prev => ({ ...prev, [mushaf.id]: false }));
+      requestConfirmation(
+          "Hapus Data Mushaf?",
+          `Anda akan menghapus data offline untuk Mushaf ${mushaf.name}. Anda perlu mengunduhnya lagi jika ingin menggunakan mode offline nanti.`,
+          "Hapus Data",
+          "danger",
+          async () => {
+              await MushafService.deleteMushafData(mushaf.id);
+              setMushafDownloads(prev => ({ ...prev, [mushaf.id]: false }));
+          }
+      );
   };
 
 
@@ -182,62 +228,81 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleDownloadSurahAudio = async (surah: Surah) => {
       if (isDownloadingAudio) return;
       
-      const confirmMsg = `Unduh audio Surat ${surah.transliteration} oleh ${activeReciter.name}?\nEstimasi ukuran: ${AudioService.estimateSurahSize(surah.total_verses)}`;
-      if (!window.confirm(confirmMsg)) return;
-
-      setIsDownloadingAudio(true);
-      setCurrentDownloadSurah(surah.id);
-      setAudioProgress(0);
-
-      try {
-          await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => {
-              setAudioProgress(progress);
-          });
-          setAudioDownloads(prev => ({ ...prev, [surah.id]: true }));
-      } catch (e: any) {
-          console.error(e);
-          alert(`Gagal mengunduh: ${e.message || 'Terjadi kesalahan'}`);
-      } finally {
-          setIsDownloadingAudio(false);
-          setCurrentDownloadSurah(null);
-          setAudioProgress(0);
-      }
+      requestConfirmation(
+          "Unduh Audio Surat?",
+          `Anda akan mengunduh audio Surat ${surah.transliteration} oleh ${activeReciter.name}. \nEstimasi ukuran: ${AudioService.estimateSurahSize(surah.total_verses)}`,
+          "Mulai Unduh",
+          "primary",
+          async () => {
+              setIsDownloadingAudio(true);
+              setCurrentDownloadSurah(surah.id);
+              setAudioProgress(0);
+        
+              try {
+                  await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => {
+                      setAudioProgress(progress);
+                  });
+                  setAudioDownloads(prev => ({ ...prev, [surah.id]: true }));
+              } catch (e: any) {
+                  console.error(e);
+                  alert(`Gagal mengunduh: ${e.message || 'Terjadi kesalahan'}`);
+              } finally {
+                  setIsDownloadingAudio(false);
+                  setCurrentDownloadSurah(null);
+                  setAudioProgress(0);
+              }
+          }
+      );
   };
 
   const handleDeleteSurahAudio = async (surahId: number) => {
-      if (!window.confirm("Hapus data audio untuk surat ini?")) return;
-      await AudioService.deleteSurahAudio(activeReciter.id, surahId);
-      setAudioDownloads(prev => ({ ...prev, [surahId]: false }));
+      requestConfirmation(
+          "Hapus Audio?",
+          "Audio untuk surat ini akan dihapus dari penyimpanan perangkat.",
+          "Hapus",
+          "danger",
+          async () => {
+              await AudioService.deleteSurahAudio(activeReciter.id, surahId);
+              setAudioDownloads(prev => ({ ...prev, [surahId]: false }));
+          }
+      );
   };
 
   const handleDownloadAllAudio = async () => {
       if (isDownloadingAudio) return;
-      if (!window.confirm(`PERINGATAN: Mengunduh 30 Juz (${activeReciter.name}) membutuhkan ruang penyimpanan besar (~1.5 GB - 3 GB). Lanjutkan?`)) return;
-
-      setIsDownloadingAudio(true);
       
-      try {
-          for (const s of surahs) {
-              if (audioDownloads[s.id]) continue; // Skip if already downloaded
+      requestConfirmation(
+          "Unduh Audio 30 Juz?",
+          `PERINGATAN: Mengunduh seluruh Al-Quran (${activeReciter.name}) membutuhkan ruang penyimpanan sangat besar (~1.5 GB - 3 GB). Proses ini mungkin memakan waktu lama.`,
+          "Ya, Unduh Semua",
+          "primary",
+          async () => {
+              setIsDownloadingAudio(true);
               
-              setCurrentDownloadSurah(s.id);
-              setAudioProgress(0);
-              
-              await AudioService.downloadSurahAudio(activeReciter, s.id, s.total_verses, (progress) => {
-                  setAudioProgress(progress);
-              });
-              
-              setAudioDownloads(prev => ({ ...prev, [s.id]: true }));
+              try {
+                  for (const s of surahs) {
+                      if (audioDownloads[s.id]) continue; // Skip if already downloaded
+                      
+                      setCurrentDownloadSurah(s.id);
+                      setAudioProgress(0);
+                      
+                      await AudioService.downloadSurahAudio(activeReciter, s.id, s.total_verses, (progress) => {
+                          setAudioProgress(progress);
+                      });
+                      
+                      setAudioDownloads(prev => ({ ...prev, [s.id]: true }));
+                  }
+                  alert("Unduhan 30 Juz Selesai!");
+              } catch (e: any) {
+                  console.error(e);
+                  alert(`Unduhan terhenti: ${e.message}`);
+              } finally {
+                  setIsDownloadingAudio(false);
+                  setCurrentDownloadSurah(null);
+                  setAudioProgress(0);
+              }
           }
-          alert("Unduhan 30 Juz Selesai!");
-      } catch (e: any) {
-          console.error(e);
-          alert(`Unduhan terhenti: ${e.message}`);
-      } finally {
-          setIsDownloadingAudio(false);
-          setCurrentDownloadSurah(null);
-          setAudioProgress(0);
-      }
+      );
   };
 
   // --- TEXT DOWNLOAD LOGIC ---
@@ -246,56 +311,75 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       if (isCurrent) return;
 
       const isDownloaded = downloadedIds.includes(edition.identifier);
+      
+      // Case 1: Already Downloaded -> Just Select
+      if (isDownloaded) {
+           if(type === 'translation') {
+               onTranslationChange(edition.identifier);
+               if(!showTranslation) onToggleTranslation(true);
+           } else {
+               onTafsirChange(edition.identifier);
+               if(!showTafsir) onToggleTafsir(true);
+           }
+           return;
+      }
+
+      // Case 2: Need Download
       setProcessingId(edition.identifier);
-      setDownloadProgress(0);
+      setProcessingStatus('Cek koneksi...');
       
       try {
-          if (isDownloaded) {
-               setProcessingStatus('Memverifikasi...');
-               if(type === 'translation') {
-                   onTranslationChange(edition.identifier);
-                   if(!showTranslation) onToggleTranslation(true);
-               } else {
-                   onTafsirChange(edition.identifier);
-                   if(!showTafsir) onToggleTafsir(true);
-               }
-          } else {
-              setProcessingStatus('Cek koneksi...');
-              const isWorking = await verifyEditionAvailability(edition.identifier);
-              
-              if (!isWorking) {
-                  alert(`Maaf, edisi "${edition.name}" saat ini tidak dapat diakses dari server.`);
-                  setProcessingId(null);
-                  return;
-              }
-
-              const confirmDownload = window.confirm(
-                  `Unduh "${edition.name}"?\nUkuran sekitar: ${edition.approxSize || 'Unknown'}\n\nKlik OK untuk unduh (Offline). Cancel untuk Streaming (Online).`
-              );
-
-              if (confirmDownload) {
-                  await downloadEdition(edition.identifier, (msg, percent) => {
-                      setProcessingStatus(msg);
-                      setDownloadProgress(percent);
-                  });
-                  setDownloadedIds(prev => [...prev, edition.identifier]);
-              }
-              
-              if(type === 'translation') {
-                   onTranslationChange(edition.identifier);
-                   if(!showTranslation) onToggleTranslation(true);
-               } else {
-                   onTafsirChange(edition.identifier);
-                   if(!showTafsir) onToggleTafsir(true);
-               }
+          const isWorking = await verifyEditionAvailability(edition.identifier);
+          
+          if (!isWorking) {
+              alert(`Maaf, edisi "${edition.name}" saat ini tidak dapat diakses dari server.`);
+              setProcessingId(null);
+              return;
           }
+
+          requestConfirmation(
+              `Unduh ${edition.type === 'tafsir' ? 'Tafsir' : 'Terjemahan'}?`,
+              `Anda akan mengunduh "${edition.name}" untuk penggunaan offline.\nUkuran sekitar: ${edition.approxSize || 'Unknown'}`,
+              "Unduh & Gunakan",
+              "primary",
+              async () => {
+                   setProcessingId(edition.identifier); // Re-set in case state cleared
+                   setProcessingStatus('Menyiapkan...');
+                   setDownloadProgress(0);
+
+                   try {
+                        await downloadEdition(edition.identifier, (msg, percent) => {
+                            setProcessingStatus(msg);
+                            setDownloadProgress(percent);
+                        });
+                        setDownloadedIds(prev => [...prev, edition.identifier]);
+                        
+                        // Auto select after download
+                        if(type === 'translation') {
+                            onTranslationChange(edition.identifier);
+                            if(!showTranslation) onToggleTranslation(true);
+                        } else {
+                            onTafsirChange(edition.identifier);
+                            if(!showTafsir) onToggleTafsir(true);
+                        }
+                   } catch (e) {
+                       console.error(e);
+                       alert("Gagal mengunduh data.");
+                   } finally {
+                        setProcessingId(null);
+                        setProcessingStatus('');
+                        setDownloadProgress(0);
+                   }
+              }
+          );
+          
+          // Clear processing state until user confirms
+          setProcessingId(null);
+
       } catch (error) {
           console.error(error);
-          alert("Terjadi kesalahan.");
-      } finally {
           setProcessingId(null);
-          setProcessingStatus('');
-          setDownloadProgress(0);
+          alert("Terjadi kesalahan koneksi.");
       }
   };
 
@@ -402,7 +486,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 </button>
             </section>
             
-            {/* 2. Tampilan UI Settings (New Section for Ayat of the Day) */}
+            {/* 2. Tampilan UI Settings */}
             <section className="bg-white rounded-2xl shadow-sm border border-stone-200 p-5 space-y-5">
                  <div className="flex items-center justify-between">
                     <div>
@@ -529,7 +613,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
             {/* 4. Audio & Murottal Settings */}
             <section className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                {/* ... Audio Settings Content ... */}
                 <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'audio' ? null : 'audio')}>
                      <div>
                         <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
@@ -645,89 +728,55 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 )}
             </section>
 
-            {/* 5. Translation Settings */}
-            <section className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                {/* ... existing translation settings ... */}
-                <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
-                    <div>
-                        <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                            <BookType className="w-4 h-4 text-quran-gold" /> Terjemahan Lengkap
-                        </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                            {showTranslation ? `Aktif: ${getEditionName(currentTranslationId)}` : 'Nonaktif'}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                         <button
-                            onClick={() => onToggleTranslation(!showTranslation)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                                showTranslation ? 'bg-quran-dark' : 'bg-gray-300'
-                            }`}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showTranslation ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        <button 
-                            onClick={() => {
-                                setActiveSection(activeSection === 'translation' ? null : 'translation');
-                                setSearchQuery('');
-                            }}
-                            className="p-1 rounded-full hover:bg-stone-200"
-                        >
-                            {activeSection === 'translation' ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-                        </button>
-                    </div>
-                </div>
-                
-                {activeSection === 'translation' && (
-                    <div className="p-5 bg-stone-50/30">
-                        {renderEditionList('translation')}
-                    </div>
-                )}
-            </section>
-
-            {/* 6. Tafsir Settings */}
-            <section className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
-                {/* ... existing tafsir settings ... */}
-                <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
-                    <div>
-                        <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
-                            <BookType className="w-4 h-4 text-quran-gold" /> Tafsir
-                        </h2>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                            {showTafsir ? `Aktif: ${getEditionName(currentTafsirId)}` : 'Nonaktif'}
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                         <button
-                            onClick={() => onToggleTafsir(!showTafsir)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                                showTafsir ? 'bg-quran-dark' : 'bg-gray-300'
-                            }`}
-                        >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showTafsir ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        <button 
-                            onClick={() => {
-                                setActiveSection(activeSection === 'tafsir' ? null : 'tafsir');
-                                setSearchQuery('');
-                            }}
-                            className="p-1 rounded-full hover:bg-stone-200"
-                        >
-                            {activeSection === 'tafsir' ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
-                        </button>
-                    </div>
-                </div>
-                
-                {activeSection === 'tafsir' && (
-                    <div className="p-5 bg-stone-50/30">
-                        <div className="mb-4 p-3 bg-blue-50 text-blue-700 text-xs rounded-lg flex gap-2">
-                            <AlertCircle className="w-4 h-4 shrink-0" />
-                            <p>Tafsir memberikan penjelasan mendalam. Ukuran file biasanya lebih besar (3MB - 10MB).</p>
+            {/* 5. Translation & 6. Tafsir Settings */}
+            {['translation', 'tafsir'].map((type) => (
+                <section key={type} className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden">
+                    <div className="p-5 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+                        <div>
+                            <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                                <BookType className="w-4 h-4 text-quran-gold" /> {type === 'translation' ? 'Terjemahan' : 'Tafsir'}
+                            </h2>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                                {type === 'translation' 
+                                    ? (showTranslation ? `Aktif: ${getEditionName(currentTranslationId)}` : 'Nonaktif')
+                                    : (showTafsir ? `Aktif: ${getEditionName(currentTafsirId)}` : 'Nonaktif')
+                                }
+                            </p>
                         </div>
-                        {renderEditionList('tafsir')}
+                        <div className="flex items-center gap-2">
+                             <button
+                                onClick={() => type === 'translation' ? onToggleTranslation(!showTranslation) : onToggleTafsir(!showTafsir)}
+                                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                                    (type === 'translation' ? showTranslation : showTafsir) ? 'bg-quran-dark' : 'bg-gray-300'
+                                }`}
+                            >
+                                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${ (type === 'translation' ? showTranslation : showTafsir) ? 'translate-x-6' : 'translate-x-1'}`} />
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    setActiveSection(activeSection === type ? null : type as any);
+                                    setSearchQuery('');
+                                }}
+                                className="p-1 rounded-full hover:bg-stone-200"
+                            >
+                                {activeSection === type ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+                            </button>
+                        </div>
                     </div>
-                )}
-            </section>
+                    
+                    {activeSection === type && (
+                        <div className="p-5 bg-stone-50/30">
+                            {type === 'tafsir' && (
+                                <div className="mb-4 p-3 bg-blue-50 text-blue-700 text-xs rounded-lg flex gap-2">
+                                    <AlertCircle className="w-4 h-4 shrink-0" />
+                                    <p>Tafsir memberikan penjelasan mendalam. Ukuran file biasanya lebih besar (3MB - 10MB).</p>
+                                </div>
+                            )}
+                            {renderEditionList(type as any)}
+                        </div>
+                    )}
+                </section>
+            ))}
 
         </div>
 
@@ -736,6 +785,16 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             onClose={() => setIsLangModalOpen(false)}
             currentAppLang={currentAppLang}
             onAppLangChange={onAppLangChange}
+        />
+
+        <ConfirmationModal 
+            isOpen={confirmState.isOpen}
+            onClose={() => setConfirmState(prev => ({ ...prev, isOpen: false }))}
+            onConfirm={confirmState.onConfirm}
+            title={confirmState.title}
+            message={confirmState.message}
+            confirmText={confirmState.confirmText}
+            variant={confirmState.variant}
         />
     </div>
   );

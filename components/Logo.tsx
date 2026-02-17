@@ -76,7 +76,7 @@ const Logo: React.FC<LogoProps> = ({ className = "w-10 h-10", withText = false, 
       {withText && (
         <div className="flex flex-col justify-center">
             <h1 className={`text-xl font-bold font-serif tracking-tight leading-none ${lightMode ? 'text-white' : 'text-[#1e3a34]'}`}>
-                Basirah
+                Bashirah
             </h1>
             <p className={`text-[9px] font-sans tracking-[0.2em] uppercase leading-none mt-1 ${lightMode ? 'text-white/70' : 'text-[#1e3a34]/60'}`}>
                 Al-Quran Digital

@@ -1,9 +1,9 @@
 
-# Basirah - Aplikasi Al-Quran Digital & Tadabbur
+# Bashirah - Aplikasi Al-Quran Digital & Tadabbur
 
 ![Basirah App Banner](https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop)
 
-**Basirah** adalah aplikasi Al-Quran web modern (Progressive Web App / PWA) yang dirancang untuk memberikan pengalaman membaca, mendengar, dan mentadabburi Al-Quran yang nyaman, estetik, dan menenangkan jiwa.
+**Bashirah** adalah aplikasi Al-Quran web modern (Progressive Web App / PWA) yang dirancang untuk memberikan pengalaman membaca, mendengar, dan mentadabburi Al-Quran yang nyaman, estetik, dan menenangkan jiwa.
 
 Aplikasi ini dibangun dengan teknologi web terbaru, mendukung penggunaan offline (setelah unduh data), dan memiliki antarmuka responsif yang optimal di Ponsel, Tablet, maupun Desktop.
 

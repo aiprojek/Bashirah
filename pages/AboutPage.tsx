@@ -41,9 +41,9 @@ const AboutPage: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in min-h-screen pb-24">
             
-            {/* Tab Navigation */}
-            <div className="sticky top-0 z-10 bg-stone-50/95 backdrop-blur-sm py-2 mb-6">
-                <div className="flex flex-wrap justify-center gap-2 bg-white p-1.5 rounded-xl border border-stone-200 shadow-sm sm:inline-flex w-full sm:w-auto">
+            {/* Tab Navigation - Scrollable on Mobile */}
+            <div className="sticky top-0 z-10 bg-stone-50/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-stone-200/50 sm:border-none">
+                <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -51,10 +51,10 @@ const AboutPage: React.FC = () => {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                                className={`flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all snap-start whitespace-nowrap border ${
                                     isActive 
-                                    ? 'bg-quran-dark text-white shadow-md' 
-                                    : 'text-gray-500 hover:bg-stone-100 hover:text-quran-dark'
+                                    ? 'bg-quran-dark text-white shadow-md border-quran-dark' 
+                                    : 'bg-white text-gray-500 border-stone-200 hover:bg-stone-50 hover:text-quran-dark'
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -62,6 +62,8 @@ const AboutPage: React.FC = () => {
                             </button>
                         );
                     })}
+                    {/* Spacer for right padding in scroll view */}
+                    <div className="w-2 flex-shrink-0 sm:hidden"></div>
                 </div>
             </div>
 
@@ -75,42 +77,45 @@ const AboutPage: React.FC = () => {
                             <Logo className="w-14 h-14" />
                         </div>
                         
-                        <h2 className="text-3xl font-bold text-quran-dark font-serif mb-1 text-center">Basirah</h2>
-                        <p className="text-xs font-bold text-quran-gold uppercase tracking-[0.3em] mb-4 text-center">Al-Quran Digital</p>
-                        
+                        <p className="font-arabic text-3xl text-quran-gold my-2 leading-relaxed">بَصِيرَة</p>
+                        <h2 className="text-3xl font-bold text-quran-dark font-serif mb-1 text-center">Bashirah</h2>
+                        <p className="text-sm font-serif italic text-gray-500 mb-4">"Mata Hati"</p>
+
                         <div className="bg-stone-50 px-3 py-1 rounded-full text-[10px] text-gray-500 font-mono mb-6 border border-stone-200">
                             Versi 20260217
                         </div>
 
-                        <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center">
+                        <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
                             "Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan jiwa dan fitur yang memudahkan tadabbur."
                         </p>
 
-                        <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md mb-10">
+                        <div className="flex flex-col w-full max-w-md gap-3 mb-10">
                             <a 
                                 href="https://lynk.id/aiprojek/s/bvBJvdA" 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#FFDD00] text-black rounded-xl font-bold hover:bg-[#FFEA00] transition-colors shadow-sm"
+                                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FFDD00] text-black rounded-xl font-bold hover:bg-[#FFEA00] transition-colors shadow-sm active:scale-95 transform duration-200"
                             >
                                 <Coffee className="w-5 h-5" /> Traktir Kopi
                             </a>
-                            <a 
-                                href="https://github.com/aiprojek/Bashirah" 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-sm"
-                            >
-                                <Github className="w-5 h-5" /> Github
-                            </a>
-                            <a 
-                                href="https://t.me/aiprojek_community/32" 
-                                target="_blank" 
-                                rel="noreferrer"
-                                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-[#0088cc] text-white rounded-xl font-bold hover:bg-[#0099dd] transition-colors shadow-sm"
-                            >
-                                <Send className="w-5 h-5" /> Telegram
-                            </a>
+                            <div className="flex gap-3">
+                                <a 
+                                    href="https://github.com/aiprojek/Bashirah" 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-sm text-sm"
+                                >
+                                    <Github className="w-4 h-4" /> Github
+                                </a>
+                                <a 
+                                    href="https://t.me/aiprojek_community/32" 
+                                    target="_blank" 
+                                    rel="noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-[#0088cc] text-white rounded-xl font-bold hover:bg-[#0099dd] transition-colors shadow-sm text-sm"
+                                >
+                                    <Send className="w-4 h-4" /> Telegram
+                                </a>
+                            </div>
                         </div>
 
                         {/* License & Attribution Section */}
@@ -272,7 +277,7 @@ const AboutPage: React.FC = () => {
                                 </div>
                                 <button 
                                     type="submit"
-                                    className="w-full py-3.5 bg-quran-dark text-white rounded-xl font-bold hover:bg-quran-dark/90 transition-all flex items-center justify-center gap-2 shadow-lg"
+                                    className="w-full py-3.5 bg-quran-dark text-white rounded-xl font-bold hover:bg-quran-dark/90 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 transform"
                                 >
                                     <Send className="w-4 h-4" />
                                     Kirim via Email
@@ -281,7 +286,7 @@ const AboutPage: React.FC = () => {
                             
                             <div className="mt-8 pt-8 border-t border-stone-100 text-center">
                                 <p className="text-xs text-gray-400 mb-2">Atau hubungi via email manual:</p>
-                                <div className="flex items-center justify-center gap-2 text-sm font-bold text-quran-dark bg-stone-50 py-2 rounded-lg">
+                                <div className="flex items-center justify-center gap-2 text-sm font-bold text-quran-dark bg-stone-50 py-2 rounded-lg select-all">
                                     <Mail className="w-4 h-4" /> aiprojek01@gmail.com
                                 </div>
                             </div>

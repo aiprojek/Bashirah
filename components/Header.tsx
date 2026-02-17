@@ -24,7 +24,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
       if (location.pathname === '/quiz') return "Kuis Al-Quran";
       if (location.pathname === '/tadabbur') return "Jurnal Tadabbur";
       if (location.pathname === '/about') return "Tentang Aplikasi";
-      return "Basirah";
+      return "Bashirah";
   };
 
   const handleBack = () => {

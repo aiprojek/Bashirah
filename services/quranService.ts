@@ -6,6 +6,89 @@ const QURAN_LOCAL_URL = '/quran-json/quran.json'; // Fixed typo: qruan -> quran
 const API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_URL = 'https://api.quran.com/api/v4';
 
+// --- JUZ & SAJDAH DATA MAPPING ---
+
+export const JUZ_START_MAPPING = [
+    { juz: 1, surahId: 1, verseId: 1, label: "Al-Fatihah 1" },
+    { juz: 2, surahId: 2, verseId: 142, label: "Al-Baqarah 142" },
+    { juz: 3, surahId: 2, verseId: 253, label: "Al-Baqarah 253" },
+    { juz: 4, surahId: 3, verseId: 93, label: "Ali 'Imran 93" },
+    { juz: 5, surahId: 4, verseId: 24, label: "An-Nisa 24" },
+    { juz: 6, surahId: 4, verseId: 148, label: "An-Nisa 148" },
+    { juz: 7, surahId: 5, verseId: 82, label: "Al-Ma'idah 82" },
+    { juz: 8, surahId: 6, verseId: 111, label: "Al-An'am 111" },
+    { juz: 9, surahId: 7, verseId: 88, label: "Al-A'raf 88" },
+    { juz: 10, surahId: 8, verseId: 41, label: "Al-Anfal 41" },
+    { juz: 11, surahId: 9, verseId: 93, label: "At-Tawbah 93" },
+    { juz: 12, surahId: 11, verseId: 6, label: "Hud 6" },
+    { juz: 13, surahId: 12, verseId: 53, label: "Yusuf 53" },
+    { juz: 14, surahId: 15, verseId: 1, label: "Al-Hijr 1" },
+    { juz: 15, surahId: 17, verseId: 1, label: "Al-Isra 1" },
+    { juz: 16, surahId: 18, verseId: 75, label: "Al-Kahf 75" },
+    { juz: 17, surahId: 21, verseId: 1, label: "Al-Anbiya 1" },
+    { juz: 18, surahId: 23, verseId: 1, label: "Al-Mu'minun 1" },
+    { juz: 19, surahId: 25, verseId: 21, label: "Al-Furqan 21" },
+    { juz: 20, surahId: 27, verseId: 56, label: "An-Naml 56" },
+    { juz: 21, surahId: 29, verseId: 46, label: "Al-Ankabut 46" },
+    { juz: 22, surahId: 33, verseId: 31, label: "Al-Ahzab 31" },
+    { juz: 23, surahId: 36, verseId: 28, label: "Ya-Sin 28" },
+    { juz: 24, surahId: 39, verseId: 32, label: "Az-Zumar 32" },
+    { juz: 25, surahId: 41, verseId: 47, label: "Fussilat 47" },
+    { juz: 26, surahId: 46, verseId: 1, label: "Al-Ahqaf 1" },
+    { juz: 27, surahId: 51, verseId: 31, label: "Adh-Dhariyat 31" },
+    { juz: 28, surahId: 58, verseId: 1, label: "Al-Mujadila 1" },
+    { juz: 29, surahId: 67, verseId: 1, label: "Al-Mulk 1" },
+    { juz: 30, surahId: 78, verseId: 1, label: "An-Naba 1" },
+];
+
+export const SAJDAH_VERSES = [
+    { surahId: 7, verseId: 206, surahName: "Al-A'raf" },
+    { surahId: 13, verseId: 15, surahName: "Ar-Ra'd" },
+    { surahId: 16, verseId: 50, surahName: "An-Nahl" },
+    { surahId: 17, verseId: 109, surahName: "Al-Isra" },
+    { surahId: 19, verseId: 58, surahName: "Maryam" },
+    { surahId: 22, verseId: 18, surahName: "Al-Hajj" },
+    { surahId: 22, verseId: 77, surahName: "Al-Hajj" },
+    { surahId: 25, verseId: 60, surahName: "Al-Furqan" },
+    { surahId: 27, verseId: 26, surahName: "An-Naml" },
+    { surahId: 32, verseId: 15, surahName: "As-Sajdah" },
+    { surahId: 38, verseId: 24, surahName: "Sad" },
+    { surahId: 41, verseId: 38, surahName: "Fussilat" },
+    { surahId: 53, verseId: 62, surahName: "An-Najm" },
+    { surahId: 84, verseId: 21, surahName: "Al-Inshiqaq" },
+    { surahId: 96, verseId: 19, surahName: "Al-Alaq" },
+];
+
+// Helper to generate Hizb list (60 Hizb). 
+// Since strict mapping for all 60 Hizb starts requires more data, 
+// we will approximate navigation: Odd Hizb = Start of Juz, Even Hizb = Middle of Juz (approx).
+// For specific accurate middle-of-juz navigation, we would need a larger map.
+// For now, we will map Hizb 1 to Juz 1 start, Hizb 2 to a known mid-point or just list them for UI completeness 
+// and link Odd to Juz start, and Even to Juz start + offset (imperfect but functional for simple navigation).
+// Ideally, we'd use the JUZ_START_MAPPING. 
+export const getHizbList = () => {
+    const list = [];
+    for (let i = 1; i <= 60; i++) {
+        const juzNum = Math.ceil(i / 2);
+        const isStartOfJuz = i % 2 !== 0;
+        
+        // Find Juz Info
+        const juzData = JUZ_START_MAPPING.find(j => j.juz === juzNum);
+        
+        list.push({
+            id: i,
+            juz: juzNum,
+            isStart: isStartOfJuz,
+            surahId: juzData?.surahId || 1, 
+            // If it's the second hizb of the juz, we navigate to the same surah (or ideally next), 
+            // In a real app we'd map exact verses. Here we link to the Juz start for simplicity to ensure functionality.
+            verseId: juzData?.verseId || 1 
+        });
+    }
+    return list;
+};
+
+
 // Cache for the full Arabic Quran from local JSON
 let globalArabicCache: Record<string, { chapter: number; verse: number; text: string }[]> | null = null;
 

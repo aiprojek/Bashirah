@@ -202,16 +202,25 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                     </p>
                                 </div>
 
-                                {/* Footer */}
-                                <div className="flex flex-col items-center gap-3 border-t border-white/20 pt-8 w-full">
+                                {/* Footer (Surah Info) - Added padding bottom to separate from new branding footer */}
+                                <div className="flex flex-col items-center gap-3 border-t border-white/20 pt-8 pb-32 w-full">
                                     <h4 className="font-bold text-4xl text-quran-gold">{ayat.surah.englishName}</h4>
                                     <span className="text-2xl opacity-60 font-sans tracking-wide">Ayat {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
                                 </div>
                             </div>
                             
-                            {/* Watermark for shared image */}
-                            <div className="absolute bottom-8 right-8 text-xl uppercase tracking-[0.2em] opacity-30 font-sans">
-                                Al-Quran Digital
+                            {/* BRANDING FOOTER */}
+                            <div className="absolute bottom-[80px] left-[80px] right-[80px] flex justify-between items-end z-20">
+                                {/* Left: Branding */}
+                                <div className="text-left">
+                                    <h1 className="text-5xl font-bold font-serif tracking-tight mb-2 text-white">Bashirah</h1>
+                                    <p className="text-xl font-sans uppercase tracking-[0.3em] opacity-60 text-white">Al Quran Digital</p>
+                                </div>
+                                
+                                {/* Right: URL */}
+                                <div className="text-right">
+                                    <p className="text-2xl font-sans font-medium tracking-wider opacity-60 text-white">bashirah.pages.dev</p>
+                                </div>
                             </div>
                         </div>
 
@@ -220,17 +229,17 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                         <div className="flex gap-3 justify-center w-full">
                             <button 
                                 onClick={handleGoToVerse}
-                                className="flex-1 bg-white hover:bg-stone-50 text-quran-dark py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 border border-stone-200"
+                                className="flex-1 bg-white hover:bg-stone-50 text-quran-dark py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 border border-stone-200 whitespace-nowrap"
                             >
                                 <span>Baca Tafsir</span>
-                                <ArrowRight className="w-4 h-4" />
+                                <ArrowRight className="w-4 h-4 flex-shrink-0" />
                             </button>
                             <button 
                                 onClick={handleShare}
                                 disabled={generatingImage}
-                                className="flex-1 bg-quran-gold hover:bg-yellow-500 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2"
+                                className="flex-1 bg-quran-gold hover:bg-yellow-500 text-white py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap"
                             >
-                                {generatingImage ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                                {generatingImage ? <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" /> : <Share2 className="w-4 h-4 flex-shrink-0" />}
                                 <span>{generatingImage ? 'Membuat...' : 'Bagikan Gambar'}</span>
                             </button>
                         </div>

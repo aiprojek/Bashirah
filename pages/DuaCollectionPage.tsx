@@ -18,7 +18,10 @@ const DuaCollectionPage: React.FC = () => {
     }, []);
 
     const handleCopy = (text: string, id: string) => {
-        navigator.clipboard.writeText(text);
+        // Adding Credit Footer
+        const creditText = `\n\nBashirah - Al Quran Digital\nbashirah.pages.dev`;
+        navigator.clipboard.writeText(text + creditText);
+        
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
     };
@@ -122,7 +125,7 @@ const DuaCollectionPage: React.FC = () => {
                                 {/* Footer Actions */}
                                 <div className="mt-4 flex justify-end gap-3">
                                      <button 
-                                        onClick={() => handleCopy(`${dua.arabic}\n\n"${dua.translation}" (QS ${dua.surahName}: ${dua.verseId})`, dua.id)}
+                                        onClick={() => handleCopy(`${dua.arabic}\n\n"${dua.translation}"\n(QS ${dua.surahName}: ${dua.verseId})`, dua.id)}
                                         className={`text-xs font-bold flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isCopied ? 'bg-green-100 text-green-700' : 'bg-white border border-stone-200 text-gray-500 hover:border-quran-gold hover:text-quran-gold'}`}
                                     >
                                         {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}

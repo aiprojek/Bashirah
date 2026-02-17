@@ -9,10 +9,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'logo.svg'],
       manifest: {
-        name: 'Basirah - Al-Quran Digital',
-        short_name: 'Basirah',
+        name: 'Bashirah - Al-Quran Digital',
+        short_name: 'Bashirah',
         description: 'Aplikasi Al-Quran Digital dengan fitur Tadabbur, Refleksi Emosi, dan desain klasik yang menenangkan jiwa.',
         theme_color: '#fcfbf7',
         background_color: '#fcfbf7',
@@ -22,26 +22,30 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: 'pwa-64x64.png',
+            src: 'logo.svg',
             sizes: '64x64',
-            type: 'image/png'
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           },
           {
-            src: 'pwa-192x192.png',
+            src: 'logo.svg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'logo.svg',
             sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any'  
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           },
           {
-            src: 'maskable-icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'maskable'
+            // Definisi ukuran ekstra besar untuk memastikan browser modern
+            // merender Splash Screen dengan resolusi sangat tinggi (4K Ready vector)
+            src: 'logo.svg',
+            sizes: '1024x1024',
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       },

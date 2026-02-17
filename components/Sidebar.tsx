@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info } from 'lucide-react';
+import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles } from 'lucide-react';
 import Logo from './Logo';
 
 interface SidebarProps {
@@ -75,6 +75,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                     <LayoutGrid className={`w-5 h-5 ${isActive('/topics') ? 'text-[#d4af37] fill-current' : ''}`} />
                     <span>Indeks Topik</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/asmaul-husna')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/asmaul-husna') 
+                        ? 'bg-[#d4af37]/10 text-[#1e3a34] font-bold' 
+                        : 'text-gray-600 hover:bg-stone-100'
+                    }`}
+                >
+                    <Sparkles className={`w-5 h-5 ${isActive('/asmaul-husna') ? 'text-[#d4af37] fill-current' : ''}`} />
+                    <span>Asmaul Husna</span>
                 </button>
 
                 <button 
@@ -166,7 +178,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
             {/* Footer */}
             <div className="p-6 bg-stone-50 border-t border-stone-100 text-center">
-                <p className="text-xs text-gray-400 font-serif italic">Basirah</p>
+                <p className="text-xs text-gray-400 font-serif italic">Bashirah</p>
                 <p className="text-[10px] text-gray-300 mt-1">Versi 20260217</p>
             </div>
         </div>
