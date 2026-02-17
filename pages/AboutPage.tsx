@@ -138,10 +138,10 @@ const AboutPage: React.FC = () => {
                             {/* Data Sources */}
                             <div className="text-[10px] text-gray-400 leading-relaxed">
                                 <p className="mb-1">
-                                    Data Al-Quran berasal dari <a href="https://github.com/aiprojek/Bashirah" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Bashirah Repo</a> dengan <a href="https://github.com/risan/quran-json?tab=CC-BY-SA-4.0-1-ov-file#readme" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Lisensi CC-BY-SA-4.0</a>.
+                                    Data Al-Quran berasal dari <a href="https://github.com/risan/quran-json" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Risan/Quran-JSON</a>.
                                 </p>
                                 <p>
-                                    Data konten tambahan dari API Aladhan.
+                                    API Ayat, Terjemahan & Audio dari <a href="https://alquran.cloud/api" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Al Quran Cloud</a>.
                                 </p>
                             </div>
                             

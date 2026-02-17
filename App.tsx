@@ -23,10 +23,11 @@ import KhatamWidget from './components/KhatamWidget';
 import MushafView from './components/MushafView'; 
 import AyatOfTheDay from './components/AyatOfTheDay'; 
 import SurahInfoModal from './components/SurahInfoModal';
+import QuickJumpModal from './components/QuickJumpModal'; // NEW IMPORT
 import { getAllSurahs, getSurahDetail, getAvailableEditions, getSurahStartPage, getSurahInfo } from './services/quranService';
 import * as StorageService from './services/storageService';
 import { Surah, SurahDetail, LanguageCode, TranslationOption, DEFAULT_EDITIONS, LastReadData, BookmarkData, NoteData, Word, MemorizationLevel, SurahInfo } from './types';
-import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info } from 'lucide-react';
+import { BookOpen, ChevronRight, Clock, ScrollText, Grid, Eye, EyeOff, BrainCircuit, Sparkles, ChevronDown, Check, Zap, AlignCenter, Ghost, Type, Info, ChevronLeft, Compass } from 'lucide-react';
 import { AudioProvider, useAudio } from './contexts/AudioContext';
 
 interface HomePageProps {
@@ -208,7 +209,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 }) => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
+  const navigate = useNavigate();
+  
   const [surah, setSurah] = useState<SurahDetail | null>(null);
+  const [allSurahs, setAllSurahs] = useState<Surah[]>([]); // For Navigation
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'list' | 'mushaf'>('list'); 
   
@@ -216,6 +220,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
+
+  // Quick Jump Modal
+  const [showQuickJump, setShowQuickJump] = useState(false);
 
   // Memorization Mode State
   const [isMemMode, setIsMemMode] = useState(false);
@@ -239,6 +246,11 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
 
   const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse } = useAudio();
+
+  // Load All Surahs for Navigation
+  useEffect(() => {
+      getAllSurahs(appLang).then(setAllSurahs);
+  }, [appLang]);
 
   useEffect(() => {
     if(id) {
@@ -295,6 +307,31 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           }
       } 
   }, [loading, surah, location, audioVerse, audioSurah, viewMode]);
+
+  // NAVIGATION HELPERS
+  const prevSurah = useMemo(() => {
+      if (!surah || !allSurahs.length) return null;
+      return allSurahs.find(s => s.id === surah.id - 1);
+  }, [surah, allSurahs]);
+
+  const nextSurah = useMemo(() => {
+      if (!surah || !allSurahs.length) return null;
+      return allSurahs.find(s => s.id === surah.id + 1);
+  }, [surah, allSurahs]);
+
+  const handleNavigateSurah = (targetId: number) => {
+      navigate(`/surah/${targetId}`);
+  };
+
+  const handleQuickJump = (surahId: number, verseId: number) => {
+      navigate(`/surah/${surahId}#verse-${verseId}`);
+      if (viewMode === 'mushaf') {
+          // If in mushaf mode, we navigate URL but mushaf component might not auto-scroll to verse pixels yet.
+          // It will load the correct start page of the surah because MushafView uses `getSurahStartPage(id)`.
+          // For now, simply changing route handles the page load.
+      }
+  };
+
 
   const handleToggleBookmark = (verseId: number) => {
       if(!surah) return;
@@ -386,16 +423,41 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   if (viewMode === 'mushaf') {
       const startPage = getSurahStartPage(surah.id);
       return (
-          <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden">
-              {/* Toolbar */}
-              <div className="bg-white p-2 border-b border-stone-100 flex justify-end px-4 z-20 shadow-sm shrink-0">
-                   <button 
-                       onClick={() => setViewMode('list')}
-                       className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-stone-100 transition-colors"
-                   >
-                       <ScrollText className="w-4 h-4" />
-                       Mode List
-                   </button>
+          <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white">
+              {/* Toolbar Mushaf */}
+              <div className="bg-white p-2 border-b border-stone-100 flex justify-between items-center px-4 z-20 shadow-sm shrink-0">
+                   {/* Prev/Next Surah in Toolbar */}
+                   <div className="flex gap-1">
+                        {prevSurah && (
+                            <button onClick={() => handleNavigateSurah(prevSurah.id)} className="p-2 hover:bg-stone-100 rounded-lg text-gray-500" title={`Ke Surat ${prevSurah.transliteration}`}>
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                        )}
+                         {nextSurah && (
+                            <button onClick={() => handleNavigateSurah(nextSurah.id)} className="p-2 hover:bg-stone-100 rounded-lg text-gray-500" title={`Ke Surat ${nextSurah.transliteration}`}>
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        )}
+                   </div>
+
+                   <div className="flex gap-2">
+                        {/* Quick Jump */}
+                        <button 
+                            onClick={() => setShowQuickJump(true)}
+                            className="p-2 rounded-lg text-gray-600 hover:bg-stone-100 transition-colors"
+                            title="Pindah Ayat"
+                        >
+                            <Compass className="w-5 h-5" />
+                        </button>
+
+                       <button 
+                           onClick={() => setViewMode('list')}
+                           className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-600 hover:bg-stone-100 transition-colors"
+                       >
+                           <ScrollText className="w-4 h-4" />
+                           Mode List
+                       </button>
+                   </div>
               </div>
               
               {/* Full height container for MushafView */}
@@ -405,6 +467,14 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     translationId={translationId || 'id.indonesian'}
                   />
               </div>
+
+               <QuickJumpModal 
+                    isOpen={showQuickJump}
+                    onClose={() => setShowQuickJump(false)}
+                    surahs={allSurahs}
+                    currentSurahId={surah.id}
+                    onNavigate={handleQuickJump}
+               />
           </div>
       );
   }
@@ -413,9 +483,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in pb-32">
       
-      {/* View Toggle */}
+      {/* Top Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-           {/* Memorization Dropdown */}
+           {/* Memorization & Settings */}
            <div className="flex flex-wrap items-center gap-2 relative">
                 {isMemMode ? (
                      <div className="relative">
@@ -533,6 +603,15 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                         </>
                     )}
                 </div>
+
+                {/* Quick Jump Toggle */}
+                <button 
+                    onClick={() => setShowQuickJump(true)}
+                    className="p-2 rounded-xl bg-white border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-all"
+                    title="Pindah Cepat (Surat/Ayat)"
+                >
+                    <Compass className="w-4 h-4" />
+                </button>
            </div>
 
            <button 
@@ -540,8 +619,23 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl shadow-sm border border-stone-200 text-sm font-bold text-quran-dark hover:border-quran-gold transition-colors"
            >
                <BookOpen className="w-4 h-4 text-quran-gold" />
-               Mode Mushaf (Halaman)
+               Mode Mushaf
            </button>
+      </div>
+      
+      {/* Top Surah Navigation */}
+      <div className="flex justify-between items-center mb-6 text-sm font-medium text-gray-500">
+         {prevSurah ? (
+             <button onClick={() => handleNavigateSurah(prevSurah.id)} className="flex items-center gap-1 hover:text-quran-dark transition-colors">
+                 <ChevronLeft className="w-4 h-4" /> {prevSurah.transliteration}
+             </button>
+         ) : <div></div>}
+         
+         {nextSurah ? (
+             <button onClick={() => handleNavigateSurah(nextSurah.id)} className="flex items-center gap-1 hover:text-quran-dark transition-colors">
+                 {nextSurah.transliteration} <ChevronRight className="w-4 h-4" />
+             </button>
+         ) : <div></div>}
       </div>
 
       {/* Surah Header */}
@@ -610,8 +704,21 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         ))}
       </div>
       
-      <div className="mt-12 text-center text-gray-400 text-sm pb-8">
-         <p>Akhir dari Surat {surah.transliteration}</p>
+      {/* Bottom Surah Navigation */}
+      <div className="flex justify-between items-center mt-8 pt-6 border-t border-stone-200">
+         {prevSurah ? (
+             <button onClick={() => { window.scrollTo(0,0); handleNavigateSurah(prevSurah.id); }} className="flex flex-col items-start gap-1 p-3 hover:bg-stone-50 rounded-xl transition-all group text-left">
+                 <span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> Sebelumnya</span>
+                 <span className="font-bold text-quran-dark group-hover:text-quran-gold">{prevSurah.transliteration}</span>
+             </button>
+         ) : <div />}
+         
+         {nextSurah ? (
+             <button onClick={() => { window.scrollTo(0,0); handleNavigateSurah(nextSurah.id); }} className="flex flex-col items-end gap-1 p-3 hover:bg-stone-50 rounded-xl transition-all group text-right">
+                 <span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1">Selanjutnya <ChevronRight className="w-3 h-3" /></span>
+                 <span className="font-bold text-quran-dark group-hover:text-quran-gold">{nextSurah.transliteration}</span>
+             </button>
+         ) : <div />}
       </div>
 
       <NoteEditorModal 
@@ -638,6 +745,15 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           info={surahInfo}
           surah={surah}
           isLoading={loadingInfo}
+      />
+
+      {/* Quick Jump Modal */}
+      <QuickJumpModal 
+          isOpen={showQuickJump}
+          onClose={() => setShowQuickJump(false)}
+          surahs={allSurahs}
+          currentSurahId={surah.id}
+          onNavigate={handleQuickJump}
       />
 
     </div>
