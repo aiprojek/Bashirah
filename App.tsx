@@ -16,6 +16,7 @@ import QuizPage from './pages/QuizPage';
 import TadabburPage from './pages/TadabburPage';
 import AboutPage from './pages/AboutPage';
 import AsmaulHusnaPage from './pages/AsmaulHusnaPage'; 
+import TajweedLearnPage from './pages/TajweedLearnPage'; // NEW IMPORT
 import NoteEditorModal from './components/NoteEditorModal';
 import WordDetailModal from './components/WordDetailModal';
 import AudioPlayer from './components/AudioPlayer'; 
@@ -626,6 +627,7 @@ const App: React.FC = () => {
                     <Route path="/quiz" element={<QuizPage />} />
                     <Route path="/tadabbur" element={<TadabburPage />} />
                     <Route path="/asmaul-husna" element={<AsmaulHusnaPage />} />
+                    <Route path="/tajweed-learn" element={<TajweedLearnPage />} /> {/* NEW ROUTE */}
                     <Route path="/about" element={<AboutPage />} />
                     <Route path="/surah/:id" element={<SurahDetailPage appLang={appLanguage} translationId={translationEdition} tafsirId={tafsirEdition} showTranslation={showTranslation} showTafsir={showTafsir} showWordByWord={showWordByWord} showTajweed={showTajweed} />} />
                     <Route path="/settings" element={<SettingsPage currentAppLang={appLanguage} onAppLangChange={setAppLanguage} currentTranslationId={translationEdition} onTranslationChange={setTranslationEdition} showTranslation={showTranslation} onToggleTranslation={setShowTranslation} currentTafsirId={tafsirEdition} onTafsirChange={setTafsirEdition} showTafsir={showTafsir} onToggleTafsir={setShowTafsir} showWordByWord={showWordByWord} onToggleWordByWord={setShowWordByWord} availableEditions={availableEditions} showTajweed={showTajweed} onToggleTajweed={setShowTajweed} />} />

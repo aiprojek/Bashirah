@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles } from 'lucide-react';
+import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap } from 'lucide-react';
 import Logo from './Logo';
 
 interface SidebarProps {
@@ -75,6 +75,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                     <LayoutGrid className={`w-5 h-5 ${isActive('/topics') ? 'text-[#d4af37] fill-current' : ''}`} />
                     <span>Indeks Topik</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/tajweed-learn')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/tajweed-learn') 
+                        ? 'bg-[#d4af37]/10 text-[#1e3a34] font-bold' 
+                        : 'text-gray-600 hover:bg-stone-100'
+                    }`}
+                >
+                    <GraduationCap className={`w-5 h-5 ${isActive('/tajweed-learn') ? 'text-[#d4af37] fill-current' : ''}`} />
+                    <span>Belajar Tajwid</span>
                 </button>
 
                 <button 

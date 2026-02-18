@@ -89,7 +89,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   useEffect(() => {
     const checkDownloads = async () => {
         const downloads = await DB.getDownloadedEditions();
-        setDownloadedIds(downloads.map(d => d.key));
+        setDownloadedIds(downloads.map(d => d.identifier));
     };
     checkDownloads();
     getAllSurahs(currentAppLang).then(setSurahs);
