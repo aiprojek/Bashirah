@@ -1,95 +1,130 @@
+
 import React, { useMemo } from 'react';
 
 interface TajweedTextProps {
   text: string;
 }
 
-// Map tags to Tailwind text colors
-// Based on typical IndoPak/Medina Tajweed color coding
-const COLOR_MAP: Record<string, string> = {
-  // Ghunnah: Nasalization (Green)
-  'n': 'text-[#169b62]', 
-  'm': 'text-[#169b62]', // Iqlab/Idgham Mim Sakiin usually same color family
-  
-  // Qalqalah: Echoing (Blue)
-  'q': 'text-[#367cba]', 
-  
-  // Madd: Prolongation (Red/Orange)
-  'o': 'text-[#d65f12]', // Extra long
-  'u': 'text-[#d65f12]',
-  'a': 'text-[#d65f12]',
-  'i': 'text-[#d65f12]',
-  
-  // Idgham: Merging (Gray/Light)
-  'p': 'text-stone-400', 
-  
-  // Ikhfa (Cyan/Light Blue - sometimes similar to Ghunnah but distinct)
-  'f': 'text-[#169b62]', 
-  
-  // Idgham bila Ghunnah (Gray/No color usually, but we keep it distinct)
-  'w': 'text-stone-400',
+// Group definitions for the Legend
+export interface TajweedGroup {
+    label: string;
+    colorClass: string;
+    hexColor: string;
+    rules: string[]; // chars used in parsing
+}
+
+export const TAJWEED_GROUPS: TajweedGroup[] = [
+    { 
+        label: 'Ghunnah / Ikhfa (Dengung)', 
+        colorClass: 'text-[#169b62]', 
+        hexColor: '#169b62',
+        rules: ['n', 'm', 'f'] 
+    },
+    { 
+        label: 'Qalqalah (Pantulan)', 
+        colorClass: 'text-[#367cba]', 
+        hexColor: '#367cba',
+        rules: ['q'] 
+    },
+    { 
+        label: 'Mad (Panjang)', 
+        colorClass: 'text-[#d65f12]', 
+        hexColor: '#d65f12',
+        rules: ['o', 'u', 'a', 'i'] 
+    },
+    { 
+        label: 'Tafkhim (Tebal)', 
+        colorClass: 'text-[#2a5a8a]', 
+        hexColor: '#2a5a8a',
+        rules: ['t', 'l', 'r'] 
+    },
+    { 
+        label: 'Idgham (Lebur)', 
+        colorClass: 'text-gray-400', 
+        hexColor: '#9ca3af',
+        rules: ['p', 'w', 'h'] 
+    },
+];
+
+// Helper to get color class by rule char
+const getColorClass = (ruleChar: string): string => {
+    const group = TAJWEED_GROUPS.find(g => g.rules.includes(ruleChar));
+    return group ? group.colorClass : 'text-quran-dark';
+};
+
+// Helper to extract active groups from text
+export const getActiveTajweedGroups = (text: string): TajweedGroup[] => {
+    if (!text) return [];
+    
+    // Simple regex to find the rule part inside [rule[...]]
+    // We are looking for the pattern [code[
+    // Example text: ٱلْحَمْدُ لِلَّهِ رَبِّ [h:4[ٱ]لْعَ[n[ـٰ]لَم[p[ِي]نَ
+    const ruleRegex = /\[([a-zA-Z0-9:]+)\[/g;
+    
+    const foundRules = new Set<string>();
+    let match;
+    while ((match = ruleRegex.exec(text)) !== null) {
+        // match[1] is the rule code (e.g. "n" or "h:4")
+        const baseRule = match[1].split(':')[0].toLowerCase();
+        foundRules.add(baseRule);
+    }
+
+    if (foundRules.size === 0) return [];
+
+    return TAJWEED_GROUPS.filter(group => 
+        group.rules.some(r => foundRules.has(r))
+    );
 };
 
 const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
-  const parsedContent = useMemo(() => {
+  const elements = useMemo(() => {
     if (!text) return null;
 
-    // 1. Normalize: Convert curly braces to square brackets for consistency
-    // Some APIs return {n} instead of [n]
-    let normalized = text.replace(/\{/g, '[').replace(/\}/g, ']');
+    // Regex to match the format: [rule[content]
+    // Example: [h:4[ٱ]
+    const PARSE_REGEX = /\[([^\[]+)\[([^\]]*)\]/g;
 
-    // 2. Split by tags
-    // This Regex captures:
-    // \[ : starting bracket
-    // /? : optional slash (for closing tags)
-    // [a-z]+ : the tag name (e.g., n, q, m)
-    // (?::\d+)? : optional colon and number (e.g., :1, :24) used for indexing
-    // \] : closing bracket
-    const SPLIT_REGEX = /(\[[\/]?[a-z]+(?::\d+)?\])/gi;
+    // Check if text actually contains this format
+    if (!text.match(PARSE_REGEX)) {
+         return <span className="text-quran-dark">{text}</span>;
+    }
 
-    const parts = normalized.split(SPLIT_REGEX);
-    const elements: React.ReactNode[] = [];
+    const parts = text.split(PARSE_REGEX);
+    const result: React.ReactNode[] = [];
     
-    // Stack-like behavior (though simple state is usually enough for this API)
-    let currentClass = 'text-quran-dark';
+    // Split with capturing groups returns: [text, rule, content, text, rule, content, ...]
+    for (let i = 0; i < parts.length; i += 3) {
+        const plainText = parts[i];
+        const rule = parts[i + 1];
+        const content = parts[i + 2];
 
-    parts.forEach((part, index) => {
-      // Check if it's a tag
-      if (part.startsWith('[') && part.endsWith(']')) {
-        const isClosing = part.startsWith('[/');
-        
-        if (isClosing) {
-           // Reset to default color on closing tag
-           currentClass = 'text-quran-dark';
-        } else {
-           // Extract the rule code. 
-           // Example: "[n:1]" -> "n"
-           // Example: "[q]" -> "q"
-           const content = part.replace(/[\[\]]/g, ''); // remove brackets
-           const code = content.split(':')[0].toLowerCase(); // take part before colon
-
-           if (COLOR_MAP[code]) {
-             currentClass = COLOR_MAP[code];
-           } else {
-             currentClass = 'text-quran-dark'; // Fallback
-           }
+        // 1. Add plain text part
+        if (plainText) {
+            result.push(
+                <span key={`t-${i}`} className="text-quran-dark">
+                    {plainText}
+                </span>
+            );
         }
-      } else {
-        // It's text content
-        if (part) {
-          elements.push(
-            <span key={index} className={`${currentClass} font-arabic`}>
-              {part}
-            </span>
-          );
-        }
-      }
-    });
 
-    return elements;
+        // 2. Add styled content part (if rule exists)
+        if (rule && content !== undefined) {
+             // Extract base rule code (e.g., 'h:4' -> 'h')
+             const baseRule = rule.split(':')[0].toLowerCase();
+             const colorClass = getColorClass(baseRule);
+             
+             result.push(
+                <span key={`c-${i}`} className={colorClass}>
+                    {content}
+                </span>
+             );
+        }
+    }
+
+    return result;
   }, [text]);
 
-  return <>{parsedContent}</>;
+  return <>{elements}</>;
 };
 
 export default TajweedText;

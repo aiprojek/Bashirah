@@ -1,20 +1,31 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Search as SearchIcon, ArrowRight, Loader2, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search as SearchIcon, ArrowRight, Loader2, Wifi, Download, Settings } from 'lucide-react';
 import { searchGlobalVerses } from '../services/quranService';
+import { isEditionDownloaded } from '../services/db'; // Import DB check
 import { useNavigate } from 'react-router-dom';
 
 interface SearchProps {
   value: string;
   onChange: (value: string) => void;
-  // New prop to trigger external search logic if needed, or we handle it here
+  translationId: string; // Need this to check if data exists
 }
 
-const Search: React.FC<SearchProps> = ({ value, onChange }) => {
+const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [verseResults, setVerseResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isOfflineReady, setIsOfflineReady] = useState(false); // Track if data is downloaded
   const navigate = useNavigate();
+
+  // Check if translation is downloaded whenever translationId changes
+  useEffect(() => {
+      const checkStatus = async () => {
+          const downloaded = await isEditionDownloaded(translationId);
+          setIsOfflineReady(downloaded);
+      };
+      checkStatus();
+  }, [translationId]);
 
   // Debounce search
   useEffect(() => {
@@ -26,7 +37,7 @@ const Search: React.FC<SearchProps> = ({ value, onChange }) => {
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchGlobalVerses(value);
+        const results = await searchGlobalVerses(value, translationId);
         setVerseResults(results);
       } catch (e) {
         console.error(e);
@@ -36,12 +47,15 @@ const Search: React.FC<SearchProps> = ({ value, onChange }) => {
     }, 600); // 600ms debounce
 
     return () => clearTimeout(timer);
-  }, [value]);
+  }, [value, translationId]);
 
   const handleResultClick = (surahId: number, verseId: number) => {
     navigate(`/surah/${surahId}#verse-${verseId}`);
-    // Optional: Clear search or collapse
     setIsFocused(false);
+  };
+
+  const handleGoToSettings = () => {
+      navigate('/settings');
   };
 
   return (
@@ -58,36 +72,55 @@ const Search: React.FC<SearchProps> = ({ value, onChange }) => {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
-        onBlur={() => setTimeout(() => setIsFocused(false), 200)} // Delay to allow click
+        onBlur={() => setTimeout(() => setIsFocused(false), 200)}
       />
 
       {/* DROPDOWN RESULTS */}
       {isFocused && value.length >= 3 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-stone-100 overflow-hidden max-h-[60vh] overflow-y-auto animate-fade-in custom-scrollbar">
             
-            {/* 1. Surah Matches (Filtered in Parent) */}
-            {/* We assume parent handles surah list filtering and passes control, 
-                but here we focus on showing Verse Search Results.
-                The user can still see filtered Surah cards below this input in the main layout.
-             */}
-            
-            {/* 2. Verse Matches */}
-            <div className="p-2">
-                <div className="flex items-center justify-between px-3 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-stone-100">
-                    <span>Hasil Pencarian Ayat</span>
-                    {isSearching && <Loader2 className="w-3 h-3 animate-spin text-quran-gold" />}
+            {/* OFFLINE STATUS NOTIFICATION */}
+            {!isOfflineReady && (
+                <div className="bg-blue-50 border-b border-blue-100 p-3 flex items-start gap-3">
+                    <div className="p-1.5 bg-blue-100 rounded-full text-blue-600 mt-0.5">
+                        <Wifi className="w-3 h-3" />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-xs font-bold text-blue-800">Pencarian Online Aktif</p>
+                        <p className="text-[10px] text-blue-600 leading-relaxed mt-0.5">
+                            Data terjemahan belum diunduh. Pencarian mungkin lebih lambat.
+                        </p>
+                        <button 
+                            onMouseDown={(e) => { e.preventDefault(); handleGoToSettings(); }} // onMouseDown prevents blur issue
+                            className="mt-2 text-[10px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-fit"
+                        >
+                            <Download className="w-3 h-3" /> Unduh Data Offline
+                        </button>
+                    </div>
                 </div>
+            )}
 
+            {/* RESULTS HEADER */}
+            <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-stone-100 bg-stone-50/50">
+                <span>Hasil Pencarian Ayat</span>
+                {isSearching && <Loader2 className="w-3 h-3 animate-spin text-quran-gold" />}
+            </div>
+
+            {/* RESULTS LIST */}
+            <div className="p-2">
                 {!isSearching && verseResults.length === 0 && (
-                    <div className="p-4 text-center text-gray-400 text-sm italic">
-                        Tidak ditemukan ayat dengan kata kunci "{value}".
+                    <div className="p-6 text-center text-gray-400 text-sm">
+                        <p className="italic mb-2">Tidak ditemukan ayat dengan kata kunci "{value}".</p>
+                        {!isOfflineReady && (
+                            <p className="text-xs text-gray-400">Pastikan koneksi internet lancar atau unduh data di Pengaturan.</p>
+                        )}
                     </div>
                 )}
 
                 {verseResults.map((res, idx) => (
                     <button
                         key={`${res.surah.number}-${res.verseId}-${idx}`}
-                        onClick={() => handleResultClick(res.surah.number, res.verseId)}
+                        onMouseDown={(e) => { e.preventDefault(); handleResultClick(res.surah.number, res.verseId); }}
                         className="w-full text-left p-3 hover:bg-stone-50 rounded-lg transition-colors group border-b border-stone-50 last:border-0"
                     >
                         <div className="flex justify-between items-start mb-1">
@@ -98,7 +131,6 @@ const Search: React.FC<SearchProps> = ({ value, onChange }) => {
                         </div>
                         <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed" 
                            dangerouslySetInnerHTML={{
-                               // Simple highlight logic
                                __html: res.translation.replace(new RegExp(`(${value})`, 'gi'), '<mark class="bg-yellow-200 text-gray-800 rounded-sm px-0.5">$1</mark>')
                            }} 
                         />

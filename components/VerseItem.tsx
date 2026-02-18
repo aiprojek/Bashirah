@@ -1,8 +1,9 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Verse, Word, MemorizationLevel } from '../types';
-import { BookOpen, Bookmark, CheckCircle, MoreVertical, FileText, PlayCircle, Volume2, Eye, EyeOff, Hash, Target, Copy, Share2, Check } from 'lucide-react';
+import { BookOpen, Bookmark, CheckCircle, MoreVertical, FileText, PlayCircle, Volume2, Eye, EyeOff, Hash, Target, Copy, Share2, Check, Palette } from 'lucide-react';
 import WordItem from './WordItem';
+import TajweedText, { getActiveTajweedGroups } from './TajweedText';
 import * as StorageService from '../services/storageService'; // Import direct for check
 
 interface VerseItemProps {
@@ -42,6 +43,9 @@ interface VerseItemProps {
   // New Font Size Props
   arabicFontSize?: number;
   translationFontSize?: number;
+  
+  // Tajweed Mode
+  isTajweedMode?: boolean;
 }
 
 const VerseItem: React.FC<VerseItemProps> = ({ 
@@ -64,7 +68,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
     isAudioPlaying = false,
     onPlayAudio,
     arabicFontSize = 30, // Default sizes
-    translationFontSize = 16
+    translationFontSize = 16,
+    isTajweedMode = false
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [revealArabic, setRevealArabic] = useState(false);
@@ -113,6 +118,14 @@ const VerseItem: React.FC<VerseItemProps> = ({
     return n.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
   };
 
+  // Calculate active tajweed groups for this specific verse
+  const activeTajweedGroups = useMemo(() => {
+      if (isTajweedMode && !memorizationMode.isActive) {
+          return getActiveTajweedGroups(verse.text);
+      }
+      return [];
+  }, [verse.text, isTajweedMode, memorizationMode.isActive]);
+
   // --- SMART MEMORIZATION LOGIC ---
   const renderArabicText = () => {
       // 1. Default Normal View (Not in Memorization Mode)
@@ -122,7 +135,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 className={`font-arabic leading-[2.5] ${isAudioPlaying ? 'font-medium' : ''}`}
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
-                <span className="text-quran-dark">{verse.text}</span>
+                <TajweedText text={verse.text} />
                 <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
                      {toArabicNumerals(verse.id)}
                 </span>
@@ -137,7 +150,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 className="font-arabic leading-[2.5] animate-fade-in relative"
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
-                <span className="text-quran-dark">{verse.text}</span>
+                <TajweedText text={verse.text} />
                 <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
                      {toArabicNumerals(verse.id)}
                 </span>
@@ -168,7 +181,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
                     className={`font-arabic leading-[2.5] blur-md select-none opacity-40 transition-all duration-300`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
-                    <span className="text-quran-dark">{verse.text}</span>
+                    {/* Even in blur, we use TajweedText so structure is maintained */}
+                    <TajweedText text={verse.text} />
                  </p>
              </div>
           );
@@ -183,7 +197,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                     className={`font-arabic leading-[2.5] text-quran-dark opacity-10 hover:opacity-30 transition-opacity duration-300 select-none filter-none`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
-                    {verse.text}
+                    <TajweedText text={verse.text} />
                     <span className="font-arabic text-quran-gold mx-2 inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
                          {toArabicNumerals(verse.id)}
                     </span>
@@ -193,7 +207,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
       }
 
       // Split words for First-Last and Random
-      // Use regex to split by whitespace to be safer with Arabic spacing
       const words = verse.text.trim().split(/\s+/);
       
       // Level: First & Last (Awal & Akhir)
@@ -202,7 +215,6 @@ const VerseItem: React.FC<VerseItemProps> = ({
              <div className="font-arabic leading-[2.5] cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
                      // Logic: Show first 2 and last 2. 
-                     // If verse is short (<= 4 words), show only first and last word.
                      let isVisible = false;
                      if (words.length <= 4) {
                          isVisible = idx === 0 || idx === words.length - 1;
@@ -211,10 +223,9 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      }
                      
                      if (isVisible) {
-                         return <span key={idx} className="text-quran-dark ml-1.5">{word} </span>;
+                         return <span key={idx} className="ml-1.5"><TajweedText text={word} /> </span>;
                      }
                      
-                     // Hidden word placeholder
                      return (
                         <span key={idx} className="inline-block bg-stone-200/50 rounded-md text-transparent select-none ml-1.5 min-w-[30px] h-4 align-middle opacity-50">
                              ....
@@ -233,12 +244,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
            return (
              <div className="font-arabic leading-[2.5] cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
-                     // Deterministic random based on verse ID and word index
                      const pseudoRandom = (verse.id + idx * 7) % 10; 
                      const shouldHide = pseudoRandom < 4; // 40% chance to hide
                      
                      if (!shouldHide) {
-                         return <span key={idx} className="text-quran-dark ml-1.5">{word} </span>;
+                         return <span key={idx} className="ml-1.5"><TajweedText text={word} /> </span>;
                      }
                      
                      return (
@@ -335,8 +345,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
                 {isMenuOpen && (
                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-stone-100 z-10 overflow-hidden animate-fade-in origin-top-right">
-                        
-                        {/* UPDATE KHATAM OPTION (ONLY IF TARGET EXISTS) */}
+                        {/* Dropdown Options ... */}
                         {hasKhatamTarget && onUpdateKhatam && (
                             <button 
                                 onClick={() => { onUpdateKhatam(verse.id); setIsMenuOpen(false); }}
@@ -394,10 +403,9 @@ const VerseItem: React.FC<VerseItemProps> = ({
       </div>
 
       {/* Arabic Text */}
-      <div className="mb-8 w-full text-right relative" dir="rtl">
+      <div className="mb-4 w-full text-right relative" dir="rtl">
          {/* Memorization Logic Injection */}
          {showWordByWord && verse.words && verse.words.length > 0 ? (
-             // Word By Word View (Overrides memorization)
              <div className="flex flex-wrap gap-y-6 justify-start items-end -mr-1">
                 {verse.words.map((word, idx) => (
                     <WordItem 
@@ -409,10 +417,24 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 ))}
              </div>
          ) : (
-             // Render with Memorization Logic
              renderArabicText()
          )}
       </div>
+
+      {/* TAJWEED LEGEND - Only show if in Tajweed Mode and not Memorization Mode (to avoid clutter) */}
+      {activeTajweedGroups.length > 0 && (
+          <div className="flex flex-wrap gap-2 justify-end mb-6 text-[10px] select-none" dir="rtl">
+              <div className="flex items-center gap-1 text-gray-400 opacity-60">
+                 <Palette className="w-3 h-3" />
+              </div>
+              {activeTajweedGroups.map((group, idx) => (
+                  <div key={idx} className="flex items-center gap-1.5 bg-stone-50 px-2 py-1 rounded border border-stone-100">
+                      <div className="w-2 h-2 rounded-full" style={{ backgroundColor: group.hexColor }}></div>
+                      <span className="text-gray-500">{group.label}</span>
+                  </div>
+              ))}
+          </div>
+      )}
 
       {/* Translation Area */}
       {verseTranslation && (
