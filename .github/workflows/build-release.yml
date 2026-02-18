@@ -17,8 +17,9 @@ jobs:
         with:
           node-version: 20
 
+      # FIX: Gunakan npm install karena package-lock.json mungkin belum ada
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Build Web Assets
         run: npm run build
@@ -29,6 +30,13 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
+      # FIX: Inisialisasi folder android jika belum ada di repo
+      - name: Initialize Capacitor Android
+        run: |
+          if [ ! -d "android" ]; then
+            npx cap add android
+          fi
+
       - name: Sync Capacitor
         run: npx cap sync android
 
@@ -36,7 +44,6 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
-      # FIX: Updated to v4 to fix deprecation error
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
@@ -81,8 +88,9 @@ jobs:
 
       # --- Build Process ---
 
+      # FIX: Gunakan npm install karena package-lock.json mungkin belum ada
       - name: Install NPM Dependencies
-        run: npm ci
+        run: npm install
 
       # FIX: Generate App Icons robustly using ImageMagick before build
       # Converting public/logo.svg to png first avoids Tauri SVG decoder issues
