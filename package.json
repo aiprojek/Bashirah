@@ -9,6 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
+    "icons": "tauri icon public/logo.svg",
+    "prebuild": "npm run icons",
     "android": "tauri android",
     "ios": "tauri ios"
   },
