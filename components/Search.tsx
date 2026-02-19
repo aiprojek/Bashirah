@@ -11,6 +11,11 @@ interface SearchProps {
   translationId: string; // Need this to check if data exists
 }
 
+// Helper to escape regex characters
+const escapeRegExp = (string: string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+};
+
 const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [verseResults, setVerseResults] = useState<any[]>([]);
@@ -131,7 +136,7 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                         </div>
                         <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed" 
                            dangerouslySetInnerHTML={{
-                               __html: res.translation.replace(new RegExp(`(${value})`, 'gi'), '<mark class="bg-yellow-200 text-gray-800 rounded-sm px-0.5">$1</mark>')
+                               __html: res.translation.replace(new RegExp(`(${escapeRegExp(value)})`, 'gi'), '<mark class="bg-yellow-200 text-gray-800 rounded-sm px-0.5">$1</mark>')
                            }} 
                         />
                     </button>
