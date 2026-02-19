@@ -1,11 +1,9 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Share2, ArrowRight, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { getAyatOfTheDayData } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
-import { Capacitor } from '@capacitor/core';
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface AyatData {
     surah: {
@@ -67,54 +65,30 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
             const image = canvas.toDataURL("image/png");
             const fileName = `Ayat-Harian-${ayat?.surah.englishName}-${ayat?.verseNo}.png`;
 
-            // 1. NATIVE ANDROID/IOS SHARE
-            if (Capacitor.isNativePlatform()) {
-                try {
-                    // Write base64 to temp file
-                    const base64Data = image.split(',')[1];
-                    const savedFile = await Filesystem.writeFile({
-                        path: fileName,
-                        data: base64Data,
-                        directory: Directory.Cache
-                    });
-
-                    // Share the file URI
-                    await Share.share({
-                        title: 'Ayat Harian',
+            // Web Share API (Works on Mobile Browsers & Tauri if supported)
+            if (navigator.share && navigator.canShare) {
+                const blob = await (await fetch(image)).blob();
+                const file = new File([blob], fileName, { type: 'image/png' });
+                if(navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                        title: 'Ayat of the Day',
                         text: `Ayat Harian: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}`,
-                        url: savedFile.uri,
+                        files: [file]
                     });
-                } catch (err) {
-                    console.error("Native share failed", err);
-                    alert("Gagal membagikan gambar.");
+                    setGeneratingImage(false);
+                    return;
                 }
-            } 
-            // 2. DESKTOP / WEB SHARE
-            else {
-                // Web Share API (Mobile Browsers)
-                if (navigator.share && navigator.canShare) {
-                    const blob = await (await fetch(image)).blob();
-                    const file = new File([blob], fileName, { type: 'image/png' });
-                    if(navigator.canShare({ files: [file] })) {
-                         await navigator.share({
-                            title: 'Ayat of the Day',
-                            text: `Ayat Harian: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}`,
-                            files: [file]
-                        });
-                        return;
-                    }
-                }
-
-                // Fallback: Download for Desktop
-                const link = document.createElement('a');
-                link.href = image;
-                link.download = fileName;
-                link.click();
-                
-                // Show Success feedback
-                setShareSuccess(true);
-                setTimeout(() => setShareSuccess(false), 3000);
             }
+
+            // Fallback: Download for Desktop
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = fileName;
+            link.click();
+            
+            // Show Success feedback
+            setShareSuccess(true);
+            setTimeout(() => setShareSuccess(false), 3000);
 
         } catch (error) {
             console.error("Failed to generate image", error);

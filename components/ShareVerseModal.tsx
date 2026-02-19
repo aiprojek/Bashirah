@@ -1,9 +1,7 @@
+
 import React, { useState, useRef } from 'react';
 import { Share2, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { Capacitor } from '@capacitor/core';
-import { Share } from '@capacitor/share';
-import { Filesystem, Directory } from '@capacitor/filesystem';
 
 interface ShareVerseModalProps {
     isOpen: boolean;
@@ -44,55 +42,31 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
             const image = canvas.toDataURL("image/png");
             const fileName = `Bashirah-${surahName}-${verseNumber}.png`;
 
-             // 1. NATIVE ANDROID/IOS SHARE
-             if (Capacitor.isNativePlatform()) {
-                try {
-                    // Write base64 to temp file
-                    const base64Data = image.split(',')[1];
-                    const savedFile = await Filesystem.writeFile({
-                        path: fileName,
-                        data: base64Data,
-                        directory: Directory.Cache
-                    });
-
-                    // Share the file URI
-                    await Share.share({
+            // Web Share API
+            if (navigator.share && navigator.canShare) {
+                const blob = await (await fetch(image)).blob();
+                const file = new File([blob], fileName, { type: 'image/png' });
+                
+                if(navigator.canShare({ files: [file] })) {
+                        await navigator.share({
                         title: `QS. ${surahName} Ayat ${verseNumber}`,
                         text: `Dibagikan dari aplikasi Bashirah.`,
-                        url: savedFile.uri,
+                        files: [file]
                     });
-                } catch (err) {
-                    console.error("Native share failed", err);
-                    alert("Gagal membagikan gambar.");
+                    setGeneratingImage(false);
+                    return;
                 }
-            } 
-            // 2. DESKTOP / WEB SHARE
-            else {
-                if (navigator.share && navigator.canShare) {
-                    const blob = await (await fetch(image)).blob();
-                    const file = new File([blob], fileName, { type: 'image/png' });
-                    
-                    if(navigator.canShare({ files: [file] })) {
-                         await navigator.share({
-                            title: `QS. ${surahName} Ayat ${verseNumber}`,
-                            text: `Dibagikan dari aplikasi Bashirah.`,
-                            files: [file]
-                        });
-                        setGeneratingImage(false);
-                        return;
-                    }
-                }
-
-                // Fallback Download
-                const link = document.createElement('a');
-                link.href = image;
-                link.download = fileName;
-                link.click();
-                
-                // Show Success
-                setShareSuccess(true);
-                setTimeout(() => setShareSuccess(false), 3000);
             }
+
+            // Fallback Download
+            const link = document.createElement('a');
+            link.href = image;
+            link.download = fileName;
+            link.click();
+            
+            // Show Success
+            setShareSuccess(true);
+            setTimeout(() => setShareSuccess(false), 3000);
 
         } catch (error) {
             console.error("Failed to generate image", error);

@@ -1,6 +1,5 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { StatusBar, Style } from '@capacitor/status-bar';
-import { Capacitor } from '@capacitor/core';
 
 type Theme = 'light' | 'dark';
 
@@ -32,24 +31,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     
     localStorage.setItem('quran_theme', theme);
-
-    // Handle Android Status Bar Color
-    if (Capacitor.isNativePlatform()) {
-        const setStatusStyle = async () => {
-            try {
-                if (theme === 'dark') {
-                    await StatusBar.setStyle({ style: Style.Dark });
-                    await StatusBar.setBackgroundColor({ color: '#0f172a' }); // Slate 900
-                } else {
-                    await StatusBar.setStyle({ style: Style.Light });
-                    await StatusBar.setBackgroundColor({ color: '#fcfbf7' }); // Quran Cream
-                }
-            } catch (e) {
-                console.warn("Status bar not supported in this environment");
-            }
-        };
-        setStatusStyle();
-    }
   }, [theme]);
 
   const toggleTheme = () => {
