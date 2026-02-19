@@ -12,11 +12,14 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check local storage or system preference
+    // Cek local storage
     if (typeof window !== 'undefined') {
       const savedTheme = localStorage.getItem('quran_theme') as Theme;
       if (savedTheme) return savedTheme;
-      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      
+      // FIX: Jangan ikuti tema sistem, paksa ke 'light' (klasik) secara default
+      // return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      return 'light';
     }
     return 'light';
   });
