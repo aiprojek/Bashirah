@@ -1,5 +1,5 @@
 
-name: Build and Release (Tauri v2)
+name: Multi-Platform Release
 
 on:
   push:
@@ -7,19 +7,26 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-tauri:
+  release:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
+          # --- DESKTOP TARGETS ---
           - platform: 'macos-latest'
-            target: 'ios'
+            target: 'desktop'
+            
+          - platform: 'windows-latest'
+            target: 'desktop'
+            
+          - platform: 'ubuntu-22.04'
+            target: 'desktop'
+            
+          # --- MOBILE TARGET ---
           - platform: 'ubuntu-22.04'
             target: 'android'
-          - platform: 'windows-latest'
-            target: 'windows'
 
     runs-on: ${{ matrix.platform }}
     
@@ -31,25 +38,27 @@ jobs:
         with:
           node-version: 20
 
+      # Install Rust (including Android targets if needed)
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          # Install targets needed for mobile cross-compilation
-          targets: ${{ matrix.target == 'android' && 'aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android' || matrix.target == 'ios' && 'aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim' || '' }}
+          targets: ${{ matrix.target == 'android' && 'aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android' || '' }}
 
-      - name: Install Linux Dependencies (Desktop Only)
-        if: matrix.platform == 'ubuntu-22.04' && matrix.target != 'android'
+      # --- DESKTOP DEPENDENCIES (Linux Only) ---
+      - name: Install Linux Desktop Deps
+        if: matrix.platform == 'ubuntu-22.04' && matrix.target == 'desktop'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf imagemagick
 
-      - name: Install Android Dependencies (Linux Runner)
+      # --- ANDROID DEPENDENCIES (Linux Runner) ---
+      - name: Install Android Deps
         if: matrix.target == 'android'
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.0-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
 
-      - name: Setup Java (for Android)
+      - name: Setup Java (Android)
         if: matrix.target == 'android'
         uses: actions/setup-java@v4
         with:
@@ -60,29 +69,24 @@ jobs:
         if: matrix.target == 'android'
         uses: android-actions/setup-android@v3
 
+      # --- COMMON BUILD STEPS ---
       - name: Install NPM Dependencies
         run: npm install
 
-      # === INIT STEPS FOR MOBILE ===
-      - name: Initialize Tauri Android
+      # Mobile Initialization
+      - name: Initialize Android
         if: matrix.target == 'android'
         run: |
+          # Only run init if folder doesn't exist to allow caching/re-runs
           if [ ! -d "src-tauri/gen/android" ]; then
             npm run tauri android init
           fi
-          
-      - name: Initialize Tauri iOS
-        if: matrix.target == 'ios'
-        run: |
-          if [ ! -d "src-tauri/gen/apple" ]; then
-            npm run tauri ios init
-          fi
 
-      # === BUILD STEPS ===
-      
-      # 1. WINDOWS DESKTOP BUILD
-      - name: Build Windows
-        if: matrix.target == 'windows'
+      # ---------------------------------------------------------
+      # BUILD ACTION 1: DESKTOP (Windows, Linux, macOS)
+      # ---------------------------------------------------------
+      - name: Build Desktop (Tauri Action)
+        if: matrix.target == 'desktop'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -93,38 +97,31 @@ jobs:
           releaseDraft: true
           prerelease: false
 
-      # 2. ANDROID BUILD (Manual Command)
+      # ---------------------------------------------------------
+      # BUILD ACTION 2: ANDROID (Manual Build & Upload)
+      # ---------------------------------------------------------
       - name: Build Android APK
         if: matrix.target == 'android'
         run: |
-          # Build APK (Debug/Unsigned for now unless keystore provided)
-          # Note: Use --apk to generate APK specifically
+          # Generates APK in src-tauri/gen/android/app/build/outputs/apk/universal/release/
           npm run tauri android build -- --apk
         env:
           NDK_HOME: ${{ steps.setup-android.outputs.ndk-path }}
+      
+      # Extract version from package.json to match the tag created by tauri-action
+      - name: Get Version
+        if: matrix.target == 'android'
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
 
-      - name: Upload Android Artifacts to Release
+      - name: Upload Android APK
         if: matrix.target == 'android'
         uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: app-v${{ fromJson(steps.get_version.outputs.version) || '1.0.1' }}
+          # Use the exact same tag format as tauri-action above
+          tag_name: app-v${{ steps.package-version.outputs.current-version }}
           draft: true
           files: |
             src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
-
-      # 3. iOS BUILD (Manual Command)
-      - name: Build iOS
-        if: matrix.target == 'ios'
-        # iOS build requires signing identities. 
-        # Without them, we can only build for simulator or check compile.
-        # This will likely fail to export an IPA without certificates in Secrets.
-        # We add --no-bundle to skip the signing phase if possible or allow it to fail gracefully on signing.
-        continue-on-error: true 
-        run: |
-          npm run tauri ios build
-          
-      # NOTE: Automatic uploading of iOS artifacts requires 'export_options.plist' and provisioning profiles 
-      # configured in the runner. The tauri-action typically handles desktop, 
-      # but for mobile, raw commands are more transparent in v2 migration.
