@@ -46,10 +46,10 @@ type TranslationKey =
   | 'stats_title' | 'stats_less' | 'stats_more' | 'stats_total_read' | 'stats_active_days'
   // About
   | 'about_tab_about' | 'about_tab_features' | 'about_tab_guide' | 'about_tab_contact'
-  | 'about_desc' | 'about_license' | 'about_data_source' | 'about_created_by'
+  | 'about_desc' | 'about_license_title' | 'about_license_text' | 'about_data_source' | 'about_created_by'
   | 'about_contact_title' | 'about_contact_desc' | 'about_btn_email' | 'about_or_manual'
-  | 'about_coffee' | 'about_license_text' | 'about_license_title' | 'about_source_title'
-  | 'about_source_quran' | 'about_source_api' | 'about_form_subject' | 'about_form_message'
+  | 'about_coffee' | 'about_download_app' | 'about_source_title' | 'about_source_quran' | 'about_source_api' 
+  | 'about_form_subject' | 'about_form_message'
   | 'about_form_placeholder_subject' | 'about_form_placeholder_message'
   // Features List
   | 'feature_mushaf_title' | 'feature_mushaf_desc'
@@ -215,6 +215,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_btn_email: "Kirim via Email",
     about_or_manual: "Atau hubungi via email manual:",
     about_coffee: "Traktir Kopi",
+    about_download_app: "Unduh Aplikasi (Android/PC)",
     about_source_title: "Sumber Data",
     about_source_quran: "Data Al-Quran berasal dari",
     about_source_api: "API Ayat, Terjemahan & Audio dari",
@@ -268,7 +269,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     
     feelings_title: "Penawar Hati",
     feelings_desc: "\"Ingatlah, hanya dengan mengingat Allah hati menjadi tenteram.\"",
-    feelings_view: "Lihat Ayat",
+    feelings_view: "View Verses",
     feelings_select: "Ayat-Ayat Pilihan",
     
     dua_title: "Koleksi Doa",
@@ -461,6 +462,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_btn_email: "Send via Email",
     about_or_manual: "Or contact manually via:",
     about_coffee: "Buy me a Coffee",
+    about_download_app: "Download App (Android/PC)",
     about_source_title: "Data Sources",
     about_source_quran: "Quran data comes from",
     about_source_api: "Verses API, Translation & Audio from",

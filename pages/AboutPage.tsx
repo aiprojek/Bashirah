@@ -4,7 +4,7 @@ import {
     Info, List, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
     ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
-    Smartphone, Moon
+    Smartphone, Moon, Download
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -89,7 +89,7 @@ const AboutPage: React.FC = () => {
                         <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">{t('app_subtitle')}</p>
 
                         <div className="bg-stone-50 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] text-gray-500 dark:text-gray-300 font-mono mb-6 border border-stone-200 dark:border-slate-600">
-                            {t('version')} 1.0.3
+                            {t('version')} 20260219
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
@@ -97,6 +97,14 @@ const AboutPage: React.FC = () => {
                         </p>
 
                         <div className="flex flex-col w-full max-w-md gap-3 mb-10">
+                            <a
+                                href="https://github.com/aiprojek/Bashirah/releases"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm active:scale-95 transform duration-200"
+                            >
+                                <Download className="w-5 h-5" /> {t('about_download_app')}
+                            </a>
                             <a 
                                 href="https://lynk.id/aiprojek/s/bvBJvdA" 
                                 target="_blank" 

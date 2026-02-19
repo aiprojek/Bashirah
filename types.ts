@@ -206,6 +206,30 @@ export const MUSHAF_EDITIONS: MushafEdition[] = [
         format: 'jpg', 
         provider: 'https://android.quran.com/data/13_lines/page',
         description: 'Gaya penulisan umum di Indonesia & Pakistan.'
+    },
+    { 
+        id: 'warsh', 
+        name: 'Warsh (Nafi)', 
+        type: 'images', 
+        format: 'jpg', 
+        provider: 'https://android.quran.com/data/warsh/page',
+        description: 'Riwayat Warsh dari Imam Nafi (Afrika Utara).'
+    },
+    { 
+        id: 'qaloon', 
+        name: 'Qaloon (Nafi)', 
+        type: 'images', 
+        format: 'jpg', 
+        provider: 'https://android.quran.com/data/qaloon/page',
+        description: 'Riwayat Qaloon dari Imam Nafi (Libya).'
+    },
+    { 
+        id: 'douri', 
+        name: 'Douri (Basri)', 
+        type: 'images', 
+        format: 'jpg', 
+        provider: 'https://android.quran.com/data/douri/page',
+        description: 'Riwayat Douri dari Abu Amr (Sudan & Afrika Timur).'
     }
 ];
 

@@ -132,6 +132,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       if (!memorizationMode.isActive) {
            return (
              <p 
+                lang="ar"
                 className={`font-arabic leading-[2.5] text-quran-dark dark:text-white ${isAudioPlaying ? 'font-medium' : ''}`}
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
@@ -147,6 +148,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       if (revealArabic) {
            return (
              <p 
+                lang="ar"
                 className="font-arabic leading-[2.5] text-quran-dark dark:text-white animate-fade-in relative"
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
@@ -178,6 +180,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      </div>
                  </div>
                  <p 
+                    lang="ar"
                     className={`font-arabic leading-[2.5] blur-md select-none opacity-40 transition-all duration-300 text-quran-dark dark:text-white`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
@@ -194,6 +197,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
              <div className="relative cursor-pointer" onClick={() => setRevealArabic(true)}>
                  {/* No Blur, just very low opacity */}
                  <p 
+                    lang="ar"
                     className={`font-arabic leading-[2.5] text-quran-dark dark:text-white opacity-10 hover:opacity-30 transition-opacity duration-300 select-none filter-none`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >

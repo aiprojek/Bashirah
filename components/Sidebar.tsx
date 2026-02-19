@@ -193,7 +193,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {/* Footer */}
             <div className="p-6 bg-stone-50 dark:bg-slate-800 border-t border-stone-100 dark:border-slate-700 text-center">
                 <p className="text-xs text-gray-400 dark:text-gray-500 font-serif italic">{t('app_title')}</p>
-                <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Versi 20260217</p>
+                <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Versi 20260219</p>
             </div>
         </div>
       </div>

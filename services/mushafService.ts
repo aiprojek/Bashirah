@@ -1,3 +1,4 @@
+
 import { MUSHAF_EDITIONS, MushafEdition } from '../types';
 
 const MUSHAF_CACHE_KEY = 'quran-mushaf-images-v1';
@@ -19,13 +20,8 @@ export const getPageUrl = async (page: number, editionId?: string): Promise<stri
     const edition = getMushafEdition(id);
     const pageStr = page.toString().padStart(3, '0');
     
-    // Check extension: Madani uses .png, IndoPak usually .jpg or .png depending on source.
-    // Based on android.quran.com current state:
-    // Madani: .png
-    // IndoPak: .jpg (usually) - Let's try .jpg for IndoPak to match typical Quran Android structure, 
-    // BUT since we can't be 100% sure of the mirror, we will use a robust fallback or the standard one.
-    // NOTE: The Android Quran project uses .jpg for IndoPak images on their server.
-    const ext = edition.id === 'indopak' ? 'jpg' : 'png';
+    // Use the format defined in the edition config, do not hardcode
+    const ext = edition.format || 'png';
     const remoteUrl = `${edition.provider}${pageStr}.${ext}`;
 
     // Check Cache API
@@ -73,7 +69,9 @@ export const downloadMushaf = async (
 
     const cache = await caches.open(MUSHAF_CACHE_KEY);
     const edition = getMushafEdition(editionId);
-    const ext = edition.id === 'indopak' ? 'jpg' : 'png';
+    
+    // Use dynamic format
+    const ext = edition.format || 'png';
     
     const totalPages = 604;
     let completed = 0;

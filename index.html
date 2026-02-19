@@ -65,6 +65,22 @@
       }
     </script>
     <style>
+      /* Fallback to local font if available (User manually adds them to public/fonts/) */
+      @font-face {
+        font-family: 'Amiri';
+        src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Amiri';
+        src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+        font-weight: 700;
+        font-style: normal;
+        font-display: swap;
+      }
+
       /* Custom scrollbar for better aesthetics */
       ::-webkit-scrollbar {
         width: 8px;
@@ -95,6 +111,29 @@
       /* Safe area for mobile PWA */
       .safe-area-bottom {
         padding-bottom: env(safe-area-inset-bottom);
+      }
+
+      /* --- ARABIC TEXT RENDERING FIXES --- */
+      .font-arabic {
+        font-family: 'Amiri', serif;
+        /* Force ligatures to ensure connected letters (Fix for Tajweed spans) */
+        font-variant-ligatures: common-ligatures contextual;
+        -webkit-font-variant-ligatures: common-ligatures contextual;
+        
+        /* Activate OpenType features for Arabic shaping */
+        font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
+        -webkit-font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
+        
+        /* Optimize for legibility over speed */
+        text-rendering: optimizeLegibility;
+      }
+      
+      /* Ensure spans inside Arabic text behave strictly inline */
+      .font-arabic span {
+        display: inline;
+        margin: 0;
+        padding: 0;
+        border: none;
       }
     </style>
 <script type="importmap">
