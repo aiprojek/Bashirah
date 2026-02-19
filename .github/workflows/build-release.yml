@@ -17,27 +17,22 @@ jobs:
         with:
           node-version: 20
 
+      # Ambil versi dari package.json untuk penamaan file dan tag release
+      - name: Get Version
+        id: package-version
+        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
+
       - name: Install Dependencies
         run: npm install
 
-      # FIX: Generate Android Assets (Icon & Splash) using @capacitor/assets
-      # 1. Install ImageMagick (pre-installed on ubuntu-latest usually, but good to ensure)
-      # 2. Convert SVG to PNG
-      # 3. Use capacitor-assets to generate res folder
       - name: Generate Android Icons
         run: |
           sudo apt-get update
           sudo apt-get install -y imagemagick
-          
-          # Buat folder assets sumber
           mkdir -p assets
-          
-          # Konversi logo.svg ke logo.png (1024x1024) untuk input capacitor-assets
           convert -background none -resize 1024x1024 public/logo.svg assets/logo.png
           cp assets/logo.png assets/icon.png
           cp assets/logo.png assets/splash.png
-          
-          # Install dan jalankan capacitor-assets
           npm install @capacitor/assets --save-dev
           npx capacitor-assets generate --android --iconBackgroundColor '#fcfbf7' --splashBackgroundColor '#fcfbf7'
 
@@ -63,11 +58,22 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug
 
-      - name: Upload Android APK
-        uses: actions/upload-artifact@v4
+      # Rename APK agar menggunakan Nama Aplikasi dan Versi
+      - name: Rename APK
+        run: |
+          mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Bashirah-android-debug-v${{ env.VERSION }}.apk
+
+      # Upload ke Release (bergabung dengan desktop build di tag yang sama)
+      - name: Upload Android APK to Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: bashirah-android-debug
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: app-v${{ env.VERSION }}
+          draft: true
+          prerelease: false
+          files: android/app/build/outputs/apk/debug/Bashirah-android-debug-v${{ env.VERSION }}.apk
 
   build-desktop:
     permissions:
@@ -89,8 +95,6 @@ jobs:
       - name: Install Rust (Stable)
         uses: dtolnay/rust-toolchain@stable
 
-      # --- Install System Dependencies ---
-      
       - name: Install Dependencies (Ubuntu)
         if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -105,12 +109,9 @@ jobs:
         if: matrix.platform == 'windows-latest'
         run: choco install imagemagick --no-progress
 
-      # --- Build Process ---
-
       - name: Install NPM Dependencies
         run: npm install
 
-      # Generate App Icons for Tauri
       - name: Generate Icons (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
@@ -129,7 +130,6 @@ jobs:
       - name: Build Web Assets
         run: npm run build
 
-      # FIX: Updated input names (releaseBody, releaseDraft) to match v0 action
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
         env:
