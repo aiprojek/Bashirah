@@ -1,5 +1,5 @@
 
-name: Build and Release
+name: Build and Release (Tauri v2)
 
 on:
   push:
@@ -7,83 +7,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-android:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # Ambil versi dari package.json untuk penamaan file dan tag release
-      - name: Get Version
-        id: package-version
-        run: echo "VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Generate Android Icons
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y imagemagick
-          mkdir -p assets
-          convert -background none -resize 1024x1024 public/logo.svg assets/logo.png
-          cp assets/logo.png assets/icon.png
-          cp assets/logo.png assets/splash.png
-          npm install @capacitor/assets --save-dev
-          npx capacitor-assets generate --android --iconBackgroundColor '#fcfbf7' --splashBackgroundColor '#fcfbf7'
-
-      - name: Build Web Assets
-        run: npm run build
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-
-      - name: Initialize Capacitor Android
-        run: |
-          if [ ! -d "android" ]; then
-            npx cap add android
-          fi
-
-      - name: Sync Capacitor
-        run: npx cap sync android
-
-      - name: Build Android APK (Debug)
-        working-directory: android
-        run: ./gradlew assembleDebug
-
-      # Rename APK agar menggunakan Nama Aplikasi dan Versi
-      - name: Rename APK
-        run: |
-          mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Bashirah-android-debug-v${{ env.VERSION }}.apk
-
-      # Upload ke Release (bergabung dengan desktop build di tag yang sama)
-      - name: Upload Android APK to Release
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: app-v${{ env.VERSION }}
-          draft: true
-          prerelease: false
-          files: android/app/build/outputs/apk/debug/Bashirah-android-debug-v${{ env.VERSION }}.apk
-
-  build-desktop:
+  build-tauri:
     permissions:
       contents: write
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
-    
+        include:
+          - platform: 'macos-latest' # for iOS & macOS
+            args: '--target aarch64-apple-ios'
+            target: 'ios'
+          - platform: 'ubuntu-22.04' # for Android & Linux
+            args: '--target aarch64-linux-android' 
+            target: 'android'
+          - platform: 'windows-latest' # for Windows
+            args: ''
+            target: 'windows'
+
     runs-on: ${{ matrix.platform }}
+    
     steps:
       - uses: actions/checkout@v4
 
@@ -92,51 +34,57 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install Rust (Stable)
+      - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.platform == 'ubuntu-22.04' && 'aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android' || matrix.platform == 'macos-latest' && 'aarch64-apple-ios x86_64-apple-ios aarch64-apple-ios-sim' || '' }}
 
-      - name: Install Dependencies (Ubuntu)
+      - name: Install Linux Dependencies
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf imagemagick
+          
+      - name: Setup Java (for Android)
+        if: matrix.target == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
 
-      - name: Install Dependencies (macOS)
-        if: matrix.platform == 'macos-latest'
-        run: brew install imagemagick
-
-      - name: Install Dependencies (Windows)
-        if: matrix.platform == 'windows-latest'
-        run: choco install imagemagick --no-progress
+      - name: Setup Android SDK
+        if: matrix.target == 'android'
+        uses: android-actions/setup-android@v3
 
       - name: Install NPM Dependencies
         run: npm install
 
-      - name: Generate Icons (Linux/macOS)
-        if: runner.os != 'Windows'
+      # Diperlukan untuk Tauri v2 Mobile Init di CI jika belum ada
+      - name: Initialize Tauri Android
+        if: matrix.target == 'android'
         run: |
-          mkdir -p src-tauri/icons
-          convert -background none -resize 1024x1024 public/logo.svg public/logo-source.png
-          npm run tauri -- icon public/logo-source.png
-
-      - name: Generate Icons (Windows)
-        if: runner.os == 'Windows'
+          if [ ! -d "src-tauri/gen/android" ]; then
+            npx tauri android init
+          fi
+          
+      # Diperlukan untuk Tauri v2 Mobile Init di CI jika belum ada
+      - name: Initialize Tauri iOS
+        if: matrix.target == 'ios'
         run: |
-          if not exist "src-tauri\icons" mkdir "src-tauri\icons"
-          magick public/logo.svg -background none -resize 1024x1024 public/logo-source.png
-          npm run tauri -- icon public/logo-source.png
-        shell: cmd
+          if [ ! -d "src-tauri/gen/apple" ]; then
+            npx tauri ios init
+          fi
 
-      - name: Build Web Assets
-        run: npm run build
-
-      - name: Build Tauri App
+      - name: Build App
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NDK path biasanya diset otomatis oleh setup-android, tapi kadang perlu eksplisit
         with:
           tagName: app-v__VERSION__ 
           releaseName: "Bashirah v__VERSION__"
-          releaseBody: "Release for Bashirah Al-Quran Digital"
+          releaseBody: "Release for Bashirah Al-Quran Digital (Tauri v2)"
           releaseDraft: true
           prerelease: false
+          # Jika target adalah mobile, kita perlu argumen khusus
+          args: ${{ matrix.target == 'android' && '--target aarch64-linux-android' || matrix.target == 'ios' && '--target aarch64-apple-ios' || '' }}
