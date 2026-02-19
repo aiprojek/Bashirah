@@ -66,41 +66,41 @@ const KhatamWidget: React.FC = () => {
     // -- RENDER: EMPTY STATE --
     if (!target || !target.isActive) {
         return (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-stone-100 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-stone-100 dark:border-slate-700 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group transition-colors">
                  <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none transform group-hover:scale-110 transition-transform duration-700">
-                    <Target className="w-32 h-32 text-quran-dark" />
+                    <Target className="w-32 h-32 text-quran-dark dark:text-white" />
                  </div>
 
                  <div className="relative z-10 text-center sm:text-left">
-                     <h3 className="text-xl font-bold text-quran-dark font-serif mb-2">Mulai Target Khatam</h3>
-                     <p className="text-sm text-gray-500 max-w-sm">
+                     <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2">Mulai Target Khatam</h3>
+                     <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
                          Bangun kebiasaan membaca Al-Quran setiap hari. Tetapkan target harimu dan pantau progresmu.
                      </p>
                  </div>
 
                  {isEditing ? (
-                     <div className="relative z-10 w-full sm:w-auto bg-stone-50 p-4 rounded-xl border border-stone-200 animate-fade-in">
+                     <div className="relative z-10 w-full sm:w-auto bg-stone-50 dark:bg-slate-700 p-4 rounded-xl border border-stone-200 dark:border-slate-600 animate-fade-in">
                          <div className="flex flex-col gap-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-400 uppercase block mb-1">Target (Hari)</label>
+                                <label className="text-xs font-bold text-gray-400 dark:text-gray-300 uppercase block mb-1">Target (Hari)</label>
                                 <input 
                                     type="number" 
                                     min="1" 
                                     max="365"
                                     value={daysInput}
                                     onChange={(e) => setDaysInput(parseInt(e.target.value) || 1)}
-                                    className="w-full px-3 py-2 rounded-lg border border-stone-200 text-sm font-bold text-quran-dark focus:ring-2 focus:ring-quran-gold/50"
+                                    className="w-full px-3 py-2 rounded-lg border border-stone-200 dark:border-slate-500 text-sm font-bold text-quran-dark dark:text-white bg-white dark:bg-slate-600 focus:ring-2 focus:ring-quran-gold/50"
                                 />
                             </div>
                             <button 
                                 onClick={handleSaveTarget}
-                                className="w-full py-2 bg-quran-dark text-white rounded-lg text-sm font-bold hover:bg-quran-dark/90 transition-colors whitespace-nowrap"
+                                className="w-full py-2 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-lg text-sm font-bold hover:bg-quran-dark/90 transition-colors whitespace-nowrap"
                             >
                                 Simpan Target
                             </button>
                              <button 
                                 onClick={() => setIsEditing(false)}
-                                className="w-full py-1 text-xs text-gray-400 hover:text-red-500"
+                                className="w-full py-1 text-xs text-gray-400 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400"
                             >
                                 Batal
                             </button>

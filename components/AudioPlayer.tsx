@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAudio } from '../contexts/AudioContext';
 import { Play, Pause, SkipForward, SkipBack, X, Mic2, Loader2, ChevronUp, Repeat, Settings2, Infinity as InfinityIcon } from 'lucide-react';
@@ -40,9 +41,9 @@ const AudioPlayer: React.FC = () => {
 
   // --- RENDER REPEAT CONTROLS ---
   const renderRepeatControls = () => (
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 text-gray-800 dark:text-gray-100">
           <div className="flex items-center justify-between mb-2">
-               <span className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+               <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-2">
                    <Repeat className="w-4 h-4 text-quran-gold" />
                    Muraja'ah (Pengulangan)
                </span>
@@ -50,22 +51,22 @@ const AudioPlayer: React.FC = () => {
           </div>
 
           {/* Mode Selector */}
-          <div className="flex bg-stone-100 p-1 rounded-lg">
+          <div className="flex bg-stone-100 dark:bg-slate-700 p-1 rounded-lg">
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'none' })}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'none' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400'}`}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'none' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
                   Normal
               </button>
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'verse' })}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'verse' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400'}`}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'verse' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
                   Per Ayat
               </button>
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'range' })}
-                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'range' ? 'bg-white text-quran-dark shadow-sm' : 'text-gray-400'}`}
+                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'range' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
                   Rentang
               </button>
@@ -77,7 +78,7 @@ const AudioPlayer: React.FC = () => {
                   
                   {/* Range Inputs */}
                   {repeatSettings.mode === 'range' && (
-                    <div className="col-span-2 flex gap-3 items-center bg-white p-3 rounded-xl border border-stone-200">
+                    <div className="col-span-2 flex gap-3 items-center bg-white dark:bg-slate-700 p-3 rounded-xl border border-stone-200 dark:border-slate-600">
                         <div className="flex-1">
                             <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Mulai Ayat</label>
                             <input 
@@ -86,7 +87,7 @@ const AudioPlayer: React.FC = () => {
                                 max={currentTotalVerses}
                                 value={repeatSettings.rangeStart}
                                 onChange={(e) => setRepeatSettings({ ...repeatSettings, rangeStart: Math.min(Math.max(1, parseInt(e.target.value) || 1), currentTotalVerses) })}
-                                className="w-full text-center font-bold text-quran-dark bg-stone-50 rounded p-1 border-none focus:ring-1 focus:ring-quran-gold"
+                                className="w-full text-center font-bold text-quran-dark dark:text-white bg-stone-50 dark:bg-slate-800 rounded p-1 border-none focus:ring-1 focus:ring-quran-gold"
                             />
                         </div>
                         <span className="text-gray-300">-</span>
@@ -98,14 +99,14 @@ const AudioPlayer: React.FC = () => {
                                 max={currentTotalVerses}
                                 value={repeatSettings.rangeEnd}
                                 onChange={(e) => setRepeatSettings({ ...repeatSettings, rangeEnd: Math.min(Math.max(repeatSettings.rangeStart, parseInt(e.target.value) || repeatSettings.rangeStart), currentTotalVerses) })}
-                                className="w-full text-center font-bold text-quran-dark bg-stone-50 rounded p-1 border-none focus:ring-1 focus:ring-quran-gold"
+                                className="w-full text-center font-bold text-quran-dark dark:text-white bg-stone-50 dark:bg-slate-800 rounded p-1 border-none focus:ring-1 focus:ring-quran-gold"
                             />
                         </div>
                     </div>
                   )}
 
                   {/* Repeat Count */}
-                  <div className="col-span-2 bg-white p-3 rounded-xl border border-stone-200 flex items-center justify-between">
+                  <div className="col-span-2 bg-white dark:bg-slate-700 p-3 rounded-xl border border-stone-200 dark:border-slate-600 flex items-center justify-between">
                        <div>
                             <label className="text-[10px] text-gray-400 font-bold uppercase block">Jumlah Ulang</label>
                             <div className="text-xs text-gray-400 mt-0.5">
@@ -116,7 +117,7 @@ const AudioPlayer: React.FC = () => {
                        <div className="flex items-center gap-2">
                            <button 
                                 onClick={() => setRepeatSettings({ ...repeatSettings, count: Infinity })}
-                                className={`p-2 rounded-lg border ${repeatSettings.count === Infinity ? 'bg-quran-gold/10 border-quran-gold text-quran-gold' : 'border-stone-200 text-gray-400'}`}
+                                className={`p-2 rounded-lg border ${repeatSettings.count === Infinity ? 'bg-quran-gold/10 border-quran-gold text-quran-gold' : 'border-stone-200 dark:border-slate-600 text-gray-400'}`}
                            >
                                <InfinityIcon className="w-4 h-4" />
                            </button>
@@ -127,7 +128,7 @@ const AudioPlayer: React.FC = () => {
                                 disabled={repeatSettings.count === Infinity}
                                 value={repeatSettings.count === Infinity ? '' : repeatSettings.count}
                                 onChange={(e) => setRepeatSettings({ ...repeatSettings, count: parseInt(e.target.value) || 1 })}
-                                className={`w-16 text-center font-bold p-1.5 rounded-lg border ${repeatSettings.count !== Infinity ? 'border-quran-gold bg-white text-quran-dark' : 'border-stone-200 bg-stone-50 text-gray-300'}`}
+                                className={`w-16 text-center font-bold p-1.5 rounded-lg border ${repeatSettings.count !== Infinity ? 'border-quran-gold bg-white dark:bg-slate-800 text-quran-dark dark:text-white' : 'border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-800 text-gray-300'}`}
                                 placeholder="1"
                            />
                        </div>
@@ -155,8 +156,8 @@ const AudioPlayer: React.FC = () => {
                         onClick={() => setReciter(reciter.id)}
                         className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between ${
                             activeReciter.id === reciter.id 
-                            ? 'bg-quran-gold/10 text-quran-dark font-bold' 
-                            : 'text-gray-600 hover:bg-stone-200'
+                            ? 'bg-quran-gold/10 text-quran-dark dark:text-quran-gold font-bold' 
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-slate-700'
                         }`}
                     >
                         <span>{reciter.name}</span>
@@ -169,7 +170,7 @@ const AudioPlayer: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 pointer-events-none">
-        <div className="max-w-xl mx-auto bg-white/95 backdrop-blur-xl border border-stone-200 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] rounded-2xl overflow-hidden pointer-events-auto transition-all duration-300">
+        <div className="max-w-xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-stone-200 dark:border-slate-700 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] rounded-2xl overflow-hidden pointer-events-auto transition-all duration-300">
             
             {/* Main Bar */}
             <div className="flex items-center justify-between p-4 gap-3">
@@ -185,8 +186,8 @@ const AudioPlayer: React.FC = () => {
                         ) : (
                             <div className="relative">
                                 <Mic2 className="w-5 h-5" />
-                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Settings2 className="w-2 h-2 text-quran-dark" />
+                                <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Settings2 className="w-2 h-2 text-quran-dark dark:text-quran-gold" />
                                 </div>
                             </div>
                         )}
@@ -198,14 +199,14 @@ const AudioPlayer: React.FC = () => {
                              </p>
                              {/* Repeat Badge */}
                              {repeatSettings.mode !== 'none' && (
-                                 <span className="text-[9px] bg-stone-100 px-1.5 py-0.5 rounded text-gray-500 font-bold border border-stone-200 flex items-center gap-1">
+                                 <span className="text-[9px] bg-stone-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 font-bold border border-stone-200 dark:border-slate-600 flex items-center gap-1">
                                      <Repeat className="w-2 h-2" /> 
                                      {repeatSettings.mode === 'verse' ? '1 Ayat' : 'Range'} 
                                      ({currentLoopCount}/{repeatSettings.count === Infinity ? '∞' : repeatSettings.count})
                                  </span>
                              )}
                         </div>
-                        <p className="text-sm font-bold text-quran-dark truncate">
+                        <p className="text-sm font-bold text-quran-dark dark:text-gray-100 truncate">
                             Surat {surahName} : Ayat {currentVerse}
                         </p>
                     </div>
@@ -216,12 +217,12 @@ const AudioPlayer: React.FC = () => {
                     {/* Repeat Toggle */}
                     <button 
                         onClick={() => toggleSettings('repeat')}
-                        className={`p-2 rounded-full transition-colors ${repeatSettings.mode !== 'none' ? 'text-quran-gold bg-quran-gold/5' : 'text-stone-400 hover:text-quran-dark'}`}
+                        className={`p-2 rounded-full transition-colors ${repeatSettings.mode !== 'none' ? 'text-quran-gold bg-quran-gold/5' : 'text-stone-400 hover:text-quran-dark dark:hover:text-quran-gold'}`}
                     >
                         <Repeat className="w-5 h-5" />
                     </button>
 
-                    <button onClick={prevVerse} className="p-2 text-stone-400 hover:text-quran-dark transition-colors">
+                    <button onClick={prevVerse} className="p-2 text-stone-400 hover:text-quran-dark dark:hover:text-quran-gold transition-colors">
                         <SkipBack className="w-5 h-5 fill-current" />
                     </button>
                     
@@ -232,14 +233,14 @@ const AudioPlayer: React.FC = () => {
                         {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
                     </button>
 
-                    <button onClick={nextVerse} className="p-2 text-stone-400 hover:text-quran-dark transition-colors">
+                    <button onClick={nextVerse} className="p-2 text-stone-400 hover:text-quran-dark dark:hover:text-quran-gold transition-colors">
                         <SkipForward className="w-5 h-5 fill-current" />
                     </button>
                     
                     {/* Close */}
                     <button 
                         onClick={stop}
-                        className="p-2 rounded-full hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors ml-1"
+                        className="p-2 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 text-stone-300 hover:text-red-500 transition-colors ml-1"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -247,13 +248,13 @@ const AudioPlayer: React.FC = () => {
             </div>
 
             {/* Expanded Settings Area */}
-            <div className={`bg-stone-50 border-t border-stone-100 transition-all duration-300 overflow-hidden ${isExpanded ? (showSettings === 'repeat' && repeatSettings.mode !== 'none' ? 'max-h-80' : 'max-h-60') : 'max-h-0'}`}>
+            <div className={`bg-stone-50 dark:bg-slate-800 border-t border-stone-100 dark:border-slate-700 transition-all duration-300 overflow-hidden ${isExpanded ? (showSettings === 'repeat' && repeatSettings.mode !== 'none' ? 'max-h-80' : 'max-h-60') : 'max-h-0'}`}>
                 {showSettings === 'reciter' && renderReciterList()}
                 {showSettings === 'repeat' && renderRepeatControls()}
             </div>
             
             {/* Visual Progress Bar (Simple) */}
-            <div className="h-1 w-full bg-stone-100">
+            <div className="h-1 w-full bg-stone-100 dark:bg-slate-700">
                 <div className={`h-full bg-quran-gold transition-all duration-[1000ms] ${isLoading ? 'w-full animate-pulse opacity-50' : isPlaying ? 'w-full opacity-100' : 'w-0'}`}></div>
             </div>
         </div>

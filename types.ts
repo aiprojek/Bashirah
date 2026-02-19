@@ -1,3 +1,4 @@
+
 export type LanguageCode = 'id' | 'en';
 
 export interface Surah {
@@ -170,8 +171,23 @@ export const RECITERS: Reciter[] = [
     { id: 'alafasy', name: 'Mishary Rashid Al-Afasy', path: 'Alafasy_128kbps' },
     { id: 'sudais', name: 'Abdurrahmaan As-Sudais', path: 'Abdurrahmaan_As-Sudais_192kbps' },
     { id: 'ghamadi', name: 'Saad Al-Ghamdi', path: 'Ghamadi_40kbps' },
+    { id: 'shuraym', name: 'Saood Ash-Shuraym', path: 'Saood_ash-Shuraym_128kbps' },
+    { id: 'maher', name: 'Maher Al Muaiqly', path: 'Maher_AlMuaiqly_64kbps' },
     { id: 'husary', name: 'Mahmoud Khalil Al-Husary', path: 'Husary_128kbps' },
+    { id: 'husary_muj', name: 'Al-Husary (Mujawwad)', path: 'Husary_Mujawwad_64kbps' },
     { id: 'minshawi', name: 'Mohamed Siddiq Al-Minshawi', path: 'Minshawy_Murattal_128kbps' },
+    { id: 'minshawi_muj', name: 'Al-Minshawi (Mujawwad)', path: 'Minshawy_Mujawwad_192kbps' },
+    { id: 'basit', name: 'Abdul Basit (Murattal)', path: 'Abdul_Basit_Murattal_64kbps' },
+    { id: 'basit_muj', name: 'Abdul Basit (Mujawwad)', path: 'Abdul_Basit_Mujawwad_128kbps' },
+    { id: 'hudaify', name: 'Ali Al-Hudaify', path: 'Hudhaify_128kbps' },
+    { id: 'ajamy', name: 'Ahmed Al-Ajamy', path: 'Ahmed_ibn_Ali_al-Ajamy_128kbps' },
+    { id: 'basfar', name: 'Abdullah Basfar', path: 'Abdullah_Basfar_192kbps' },
+    { id: 'shatri', name: 'Abu Bakr Ash-Shatri', path: 'Abu_Bakr_Ash-Shatri_128kbps' },
+    { id: 'juhany', name: 'Abdullah Awad Al-Juhany', path: 'Abdullaah_3awwaad_Al-Juhaynee_128kbps' },
+    { id: 'hani', name: 'Hani Ar-Rifai', path: 'Hani_Rifai_192kbps' },
+    { id: 'matrud', name: 'Abdullah Al-Matrud', path: 'Abdullah_Matroud_128kbps' },
+    { id: 'budair', name: 'Salah Budair', path: 'Salah_Al_Budair_128kbps' },
+    { id: 'jaber', name: 'Ali Jaber', path: 'Ali_Jaber_64kbps' },
 ];
 
 export const MUSHAF_EDITIONS: MushafEdition[] = [

@@ -29,7 +29,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const config = {
       danger: {
           icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
-          iconBg: 'bg-red-50',
+          iconBg: 'bg-red-50 dark:bg-red-900/20',
           confirmBtn: 'bg-red-500 hover:bg-red-600 shadow-red-500/30 text-white',
           confirmTextDefault: 'Hapus'
       },
@@ -41,7 +41,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       },
       neutral: {
           icon: <Info className="w-8 h-8 text-blue-500" />,
-          iconBg: 'bg-blue-50',
+          iconBg: 'bg-blue-50 dark:bg-blue-900/20',
           confirmBtn: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 text-white',
           confirmTextDefault: 'Lanjutkan'
       }
@@ -50,21 +50,21 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   const activeConfig = config[variant];
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-[150] flex items-center justify-center px-4 animate-fade-in">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-quran-dark/60 backdrop-blur-sm transition-opacity" 
+        className="absolute inset-0 bg-quran-dark/60 dark:bg-black/80 backdrop-blur-sm transition-opacity" 
         onClick={onClose}
       />
       
       {/* Modal Content */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in transform transition-all scale-100 border border-white/20">
+      <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-100 border border-white/20 dark:border-slate-700">
         
         {/* Header (Hidden visual close button, but clickable area exists) */}
         <div className="absolute right-4 top-4 z-10">
              <button 
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 transition-colors bg-white/50 rounded-full p-1"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors bg-white/50 dark:bg-slate-700/50 rounded-full p-1"
             >
                 <X className="w-5 h-5" />
             </button>
@@ -75,15 +75,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 {activeConfig.icon}
             </div>
             
-            <h3 className="text-xl font-bold text-gray-800 font-serif mb-3">{title}</h3>
-            <p className="text-sm text-gray-500 leading-relaxed">{message}</p>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-white font-serif mb-3">{title}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-300 leading-relaxed">{message}</p>
         </div>
 
         {/* Footer Buttons */}
         <div className="px-6 pb-6 flex gap-3">
             <button 
                 onClick={onClose}
-                className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 bg-stone-100 hover:bg-stone-200 transition-colors"
+                className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-stone-100 dark:bg-slate-700 hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
             >
                 {cancelText}
             </button>

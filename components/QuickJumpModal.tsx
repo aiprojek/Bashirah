@@ -50,18 +50,18 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
             <div 
-                className="absolute inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-quran-dark/80 dark:bg-black/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
             
-            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-all scale-100">
+            <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col transform transition-all scale-100 border border-white/10">
                 
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50">
-                    <h3 className="font-bold text-quran-dark font-serif text-lg">Pindah Cepat</h3>
+                <div className="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
+                    <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg">Pindah Cepat</h3>
                     <button 
                         onClick={onClose}
-                        className="p-1 rounded-full hover:bg-stone-200 text-gray-400 transition-colors"
+                        className="p-1 rounded-full hover:bg-stone-200 dark:hover:bg-slate-600 text-gray-400 transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -71,12 +71,12 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                 <div className="p-6 space-y-5">
                     {/* Surah Selector */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                             <BookOpen className="w-4 h-4 text-quran-gold" /> Pilih Surat
                         </label>
                         <div className="relative">
                             <select 
-                                className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none text-gray-700 font-bold appearance-none cursor-pointer"
+                                className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none text-gray-700 dark:text-white font-bold appearance-none cursor-pointer"
                                 value={selectedSurahId}
                                 onChange={handleSurahChange}
                             >
@@ -94,7 +94,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
 
                     {/* Verse Selector */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                             <Hash className="w-4 h-4 text-quran-gold" /> Pilih Ayat (1 - {selectedSurah?.total_verses})
                         </label>
                         <input 
@@ -103,7 +103,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                             max={selectedSurah?.total_verses || 286}
                             value={selectedVerseId}
                             onChange={(e) => setSelectedVerseId(Math.min(Math.max(1, parseInt(e.target.value) || 1), selectedSurah?.total_verses || 286))}
-                            className="w-full px-4 py-3 bg-stone-50 border border-stone-200 rounded-xl focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none text-gray-700 font-bold"
+                            className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none text-gray-700 dark:text-white font-bold"
                         />
                          <input 
                             type="range"
@@ -111,16 +111,16 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                             max={selectedSurah?.total_verses || 286}
                             value={selectedVerseId}
                             onChange={(e) => setSelectedVerseId(parseInt(e.target.value))}
-                            className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-quran-gold"
+                            className="w-full h-2 bg-stone-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-quran-gold"
                         />
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 bg-stone-50 border-t border-stone-100">
+                <div className="px-6 py-4 bg-stone-50 dark:bg-slate-700/30 border-t border-stone-100 dark:border-slate-700">
                     <button 
                         onClick={handleGo}
-                        className="w-full py-3 bg-quran-dark text-white rounded-xl font-bold hover:bg-quran-dark/90 transition-all flex items-center justify-center gap-2 shadow-lg"
+                        className="w-full py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg"
                     >
                         Buka Ayat <ArrowRight className="w-4 h-4" />
                     </button>

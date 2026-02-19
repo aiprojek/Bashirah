@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
   <head>
@@ -72,6 +73,9 @@
       ::-webkit-scrollbar-track {
         background: #f1f1f1;
       }
+      .dark ::-webkit-scrollbar-track {
+        background: #1e293b;
+      }
       ::-webkit-scrollbar-thumb {
         background: #d4af37;
         border-radius: 4px;
@@ -118,7 +122,7 @@
 }
 </script>
 </head>
-  <body class="bg-quran-cream text-quran-text font-sans antialiased selection:bg-quran-gold selection:text-white transition-colors duration-300">
+  <body class="bg-quran-cream dark:bg-slate-900 text-quran-text dark:text-gray-100 font-sans antialiased selection:bg-quran-gold selection:text-white transition-colors duration-300">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

@@ -1,3 +1,4 @@
+
 import { openDB, DBSchema } from 'idb';
 import { TranslationOption, TadabburData } from '../types';
 
@@ -145,4 +146,15 @@ export const saveTadabbur = async (data: TadabburData) => {
 export const deleteTadabbur = async (id: string) => {
     const db = await getDB();
     await db.delete('tadabbur', id);
+};
+
+// --- BACKUP RESTORE HELPER ---
+export const bulkPutTadabbur = async (items: TadabburData[]) => {
+    const db = await getDB();
+    const tx = db.transaction('tadabbur', 'readwrite');
+    const store = tx.objectStore('tadabbur');
+    for (const item of items) {
+        await store.put(item);
+    }
+    await tx.done;
 };

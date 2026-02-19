@@ -309,7 +309,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                       className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-stone-200 dark:border-slate-700 hover:border-quran-gold/50 dark:hover:border-quran-gold/50 hover:shadow-md transition-all text-left flex items-center justify-between group"
                    >
                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-quran-gold/10 rounded-full flex items-center justify-center text-quran-dark">
+                            <div className="w-10 h-10 bg-quran-gold/10 rounded-full flex items-center justify-center text-quran-dark dark:text-quran-gold">
                                 <Bookmark className="w-4 h-4 fill-current" />
                             </div>
                             <div>

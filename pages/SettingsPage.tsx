@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun, Save, Upload, HardDrive } from 'lucide-react';
 import { LanguageCode, APP_LANGUAGES, TranslationOption, RECITERS, Surah, MUSHAF_EDITIONS, MushafEdition, TAJWEED_EDITION } from '../types';
 import LanguageModal from '../components/LanguageModal';
 import ConfirmationModal from '../components/ConfirmationModal'; 
@@ -8,6 +8,7 @@ import * as DB from '../services/db';
 import * as AudioService from '../services/audioService';
 import * as MushafService from '../services/mushafService';
 import * as StorageService from '../services/storageService';
+import * as BackupService from '../services/backupService';
 import { downloadEdition, verifyEditionAvailability, getAllSurahs } from '../services/quranService';
 import { useAudio } from '../contexts/AudioContext';
 import { useTheme } from '../contexts/ThemeContext'; 
@@ -82,6 +83,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       onConfirm: () => {},
   });
 
+  // Backup & Restore State
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isBackupProcessing, setIsBackupProcessing] = useState(false);
+
   const requestConfirmation = (title: string, message: string, confirmText: string, variant: 'primary' | 'danger', action: () => void) => {
       setConfirmState({ isOpen: true, title, message, confirmText, variant, onConfirm: action });
   };
@@ -129,6 +134,48 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleSetMushaf = (id: string) => {
       MushafService.setActiveMushafId(id);
       setActiveMushafId(id);
+  };
+
+  // --- BACKUP & RESTORE ---
+  const handleBackup = async () => {
+      setIsBackupProcessing(true);
+      try {
+          await BackupService.createBackup();
+      } catch (e: any) {
+          alert(e.message || "Gagal membuat backup.");
+      } finally {
+          setIsBackupProcessing(false);
+      }
+  };
+
+  const handleRestoreClick = () => {
+      if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      requestConfirmation(
+          "Restore Data?",
+          "Proses ini akan menimpa/menggabungkan data Bookmark, Catatan, dan Jurnal Tadabbur Anda dengan data dari file backup. Lanjutkan?",
+          "Ya, Restore",
+          "primary",
+          async () => {
+              setIsBackupProcessing(true);
+              try {
+                  await BackupService.restoreBackup(file);
+                  alert("Data berhasil dipulihkan! Aplikasi akan dimuat ulang.");
+                  window.location.reload();
+              } catch (err: any) {
+                  console.error(err);
+                  alert("Gagal memulihkan data: " + err.message);
+              } finally {
+                  setIsBackupProcessing(false);
+                  if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input
+              }
+          }
+      );
   };
 
   // ... (Keep existing download handlers) ...
@@ -245,7 +292,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
           <div className="space-y-3">
               <div className="relative mb-4">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input type="text" placeholder={`Cari ${type === 'translation' ? 'Terjemahan' : 'Tafsir'}...`} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-200 focus:ring-2 focus:ring-quran-gold/50 text-sm" />
+                  <input 
+                      type="text" 
+                      placeholder={`Cari ${type === 'translation' ? 'Terjemahan' : 'Tafsir'}...`} 
+                      value={searchQuery} 
+                      onChange={(e) => setSearchQuery(e.target.value)} 
+                      className="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm focus:ring-2 focus:ring-quran-gold/50 text-gray-800 dark:text-white placeholder-gray-400 transition-colors" 
+                   />
               </div>
 
               {filtered.map(option => {
@@ -255,14 +308,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                   const isProcessing = processingId === option.identifier;
 
                   return (
-                    <div key={option.identifier} className={`p-4 rounded-xl border transition-all ${isSelected ? 'border-quran-gold bg-quran-gold/5' : 'border-stone-200 bg-white hover:border-quran-gold/50'}`}>
+                    <div key={option.identifier} className={`p-4 rounded-xl border transition-all ${isSelected ? 'border-quran-gold bg-quran-gold/5 dark:bg-quran-gold/10' : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-quran-gold/50'}`}>
                         <div className="flex justify-between items-start mb-2">
                             <div>
-                                <h4 className="font-semibold text-gray-800 text-sm">{option.name}</h4>
-                                <p className="text-xs text-gray-500">{option.englishName}</p>
+                                <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{option.name}</h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{option.englishName}</p>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wide">{option.language}</span>
-                                    <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded flex items-center gap-1"><Download className="w-3 h-3" /> {option.approxSize || '? MB'}</span>
+                                    <span className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wide">{option.language}</span>
+                                    <span className="text-[10px] bg-stone-100 dark:bg-slate-700 text-stone-500 dark:text-gray-400 px-1.5 py-0.5 rounded flex items-center gap-1"><Download className="w-3 h-3" /> {option.approxSize || '? MB'}</span>
                                 </div>
                             </div>
                             {isSelected && <div className="bg-quran-gold text-white p-1 rounded-full"><Check className="w-3 h-3" /></div>}
@@ -271,7 +324,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         {isProcessing ? (
                              <div className="mt-3"><div className="flex justify-between text-xs text-gray-500 mb-1"><span>{processingStatus}</span><span>{downloadProgress}%</span></div><div className="w-full bg-stone-200 rounded-full h-1.5"><div className="bg-quran-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${downloadProgress}%` }}></div></div></div>
                         ) : (
-                            <button onClick={() => handleSelectOrDownload(option, type)} className={`w-full mt-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isSelected ? 'bg-quran-dark text-white cursor-default' : isDownloaded ? 'border border-quran-dark text-quran-dark hover:bg-quran-dark hover:text-white' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}`}>
+                            <button onClick={() => handleSelectOrDownload(option, type)} className={`w-full mt-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isSelected ? 'bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark cursor-default' : isDownloaded ? 'border border-quran-dark dark:border-quran-gold text-quran-dark dark:text-quran-gold hover:bg-quran-dark dark:hover:bg-quran-gold hover:text-white dark:hover:text-quran-dark' : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-slate-600'}`}>
                                 {isSelected ? 'Sedang Digunakan' : isDownloaded ? 'Gunakan (Offline)' : 'Unduh & Gunakan'}
                                 {!isDownloaded && !isSelected && <Download className="w-3 h-3" />}
                             </button>
@@ -290,6 +343,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-slate-900 pb-20 animate-fade-in transition-colors duration-300">
         <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+            {/* ... Other sections remain unchanged as they use generic dark: classes ... */}
             
             {/* Theme Settings */}
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5 flex items-center justify-between">
@@ -312,6 +366,43 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{getAppLangName()}</p>
                 </div>
                 <button onClick={() => setIsLangModalOpen(true)} className="px-3 py-1.5 text-xs font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg hover:bg-stone-200">Ubah</button>
+            </section>
+
+            {/* DATA MANAGEMENT (Backup & Restore) - NEW SECTION */}
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5">
+                <div className="flex items-center gap-2 mb-4">
+                    <HardDrive className="w-4 h-4 text-quran-gold" />
+                    <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">Manajemen Data</h2>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 leading-relaxed">
+                    Amankan catatan tadabbur, bookmark, dan pengaturan Anda dengan mengekspor data ke file. Anda dapat memulihkannya nanti jika menghapus cache aplikasi.
+                </p>
+                <div className="flex gap-3">
+                    <button 
+                        onClick={handleBackup} 
+                        disabled={isBackupProcessing}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-xl text-xs font-bold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                    >
+                        {isBackupProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                        Backup Data
+                    </button>
+                    <button 
+                        onClick={handleRestoreClick}
+                        disabled={isBackupProcessing}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-quran-gold/10 text-quran-dark dark:text-quran-gold rounded-xl text-xs font-bold hover:bg-quran-gold/20 transition-colors disabled:opacity-50"
+                    >
+                        <Upload className="w-3 h-3" />
+                        Restore Data
+                    </button>
+                    {/* Hidden Input for Restore */}
+                    <input 
+                        type="file" 
+                        ref={fileInputRef} 
+                        style={{ display: 'none' }} 
+                        accept="application/json" 
+                        onChange={handleFileChange}
+                    />
+                </div>
             </section>
             
             {/* UI Settings */}
@@ -377,7 +468,6 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
             {/* Mushaf Settings */}
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden">
-            {/* ... (Existing Mushaf & Audio Sections remain the same) ... */}
                  <div className="p-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50/50 dark:bg-slate-700/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'mushaf' ? null : 'mushaf')}>
                     <div>
                         <h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-quran-gold" /> Tampilan Mushaf</h2>
@@ -413,7 +503,15 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 {activeSection === 'audio' && (
                     <div className="p-5 bg-stone-50/30 dark:bg-slate-900/30 space-y-6">
                         <div className="space-y-2"><label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pilih Qari</label><div className="relative"><Mic2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-quran-gold" /><select className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-slate-600 text-sm appearance-none bg-white dark:bg-slate-700 dark:text-white" value={activeReciter.id} onChange={(e) => setReciter(e.target.value)}>{RECITERS.map(r => (<option key={r.id} value={r.id}>{r.name}</option>))}</select></div></div>
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 overflow-hidden"><div className="p-4 bg-stone-100 dark:bg-slate-700 border-b border-stone-200 dark:border-slate-600 flex justify-between items-center"><span className="text-xs font-bold text-gray-600 dark:text-gray-300">Manajer Unduhan</span><button onClick={handleDownloadAllAudio} disabled={isDownloadingAudio} className="text-[10px] bg-quran-gold/10 text-quran-dark px-2 py-1 rounded font-bold hover:bg-quran-gold/20 disabled:opacity-50">Unduh Semua (30 Juz)</button></div><div className="max-h-80 overflow-y-auto divide-y divide-stone-100 dark:divide-slate-700">{surahs.map(surah => { const isDownloaded = audioDownloads[surah.id]; const isThisSurahDownloading = currentDownloadSurah === surah.id; return (<div key={surah.id} className="p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-slate-700 relative">{isThisSurahDownloading && (<div className="absolute inset-0 bg-quran-gold/5 pointer-events-none"><div className="h-full bg-quran-gold/10 transition-all duration-300" style={{width: `${audioProgress}%`}} /></div>)}<div className="flex items-center gap-3 relative z-10"><div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-slate-600 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-300 border border-stone-200 dark:border-slate-500">{surah.id}</div><div><p className="text-sm font-bold text-gray-800 dark:text-gray-100">{surah.transliteration}</p><p className="text-[10px] text-gray-400">{surah.total_verses} Ayat</p></div></div><div className="flex items-center gap-2 relative z-10">{isThisSurahDownloading ? <div className="flex items-center gap-2 text-xs text-quran-gold font-bold bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-full shadow-sm"><Loader2 className="w-3 h-3 animate-spin" /> {audioProgress}%</div> : isDownloaded ? <button onClick={() => handleDeleteSurahAudio(surah.id)} className="p-2 text-green-600 hover:text-red-500"><Trash2 className="w-4 h-4" /></button> : <button onClick={() => handleDownloadSurahAudio(surah)} disabled={isDownloadingAudio} className="p-2 text-gray-400 hover:text-quran-gold"><Download className="w-4 h-4" /></button>}</div></div>); })}</div></div>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 overflow-hidden"><div className="p-4 bg-stone-100 dark:bg-slate-700 border-b border-stone-200 dark:border-slate-600 flex justify-between items-center"><span className="text-xs font-bold text-gray-600 dark:text-gray-300">Manajer Unduhan</span>
+                        <button 
+                            onClick={handleDownloadAllAudio} 
+                            disabled={isDownloadingAudio} 
+                            className="text-[10px] bg-white border border-stone-300 dark:bg-slate-600 dark:border-slate-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-stone-50 dark:hover:bg-slate-500 disabled:opacity-50 transition-colors shadow-sm"
+                        >
+                            Unduh Semua (30 Juz)
+                        </button>
+                        </div><div className="max-h-80 overflow-y-auto divide-y divide-stone-100 dark:divide-slate-700">{surahs.map(surah => { const isDownloaded = audioDownloads[surah.id]; const isThisSurahDownloading = currentDownloadSurah === surah.id; return (<div key={surah.id} className="p-3 flex items-center justify-between hover:bg-stone-50 dark:hover:bg-slate-700 relative">{isThisSurahDownloading && (<div className="absolute inset-0 bg-quran-gold/5 pointer-events-none"><div className="h-full bg-quran-gold/10 transition-all duration-300" style={{width: `${audioProgress}%`}} /></div>)}<div className="flex items-center gap-3 relative z-10"><div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-slate-600 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-300 border border-stone-200 dark:border-slate-500">{surah.id}</div><div><p className="text-sm font-bold text-gray-800 dark:text-gray-100">{surah.transliteration}</p><p className="text-[10px] text-gray-400">{surah.total_verses} Ayat</p></div></div><div className="flex items-center gap-2 relative z-10">{isThisSurahDownloading ? <div className="flex items-center gap-2 text-xs text-quran-gold font-bold bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-full shadow-sm"><Loader2 className="w-3 h-3 animate-spin" /> {audioProgress}%</div> : isDownloaded ? <button onClick={() => handleDeleteSurahAudio(surah.id)} className="p-2 text-green-600 hover:text-red-500"><Trash2 className="w-4 h-4" /></button> : <button onClick={() => handleDownloadSurahAudio(surah)} disabled={isDownloadingAudio} className="p-2 text-gray-400 hover:text-quran-gold"><Download className="w-4 h-4" /></button>}</div></div>); })}</div></div>
                     </div>
                 )}
             </section>

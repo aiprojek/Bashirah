@@ -16,31 +16,31 @@ export interface TajweedGroup {
 export const TAJWEED_GROUPS: TajweedGroup[] = [
     { 
         label: 'Ghunnah / Ikhfa (Dengung)', 
-        colorClass: 'text-[#169b62]', 
+        colorClass: 'text-[#169b62] dark:text-[#4ade80]', // Brighter green for dark mode
         hexColor: '#169b62',
         rules: ['n', 'm', 'f'] 
     },
     { 
         label: 'Qalqalah (Pantulan)', 
-        colorClass: 'text-[#367cba]', 
+        colorClass: 'text-[#367cba] dark:text-[#60a5fa]', // Brighter blue
         hexColor: '#367cba',
         rules: ['q'] 
     },
     { 
         label: 'Mad (Panjang)', 
-        colorClass: 'text-[#d65f12]', 
+        colorClass: 'text-[#d65f12] dark:text-[#fb923c]', // Brighter orange
         hexColor: '#d65f12',
         rules: ['o', 'u', 'a', 'i'] 
     },
     { 
         label: 'Tafkhim (Tebal)', 
-        colorClass: 'text-[#2a5a8a]', 
+        colorClass: 'text-[#2a5a8a] dark:text-[#93c5fd]', // Light blue
         hexColor: '#2a5a8a',
         rules: ['t', 'l', 'r'] 
     },
     { 
         label: 'Idgham (Lebur)', 
-        colorClass: 'text-gray-400', 
+        colorClass: 'text-gray-400 dark:text-gray-500', 
         hexColor: '#9ca3af',
         rules: ['p', 'w', 'h'] 
     },
@@ -49,7 +49,8 @@ export const TAJWEED_GROUPS: TajweedGroup[] = [
 // Helper to get color class by rule char
 const getColorClass = (ruleChar: string): string => {
     const group = TAJWEED_GROUPS.find(g => g.rules.includes(ruleChar));
-    return group ? group.colorClass : 'text-quran-dark';
+    // Default fallback is vital here: text-quran-dark for light, text-white for dark
+    return group ? group.colorClass : 'text-quran-dark dark:text-white';
 };
 
 // Helper to extract active groups from text
@@ -86,7 +87,8 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
 
     // Check if text actually contains this format
     if (!text.match(PARSE_REGEX)) {
-         return <span className="text-quran-dark">{text}</span>;
+         // CRITICAL FIX: Explicitly set dark mode text color to white
+         return <span className="text-quran-dark dark:text-white">{text}</span>;
     }
 
     const parts = text.split(PARSE_REGEX);
@@ -101,7 +103,8 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
         // 1. Add plain text part
         if (plainText) {
             result.push(
-                <span key={`t-${i}`} className="text-quran-dark">
+                // CRITICAL FIX: Ensure plain parts are white in dark mode
+                <span key={`t-${i}`} className="text-quran-dark dark:text-white">
                     {plainText}
                 </span>
             );

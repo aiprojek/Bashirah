@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as StorageService from '../services/storageService';
@@ -72,13 +73,13 @@ const LibraryPage: React.FC = () => {
             <ReadingHeatmap />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-200 overflow-hidden min-h-[60vh]">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden min-h-[60vh]">
             
             {/* Tabs */}
-            <div className="flex border-b border-stone-200">
+            <div className="flex border-b border-stone-200 dark:border-slate-700">
                 <button 
                     onClick={() => setActiveTab('bookmarks')}
-                    className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'bookmarks' ? 'text-quran-dark' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'bookmarks' ? 'text-quran-dark dark:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <Bookmark className={`w-4 h-4 ${activeTab === 'bookmarks' ? 'fill-current' : ''}`} />
                     Bookmark
@@ -86,7 +87,7 @@ const LibraryPage: React.FC = () => {
                 </button>
                 <button 
                     onClick={() => setActiveTab('notes')}
-                    className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'notes' ? 'text-quran-dark' : 'text-gray-400 hover:text-gray-600'}`}
+                    className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'notes' ? 'text-quran-dark dark:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <FileText className={`w-4 h-4 ${activeTab === 'notes' ? 'fill-current' : ''}`} />
                     Catatan
@@ -94,7 +95,7 @@ const LibraryPage: React.FC = () => {
                 </button>
             </div>
 
-            <div className="bg-stone-50/30 min-h-full">
+            <div className="bg-stone-50/30 dark:bg-slate-900/30 min-h-full">
                 {/* BOOKMARKS LIST */}
                 {activeTab === 'bookmarks' && (
                     <>
@@ -110,21 +111,21 @@ const LibraryPage: React.FC = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="divide-y divide-stone-100">
+                            <div className="divide-y divide-stone-100 dark:divide-slate-700">
                                 {bookmarks.map((bm, idx) => (
                                     <div 
                                         key={`${bm.surahId}-${bm.verseId}`}
                                         onClick={() => handleBookmarkClick(bm)}
-                                        className="p-5 hover:bg-stone-50 transition-colors cursor-pointer group flex items-center justify-between bg-white"
+                                        className="p-5 hover:bg-stone-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-center justify-between bg-white dark:bg-slate-800"
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="flex-shrink-0 w-10 h-10 bg-quran-gold/10 rounded-full flex items-center justify-center text-quran-gold font-bold text-xs">
                                                 {idx + 1}
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-quran-dark text-lg">{bm.surahName}</h4>
+                                                <h4 className="font-bold text-quran-dark dark:text-gray-100 text-lg">{bm.surahName}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs px-2 py-0.5 bg-stone-100 rounded text-stone-500 font-medium">Ayat {bm.verseId}</span>
+                                                    <span className="text-xs px-2 py-0.5 bg-stone-100 dark:bg-slate-700 rounded text-stone-500 dark:text-gray-400 font-medium">Ayat {bm.verseId}</span>
                                                     <span className="text-xs text-gray-400">
                                                         {new Date(bm.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}
                                                     </span>
@@ -140,7 +141,7 @@ const LibraryPage: React.FC = () => {
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
-                                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-quran-gold transition-colors" />
+                                            <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-quran-gold transition-colors" />
                                         </div>
                                     </div>
                                 ))}
@@ -164,25 +165,25 @@ const LibraryPage: React.FC = () => {
                                 </button>
                             </div>
                         ) : (
-                            <div className="divide-y divide-stone-100">
+                            <div className="divide-y divide-stone-100 dark:divide-slate-700">
                                 {notes.map((note, idx) => (
                                     <div 
                                         key={note.id}
                                         onClick={() => handleNoteClick(note)}
-                                        className="p-5 hover:bg-stone-50 transition-colors cursor-pointer group flex items-start justify-between bg-white"
+                                        className="p-5 hover:bg-stone-50 dark:hover:bg-slate-700/50 transition-colors cursor-pointer group flex items-start justify-between bg-white dark:bg-slate-800"
                                     >
                                         <div className="flex gap-4 overflow-hidden">
-                                            <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 font-bold text-xs mt-1">
+                                            <div className="flex-shrink-0 w-10 h-10 bg-blue-50 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs mt-1">
                                                 <FileText className="w-4 h-4" />
                                             </div>
                                             <div className="min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h4 className="font-bold text-quran-dark text-sm">{note.surahName} : {note.verseId}</h4>
+                                                    <h4 className="font-bold text-quran-dark dark:text-gray-100 text-sm">{note.surahName} : {note.verseId}</h4>
                                                     <span className="text-[10px] text-gray-400">
                                                         {new Date(note.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}
                                                     </span>
                                                 </div>
-                                                <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed italic">
+                                                <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 leading-relaxed italic">
                                                     "{note.text}"
                                                 </p>
                                             </div>
@@ -196,7 +197,7 @@ const LibraryPage: React.FC = () => {
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
-                                            <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-blue-500 transition-colors" />
+                                            <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-600 group-hover:text-blue-500 transition-colors" />
                                         </div>
                                     </div>
                                 ))}
@@ -211,26 +212,26 @@ const LibraryPage: React.FC = () => {
         {selectedNote && (
             <div className="fixed inset-0 z-[80] flex items-center justify-center px-4">
                 <div 
-                    className="absolute inset-0 bg-quran-dark/60 backdrop-blur-sm transition-opacity"
+                    className="absolute inset-0 bg-quran-dark/60 dark:bg-black/80 backdrop-blur-sm transition-opacity"
                     onClick={() => setSelectedNote(null)}
                 />
-                <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in">
-                    <div className="px-6 py-5 border-b border-stone-100 flex items-center justify-between bg-stone-50">
+                <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in border border-white/10">
+                    <div className="px-6 py-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
                         <div>
-                            <h3 className="text-xl font-bold text-quran-dark font-serif">{selectedNote.surahName}</h3>
-                            <p className="text-sm text-gray-500">Ayat {selectedNote.verseId}</p>
+                            <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif">{selectedNote.surahName}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Ayat {selectedNote.verseId}</p>
                         </div>
                         <button 
                             onClick={() => setSelectedNote(null)}
-                            className="p-2 rounded-full hover:bg-stone-200 text-gray-500 transition-colors"
+                            className="p-2 rounded-full hover:bg-stone-200 dark:hover:bg-slate-600 text-gray-500 transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
                     </div>
                     
-                    <div className="p-8 max-h-[60vh] overflow-y-auto bg-white">
+                    <div className="p-8 max-h-[60vh] overflow-y-auto bg-white dark:bg-slate-800">
                          <div className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Catatan Anda</div>
-                         <div className="text-gray-700 leading-loose font-serif text-lg italic whitespace-pre-wrap">
+                         <div className="text-gray-700 dark:text-gray-200 leading-loose font-serif text-lg italic whitespace-pre-wrap">
                              "{selectedNote.text}"
                          </div>
                          <div className="mt-6 text-xs text-gray-400 text-right">
@@ -238,10 +239,10 @@ const LibraryPage: React.FC = () => {
                          </div>
                     </div>
                     
-                    <div className="px-6 py-4 border-t border-stone-100 bg-stone-50 flex justify-end">
+                    <div className="px-6 py-4 border-t border-stone-100 dark:border-slate-700 bg-stone-50 dark:bg-slate-700/50 flex justify-end">
                         <button 
                             onClick={handleGoToVerseFromNote}
-                            className="flex items-center gap-2 px-5 py-2.5 bg-quran-dark text-white rounded-xl font-bold text-sm hover:bg-quran-dark/90 transition-all shadow-md"
+                            className="flex items-center gap-2 px-5 py-2.5 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold text-sm hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all shadow-md"
                         >
                             Lihat Ayat <ChevronRight className="w-4 h-4" />
                         </button>

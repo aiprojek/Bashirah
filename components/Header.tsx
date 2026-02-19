@@ -32,7 +32,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-[#fcfbf7]/90 backdrop-blur-md border-b border-[#d4af37]/20 shadow-sm transition-all duration-300">
+    <header className="sticky top-0 z-50 bg-[#fcfbf7]/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-[#d4af37]/20 dark:border-slate-700 shadow-sm transition-all duration-300">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         
         {/* LEFT SECTION: Logo or Back Button */}
@@ -45,12 +45,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={handleBack}
-                        className="p-2 -ml-2 rounded-full hover:bg-stone-100 text-quran-dark transition-all group"
+                        className="p-2 -ml-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 text-quran-dark dark:text-gray-100 transition-all group"
                         aria-label="Kembali"
                     >
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                     </button>
-                    <h1 className="text-xl font-bold text-quran-dark font-serif tracking-tight animate-fade-in">
+                    <h1 className="text-xl font-bold text-quran-dark dark:text-gray-100 font-serif tracking-tight animate-fade-in">
                         {getTitle()}
                     </h1>
                 </div>
@@ -60,7 +60,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
         {/* RIGHT SECTION: Menu Button */}
         <button 
           onClick={onOpenSidebar}
-          className="p-2 rounded-full hover:bg-stone-100 text-quran-dark/70 hover:text-quran-dark transition-all"
+          className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 text-quran-dark/70 dark:text-gray-300 hover:text-quran-dark dark:hover:text-white transition-all"
           aria-label="Menu"
         >
           <Menu className="w-6 h-6" />

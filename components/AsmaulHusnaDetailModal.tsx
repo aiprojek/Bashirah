@@ -31,15 +31,6 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
         setLoading(true);
         
         try {
-            // Clean the name for better search results (remove Al/Ar/etc if needed, though exact match is often good)
-            // Searching in simple arabic text (quran-simple) to match the letters
-            // Note: We limit to 5 results to keep it clean
-            
-            // Remove 'Al-' prefix for broader search? Sometimes names appear without Al.
-            // But let's try exact first. 
-            // We search in the Indonesian translation text for the Meaning (e.g. "Maha Pengasih") 
-            // OR search the Arabic text. Searching Arabic is more accurate for "Dalil".
-            
             const results = await searchGlobalVerses(data.arabic, 'quran-simple');
             setVerses(results.slice(0, 5));
         } catch (error) {
@@ -56,7 +47,7 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
         // Use Web Speech API for Arabic pronunciation
         const utterance = new SpeechSynthesisUtterance(data.arabic);
         utterance.lang = 'ar-SA';
-        utterance.rate = 0.8; // Slower for clarity
+        utterance.rate = 0.8; 
         
         utterance.onend = () => setIsPlaying(false);
         utterance.onerror = () => setIsPlaying(false);
@@ -75,12 +66,12 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
             {/* Backdrop */}
             <div 
-                className="absolute inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
+                className="absolute inset-0 bg-quran-dark/80 dark:bg-black/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
             {/* Modal Content */}
-            <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
+            <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden border border-white/10">
                 
                 {/* Header / Top Card */}
                 <div className="relative bg-gradient-to-br from-quran-dark to-[#142924] p-8 text-center text-white shrink-0 overflow-hidden">
@@ -121,8 +112,8 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                 </div>
 
                 {/* Body: Dalil */}
-                <div className="flex-1 overflow-y-auto bg-stone-50 p-6 custom-scrollbar">
-                    <div className="flex items-center gap-2 mb-4 text-gray-500 font-bold text-xs uppercase tracking-wider">
+                <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-slate-900 p-6 custom-scrollbar">
+                    <div className="flex items-center gap-2 mb-4 text-gray-500 dark:text-gray-400 font-bold text-xs uppercase tracking-wider">
                         <BookOpen className="w-4 h-4 text-quran-gold" />
                         Dalil Al-Quran Terkait
                     </div>
@@ -138,15 +129,15 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                                 <button 
                                     key={idx}
                                     onClick={() => handleVerseClick(v.surah.number, v.verseId)}
-                                    className="w-full text-left bg-white p-4 rounded-xl border border-stone-100 hover:border-quran-gold hover:shadow-md transition-all group"
+                                    className="w-full text-left bg-white dark:bg-slate-800 p-4 rounded-xl border border-stone-100 dark:border-slate-700 hover:border-quran-gold dark:hover:border-quran-gold hover:shadow-md transition-all group"
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] font-bold bg-stone-100 text-stone-600 px-2 py-1 rounded">
+                                        <span className="text-[10px] font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300 px-2 py-1 rounded">
                                             QS. {v.surah.englishName} : {v.verseId}
                                         </span>
                                         <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-quran-gold" />
                                     </div>
-                                    <p className="font-arabic text-xl text-right text-gray-800 leading-loose line-clamp-2" dir="rtl">
+                                    <p className="font-arabic text-xl text-right text-gray-800 dark:text-gray-200 leading-loose line-clamp-2" dir="rtl">
                                         {v.text}
                                     </p>
                                     <p className="text-xs text-gray-400 mt-2 italic">
@@ -156,7 +147,7 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-10 bg-white rounded-xl border border-dashed border-stone-200">
+                        <div className="text-center py-10 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-stone-200 dark:border-slate-700">
                             <p className="text-gray-400 text-sm">Tidak ditemukan ayat spesifik dengan lafaz persis ini dalam pencarian cepat.</p>
                         </div>
                     )}

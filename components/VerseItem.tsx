@@ -132,7 +132,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       if (!memorizationMode.isActive) {
            return (
              <p 
-                className={`font-arabic leading-[2.5] ${isAudioPlaying ? 'font-medium' : ''}`}
+                className={`font-arabic leading-[2.5] text-quran-dark dark:text-white ${isAudioPlaying ? 'font-medium' : ''}`}
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
                 <TajweedText text={verse.text} />
@@ -147,7 +147,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       if (revealArabic) {
            return (
              <p 
-                className="font-arabic leading-[2.5] animate-fade-in relative"
+                className="font-arabic leading-[2.5] text-quran-dark dark:text-white animate-fade-in relative"
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
                 <TajweedText text={verse.text} />
@@ -157,7 +157,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 {/* Close Button to hide again */}
                 <button 
                     onClick={(e) => { e.stopPropagation(); setRevealArabic(false); }}
-                    className="absolute -top-6 -right-2 text-[10px] text-gray-400 bg-stone-100 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-stone-200"
+                    className="absolute -top-6 -right-2 text-[10px] text-gray-400 bg-stone-100 dark:bg-slate-700 dark:text-gray-300 px-2 py-1 rounded-full flex items-center gap-1 hover:bg-stone-200 dark:hover:bg-slate-600"
                 >
                     <EyeOff className="w-3 h-3" /> Tutup
                 </button>
@@ -173,12 +173,12 @@ const VerseItem: React.FC<VerseItemProps> = ({
           return (
              <div className="relative cursor-pointer group/blur" onClick={() => setRevealArabic(true)}>
                  <div className="absolute inset-0 flex items-center justify-center z-10 opacity-0 group-hover/blur:opacity-100 transition-opacity">
-                     <div className="bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-bold text-quran-dark flex items-center gap-2 shadow-lg border border-stone-100 transform scale-95 group-hover/blur:scale-100 transition-transform">
+                     <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm rounded-full px-4 py-2 text-xs font-bold text-quran-dark dark:text-gray-200 flex items-center gap-2 shadow-lg border border-stone-100 dark:border-slate-600 transform scale-95 group-hover/blur:scale-100 transition-transform">
                         <Eye className="w-4 h-4" /> Ketuk untuk melihat
                      </div>
                  </div>
                  <p 
-                    className={`font-arabic leading-[2.5] blur-md select-none opacity-40 transition-all duration-300`}
+                    className={`font-arabic leading-[2.5] blur-md select-none opacity-40 transition-all duration-300 text-quran-dark dark:text-white`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
                     {/* Even in blur, we use TajweedText so structure is maintained */}
@@ -194,7 +194,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
              <div className="relative cursor-pointer" onClick={() => setRevealArabic(true)}>
                  {/* No Blur, just very low opacity */}
                  <p 
-                    className={`font-arabic leading-[2.5] text-quran-dark opacity-10 hover:opacity-30 transition-opacity duration-300 select-none filter-none`}
+                    className={`font-arabic leading-[2.5] text-quran-dark dark:text-white opacity-10 hover:opacity-30 transition-opacity duration-300 select-none filter-none`}
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
                     <TajweedText text={verse.text} />
@@ -212,7 +212,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       // Level: First & Last (Awal & Akhir)
       if (level === 'first-last') {
           return (
-             <div className="font-arabic leading-[2.5] cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
+             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
                      // Logic: Show first 2 and last 2. 
                      let isVisible = false;
@@ -227,7 +227,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      }
                      
                      return (
-                        <span key={idx} className="inline-block bg-stone-200/50 rounded-md text-transparent select-none ml-1.5 min-w-[30px] h-4 align-middle opacity-50">
+                        <span key={idx} className="inline-block bg-stone-200/50 dark:bg-slate-600/50 rounded-md text-transparent select-none ml-1.5 min-w-[30px] h-4 align-middle opacity-50">
                              ....
                         </span>
                      );
@@ -242,7 +242,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       // Level: Random (Acak)
       if (level === 'random') {
            return (
-             <div className="font-arabic leading-[2.5] cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
+             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
                      const pseudoRandom = (verse.id + idx * 7) % 10; 
                      const shouldHide = pseudoRandom < 4; // 40% chance to hide
@@ -252,7 +252,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      }
                      
                      return (
-                        <span key={idx} className="inline-block bg-stone-200/50 rounded-md text-transparent select-none ml-1.5 min-w-[20px] h-4 align-middle opacity-50">
+                        <span key={idx} className="inline-block bg-stone-200/50 dark:bg-slate-600/50 rounded-md text-transparent select-none ml-1.5 min-w-[20px] h-4 align-middle opacity-50">
                              ...
                         </span>
                      );
@@ -272,12 +272,12 @@ const VerseItem: React.FC<VerseItemProps> = ({
   return (
     <div 
         id={`verse-${verse.id}`} 
-        className={`py-10 border-b border-stone-200 last:border-0 transition-all duration-500 px-4 rounded-xl group scroll-mt-24 ${
+        className={`py-10 border-b border-stone-200 dark:border-slate-700 last:border-0 transition-all duration-500 px-4 rounded-xl group scroll-mt-24 ${
             isAudioPlaying 
-            ? 'bg-quran-gold/10 ring-1 ring-quran-gold/30 shadow-sm' 
+            ? 'bg-quran-gold/10 dark:bg-quran-gold/5 ring-1 ring-quran-gold/30 shadow-sm' 
             : isLastRead 
-                ? 'bg-stone-50/80 ring-1 ring-stone-200' 
-                : 'hover:bg-stone-50/50'
+                ? 'bg-stone-50/80 dark:bg-slate-700/50 ring-1 ring-stone-200 dark:ring-slate-600' 
+                : 'hover:bg-stone-50/50 dark:hover:bg-slate-800/50'
         }`}
     >
       {/* Action Bar / Meta */}
@@ -285,14 +285,14 @@ const VerseItem: React.FC<VerseItemProps> = ({
         <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${
-                    isAudioPlaying ? 'bg-quran-gold text-white border-quran-gold' : 'bg-stone-100 text-quran-dark border-stone-200'
+                    isAudioPlaying ? 'bg-quran-gold text-white border-quran-gold' : 'bg-stone-100 dark:bg-slate-700 text-quran-dark dark:text-gray-200 border-stone-200 dark:border-slate-600'
                 }`}>
                     {surahId}:{verse.id}
                 </span>
 
                 {/* Page Number Indicator */}
                 {verse.page_number && (
-                    <span className="text-[10px] text-gray-400 font-medium px-2 py-0.5 bg-white border border-stone-100 rounded-full flex items-center gap-1">
+                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium px-2 py-0.5 bg-white dark:bg-slate-800 border border-stone-100 dark:border-slate-700 rounded-full flex items-center gap-1">
                         <Hash className="w-2 h-2" /> Hal. {verse.page_number}
                     </span>
                 )}
@@ -304,7 +304,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 )}
 
                 {isLastRead && !isAudioPlaying && (
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 flex items-center gap-1">
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-stone-400 dark:text-stone-500 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" /> Terakhir Dibaca
                     </span>
                 )}
@@ -316,7 +316,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                     </span>
                 )}
                 {hasNote && (
-                     <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                     <span className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center gap-1">
                         <FileText className="w-3 h-3" /> Ada Catatan
                     </span>
                 )}
@@ -327,7 +327,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
             {/* Play Button */}
             <button 
                 onClick={onPlayAudio}
-                className={`p-2 rounded-full transition-all ${isAudioPlaying ? 'text-quran-gold bg-white shadow-sm' : 'text-gray-300 hover:text-quran-gold hover:bg-stone-100'}`}
+                className={`p-2 rounded-full transition-all ${isAudioPlaying ? 'text-quran-gold bg-white dark:bg-slate-800 shadow-sm' : 'text-gray-300 dark:text-gray-500 hover:text-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700'}`}
                 title="Putar Ayat Ini"
             >
                 <PlayCircle className={`w-6 h-6 ${isAudioPlaying ? 'fill-current' : ''}`} />
@@ -337,19 +337,19 @@ const VerseItem: React.FC<VerseItemProps> = ({
             <div className="relative" ref={menuRef}>
                 <button 
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className={`p-2 rounded-full transition-colors ${isMenuOpen ? 'bg-stone-100 text-quran-dark' : 'text-gray-300 hover:text-quran-dark hover:bg-stone-100'}`}
+                    className={`p-2 rounded-full transition-colors ${isMenuOpen ? 'bg-stone-100 dark:bg-slate-700 text-quran-dark dark:text-gray-200' : 'text-gray-300 dark:text-gray-500 hover:text-quran-dark dark:hover:text-gray-200 hover:bg-stone-100 dark:hover:bg-slate-700'}`}
                     title="Opsi Ayat"
                 >
                     <MoreVertical className="w-5 h-5" />
                 </button>
 
                 {isMenuOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-stone-100 z-10 overflow-hidden animate-fade-in origin-top-right">
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-stone-100 dark:border-slate-600 z-10 overflow-hidden animate-fade-in origin-top-right">
                         {/* Dropdown Options ... */}
                         {hasKhatamTarget && onUpdateKhatam && (
                             <button 
                                 onClick={() => { onUpdateKhatam(verse.id); setIsMenuOpen(false); }}
-                                className="w-full text-left px-4 py-3 text-sm text-emerald-700 bg-emerald-50 hover:bg-emerald-100 flex items-center gap-3 transition-colors border-b border-emerald-100"
+                                className="w-full text-left px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 flex items-center gap-3 transition-colors border-b border-emerald-100 dark:border-emerald-800"
                             >
                                 <Target className="w-4 h-4 fill-current" />
                                 <span className="font-bold">Update Progres Khatam</span>
@@ -358,7 +358,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
                         <button 
                             onClick={() => { onSetLastRead(verse.id); setIsMenuOpen(false); }}
-                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                         >
                             <BookOpen className="w-4 h-4 text-quran-gold" />
                             <span>Tandai Terakhir Dibaca</span>
@@ -366,34 +366,34 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
                          <button 
                             onClick={handleCopyVerse}
-                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                         >
-                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-400" />}
+                            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-gray-400 dark:text-gray-500" />}
                             <span>{copied ? 'Tersalin' : 'Salin Ayat'}</span>
                         </button>
 
                         {onShare && (
                             <button 
                                 onClick={() => { onShare(verse, surahName); setIsMenuOpen(false); }}
-                                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                                className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                             >
-                                <Share2 className="w-4 h-4 text-gray-400" />
+                                <Share2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                                 <span>Bagikan Gambar</span>
                             </button>
                         )}
 
                         <button 
                             onClick={() => { onToggleBookmark(verse.id); setIsMenuOpen(false); }}
-                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors"
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors"
                         >
-                            <Bookmark className={`w-4 h-4 ${isBookmarked ? 'text-quran-gold fill-current' : 'text-gray-400'}`} />
+                            <Bookmark className={`w-4 h-4 ${isBookmarked ? 'text-quran-gold fill-current' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span>{isBookmarked ? 'Hapus Bookmark' : 'Bookmark'}</span>
                         </button>
                         <button 
                             onClick={() => { onTakeNote(verse.id); setIsMenuOpen(false); }}
-                            className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-stone-50 flex items-center gap-3 transition-colors border-t border-stone-50"
+                            className="w-full text-left px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700 flex items-center gap-3 transition-colors border-t border-stone-50 dark:border-slate-700"
                         >
-                            <FileText className={`w-4 h-4 ${hasNote ? 'text-quran-gold fill-current' : 'text-gray-400'}`} />
+                            <FileText className={`w-4 h-4 ${hasNote ? 'text-quran-gold fill-current' : 'text-gray-400 dark:text-gray-500'}`} />
                             <span>{hasNote ? 'Ubah Catatan' : 'Buat Catatan'}</span>
                         </button>
                     </div>
@@ -428,9 +428,9 @@ const VerseItem: React.FC<VerseItemProps> = ({
                  <Palette className="w-3 h-3" />
               </div>
               {activeTajweedGroups.map((group, idx) => (
-                  <div key={idx} className="flex items-center gap-1.5 bg-stone-50 px-2 py-1 rounded border border-stone-100">
+                  <div key={idx} className="flex items-center gap-1.5 bg-stone-50 dark:bg-slate-700 px-2 py-1 rounded border border-stone-100 dark:border-slate-600">
                       <div className="w-2 h-2 rounded-full" style={{ backgroundColor: group.hexColor }}></div>
-                      <span className="text-gray-500">{group.label}</span>
+                      <span className="text-gray-500 dark:text-gray-300">{group.label}</span>
                   </div>
               ))}
           </div>
@@ -445,14 +445,14 @@ const VerseItem: React.FC<VerseItemProps> = ({
                     onClick={() => setRevealTranslation(true)}
                     className="absolute inset-0 z-10 cursor-pointer flex items-center justify-center group/blur"
                 >
-                    <div className="bg-stone-100/50 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 text-stone-500 font-bold text-sm shadow-sm border border-stone-200 opacity-0 group-hover/blur:opacity-100 transition-opacity">
+                    <div className="bg-stone-100/50 dark:bg-slate-800/50 backdrop-blur-sm rounded-xl px-4 py-2 flex items-center gap-2 text-stone-500 dark:text-gray-400 font-bold text-sm shadow-sm border border-stone-200 dark:border-slate-700 opacity-0 group-hover/blur:opacity-100 transition-opacity">
                         <Eye className="w-4 h-4" /> Ketuk untuk melihat
                     </div>
                 </div>
             )}
 
             <p 
-                className={`text-gray-700 leading-relaxed font-serif italic transition-all duration-300 ${isAudioPlaying ? 'text-quran-dark font-medium' : ''} ${isTranslationBlurred ? 'blur-sm select-none opacity-50' : ''}`}
+                className={`text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic transition-all duration-300 ${isAudioPlaying ? 'text-quran-dark dark:text-white font-medium' : ''} ${isTranslationBlurred ? 'blur-sm select-none opacity-50' : ''}`}
                 style={{ fontSize: `${translationFontSize}px` }}
                 onClick={() => isTranslationBlurred ? setRevealTranslation(true) : revealTranslation ? setRevealTranslation(false) : null}
             >
@@ -463,12 +463,12 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
       {/* Tafsir Area */}
       {verseTafsir && (
-          <div className="text-left max-w-3xl bg-stone-50 p-6 rounded-xl border border-stone-100 mt-4">
-            <div className="flex items-center gap-2 mb-3 text-quran-gold font-bold text-xs uppercase tracking-widest border-b border-stone-200 pb-2">
+          <div className="text-left max-w-3xl bg-stone-50 dark:bg-slate-700/50 p-6 rounded-xl border border-stone-100 dark:border-slate-700 mt-4">
+            <div className="flex items-center gap-2 mb-3 text-quran-gold font-bold text-xs uppercase tracking-widest border-b border-stone-200 dark:border-slate-600 pb-2">
                 <BookOpen className="w-4 h-4" />
                 <span>Tafsir</span>
             </div>
-            <p className="text-gray-600 leading-relaxed font-sans text-sm text-justify">
+            <p className="text-gray-600 dark:text-gray-300 leading-relaxed font-sans text-sm text-justify">
                 {verseTafsir}
             </p>
           </div>

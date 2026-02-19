@@ -23,8 +23,8 @@ const AsmaulHusnaPage: React.FC = () => {
                 <div className="inline-block p-3 bg-quran-gold/10 rounded-full mb-4 ring-1 ring-quran-gold/20">
                     <Sparkles className="w-8 h-8 text-quran-gold" />
                 </div>
-                <h1 className="text-4xl font-bold text-quran-dark font-serif mb-2">Asmaul Husna</h1>
-                <p className="text-gray-500 max-w-lg mx-auto font-serif italic text-sm">
+                <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">Asmaul Husna</h1>
+                <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto font-serif italic text-sm">
                     "Hanya milik Allah asma-ul husna (nama-nama yang maha indah), maka bermohonlah kepada-Nya dengan menyebut asma-ul husna itu..." (QS. Al-A'raf: 180)
                 </p>
             </div>
@@ -36,7 +36,7 @@ const AsmaulHusnaPage: React.FC = () => {
                 </div>
                 <input
                     type="text"
-                    className="block w-full pl-11 pr-4 py-3 bg-white border border-stone-200 rounded-full leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold transition-all shadow-sm"
+                    className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-full leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold transition-all shadow-sm text-gray-800 dark:text-white"
                     placeholder="Cari nama atau arti..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -49,29 +49,29 @@ const AsmaulHusnaPage: React.FC = () => {
                     <button 
                         key={item.index}
                         onClick={() => setSelectedName(item)}
-                        className="bg-white rounded-2xl p-6 border border-stone-100 shadow-sm hover:shadow-md hover:border-quran-gold/30 transition-all group relative overflow-hidden flex flex-col items-center text-center h-full w-full"
+                        className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-stone-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-quran-gold/30 dark:hover:border-quran-gold/30 transition-all group relative overflow-hidden flex flex-col items-center text-center h-full w-full"
                     >
                         {/* Decorative Number */}
-                        <div className="absolute top-2 left-2 text-[10px] font-bold text-gray-300 bg-stone-50 px-2 py-0.5 rounded-full border border-stone-100 group-hover:bg-quran-gold group-hover:text-white transition-colors">
+                        <div className="absolute top-2 left-2 text-[10px] font-bold text-gray-300 dark:text-gray-600 bg-stone-50 dark:bg-slate-700 px-2 py-0.5 rounded-full border border-stone-100 dark:border-slate-600 group-hover:bg-quran-gold group-hover:text-white transition-colors">
                             {item.index}
                         </div>
 
                         {/* Background Decoration */}
-                        <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
+                        <div className="absolute -right-4 -bottom-4 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity text-quran-dark dark:text-white">
                              <span className="font-arabic text-6xl">{item.arabic}</span>
                         </div>
 
                         <div className="flex-1 flex flex-col justify-center w-full">
                             <div className="mb-4 mt-2">
-                                <p className="font-arabic text-3xl text-quran-dark group-hover:text-quran-gold transition-colors leading-relaxed drop-shadow-sm">
+                                <p className="font-arabic text-3xl text-quran-dark dark:text-white group-hover:text-quran-gold dark:group-hover:text-quran-gold transition-colors leading-relaxed drop-shadow-sm">
                                     {item.arabic}
                                 </p>
                             </div>
                             
-                            <h3 className="font-bold text-gray-800 text-sm mb-1 group-hover:text-quran-dark transition-colors">
+                            <h3 className="font-bold text-gray-800 dark:text-gray-200 text-sm mb-1 group-hover:text-quran-dark dark:group-hover:text-quran-gold transition-colors">
                                 {item.latin}
                             </h3>
-                            <p className="text-[10px] text-gray-500 font-medium leading-snug px-1">
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-snug px-1">
                                 {item.translation_id}
                             </p>
                         </div>

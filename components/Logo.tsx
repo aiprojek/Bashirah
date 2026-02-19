@@ -4,21 +4,16 @@ import React from 'react';
 interface LogoProps {
   className?: string; // Digunakan untuk mengatur ukuran Icon (misal: w-10 h-10)
   withText?: boolean;
-  lightMode?: boolean; // Jika true, dioptimalkan untuk background gelap
 }
 
-const Logo: React.FC<LogoProps> = ({ className = "w-10 h-10", withText = false, lightMode = false }) => {
-  const strokeColor = lightMode ? "stroke-white" : "stroke-[#1e3a34]";
-  const accentStroke = "#d4af37"; // Gold/Yellow
-  const greenDot = "#1e3a34"; // Dark Green
+const Logo: React.FC<LogoProps> = ({ className = "w-10 h-10", withText = false }) => {
+  // Use currentColor for stroke to adapt to text color in dark/light mode
+  const strokeColor = "stroke-[#1e3a34] dark:stroke-white"; 
+  const accentStroke = "#d4af37"; // Gold/Yellow (stays same or slightly brighter)
+  const greenDot = "#1e3a34"; // Center dot, will override with dark class below
 
   return (
     <div className="flex items-center gap-3 select-none">
-      {/* 
-         WRAPPER IKON: 
-         className (ukuran w-xx h-xx) diterapkan di sini, bukan di parent terluar.
-         Ini agar teks tidak ikut terkompresi oleh ukuran ikon.
-      */}
       <div className={`${className} relative flex-shrink-0`}>
         <svg 
             viewBox="0 0 100 100" 
@@ -64,8 +59,8 @@ const Logo: React.FC<LogoProps> = ({ className = "w-10 h-10", withText = false, 
                 fill={accentStroke} 
                 stroke="none"
             />
-            {/* Green Dot Center */}
-            <circle cx="50" cy="19" r="1.5" fill={greenDot} />
+            {/* Green Dot Center - using class for dark mode support */}
+            <circle cx="50" cy="19" r="1.5" className="fill-[#1e3a34] dark:fill-slate-900" />
             {/* Impulse Lines */}
             <path d="M35 19 H 28" stroke={accentStroke} strokeWidth="2" strokeLinecap="round" />
             <path d="M65 19 H 72" stroke={accentStroke} strokeWidth="2" strokeLinecap="round" />
@@ -75,10 +70,10 @@ const Logo: React.FC<LogoProps> = ({ className = "w-10 h-10", withText = false, 
       {/* TEXT PART */}
       {withText && (
         <div className="flex flex-col justify-center">
-            <h1 className={`text-xl font-bold font-serif tracking-tight leading-none ${lightMode ? 'text-white' : 'text-[#1e3a34]'}`}>
+            <h1 className="text-xl font-bold font-serif tracking-tight leading-none text-[#1e3a34] dark:text-gray-100">
                 Bashirah
             </h1>
-            <p className={`text-[9px] font-sans tracking-[0.2em] uppercase leading-none mt-1 ${lightMode ? 'text-white/70' : 'text-[#1e3a34]/60'}`}>
+            <p className="text-[9px] font-sans tracking-[0.2em] uppercase leading-none mt-1 text-[#1e3a34]/60 dark:text-gray-400">
                 Al-Quran Digital
             </p>
         </div>

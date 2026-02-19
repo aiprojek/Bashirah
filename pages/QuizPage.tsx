@@ -189,11 +189,11 @@ const QuizPage: React.FC = () => {
                     else if (idx === 2) rankIcon = <Medal className="w-5 h-5 text-orange-400 fill-current" />;
 
                     return (
-                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isCurrentRun ? 'bg-quran-gold/10 border-quran-gold' : 'bg-white border-stone-100'} shadow-sm`}>
+                        <div key={idx} className={`flex items-center justify-between p-3 rounded-xl border ${isCurrentRun ? 'bg-quran-gold/10 border-quran-gold' : 'bg-white dark:bg-slate-800 border-stone-100 dark:border-slate-700'} shadow-sm`}>
                             <div className="flex items-center gap-3">
                                 {rankIcon}
                                 <div className="flex flex-col">
-                                    <span className={`text-sm font-bold ${isCurrentRun ? 'text-quran-dark' : 'text-gray-700'}`}>
+                                    <span className={`text-sm font-bold ${isCurrentRun ? 'text-quran-dark dark:text-quran-gold' : 'text-gray-700 dark:text-gray-200'}`}>
                                         {s.playerName} {isCurrentRun && '(Anda)'}
                                     </span>
                                     <span className="text-[10px] text-gray-400">
@@ -225,10 +225,10 @@ const QuizPage: React.FC = () => {
                     <Brain className="w-12 h-12 text-white -rotate-12" />
                 </div>
                 
-                <h1 className="text-4xl font-bold text-quran-dark font-serif mb-2">
+                <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">
                     Kuis Al-Quran
                 </h1>
-                <p className="text-gray-500 mb-8 max-w-sm text-sm">
+                <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm text-sm">
                     Uji wawasanmu tentang nama-nama surat, arti, dan jumlah ayat.
                 </p>
 
@@ -241,7 +241,7 @@ const QuizPage: React.FC = () => {
                             placeholder="Masukkan Nama Anda"
                             value={playerName}
                             onChange={(e) => setPlayerName(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 focus:border-quran-gold focus:ring-2 focus:ring-quran-gold/20 outline-none text-center font-bold text-quran-dark bg-white shadow-sm transition-all"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 dark:border-slate-700 focus:border-quran-gold focus:ring-2 focus:ring-quran-gold/20 outline-none text-center font-bold text-quran-dark dark:text-white bg-white dark:bg-slate-800 shadow-sm transition-all"
                         />
                     </div>
                 </div>
@@ -249,7 +249,7 @@ const QuizPage: React.FC = () => {
                 <button 
                     onClick={startGame}
                     disabled={!playerName.trim()}
-                    className="w-full max-w-xs py-4 bg-quran-dark text-white rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-quran-dark/90 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    className="w-full max-w-xs py-4 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
                     Mulai Main
                 </button>
@@ -259,7 +259,7 @@ const QuizPage: React.FC = () => {
                     <div className="mt-12 w-full max-w-sm">
                         <div className="flex items-center justify-center gap-2 mb-4">
                             <Trophy className="w-4 h-4 text-quran-gold" />
-                            <h3 className="text-sm font-bold text-gray-600 uppercase tracking-widest">Papan Skor</h3>
+                            <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest">Papan Skor</h3>
                         </div>
                         {renderLeaderboard(3)}
                     </div>
@@ -282,13 +282,13 @@ const QuizPage: React.FC = () => {
                      <Trophy className="w-24 h-24 text-quran-gold relative z-10 drop-shadow-sm" />
                 </div>
                 
-                <h2 className="text-2xl font-bold text-quran-dark font-serif mb-1">{message}</h2>
-                <div className="text-5xl font-bold text-gray-800 mb-2 font-sans">{score}/{questions.length}</div>
+                <h2 className="text-2xl font-bold text-quran-dark dark:text-white font-serif mb-1">{message}</h2>
+                <div className="text-5xl font-bold text-gray-800 dark:text-gray-200 mb-2 font-sans">{score}/{questions.length}</div>
                 <p className="text-gray-400 mb-8 text-xs font-bold uppercase tracking-wider">Skor {playerName}</p>
 
                 {/* Leaderboard Section */}
-                <div className="w-full max-w-md bg-stone-50/50 rounded-2xl p-4 border border-stone-100 mb-8">
-                    <h3 className="text-sm font-bold text-gray-600 mb-3 text-left flex items-center gap-2">
+                <div className="w-full max-w-md bg-stone-50/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-stone-100 dark:border-slate-700 mb-8">
+                    <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 mb-3 text-left flex items-center gap-2">
                         <Star className="w-4 h-4 text-quran-gold fill-current" /> Peringkat Tertinggi
                     </h3>
                     <div className="max-h-60 overflow-y-auto custom-scrollbar pr-1">
@@ -299,13 +299,13 @@ const QuizPage: React.FC = () => {
                 <div className="flex flex-col gap-3 w-full max-w-xs">
                     <button 
                         onClick={startGame}
-                        className="py-3 bg-quran-dark text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-quran-dark/90"
+                        className="py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90"
                     >
                         <RefreshCw className="w-4 h-4" /> Main Lagi
                     </button>
                     <button 
                         onClick={() => navigate('/')}
-                        className="py-3 bg-white border border-stone-200 text-gray-600 rounded-xl font-bold hover:bg-stone-50"
+                        className="py-3 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold hover:bg-stone-50 dark:hover:bg-slate-700"
                     >
                         Kembali ke Beranda
                     </button>
@@ -322,10 +322,10 @@ const QuizPage: React.FC = () => {
             
             {/* Header Info */}
             <div className="flex justify-between items-center mb-6">
-                 <div className="flex items-center gap-2 text-sm font-bold text-gray-600">
+                 <div className="flex items-center gap-2 text-sm font-bold text-gray-600 dark:text-gray-300">
                      <User className="w-4 h-4" /> {playerName}
                  </div>
-                 <div className="text-xs font-bold px-2 py-1 bg-stone-100 rounded text-gray-500">
+                 <div className="text-xs font-bold px-2 py-1 bg-stone-100 dark:bg-slate-700 rounded text-gray-500 dark:text-gray-300">
                      Skor: {score}
                  </div>
             </div>
@@ -336,7 +336,7 @@ const QuizPage: React.FC = () => {
                     <span>Soal {currentIndex + 1}</span>
                     <span>{questions.length}</span>
                 </div>
-                <div className="h-2 w-full bg-stone-200 rounded-full overflow-hidden">
+                <div className="h-2 w-full bg-stone-200 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div 
                         className="h-full bg-quran-gold transition-all duration-500 ease-out"
                         style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
@@ -345,11 +345,11 @@ const QuizPage: React.FC = () => {
             </div>
 
             {/* Question Card */}
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-200 p-6 sm:p-10 mb-6 flex-1 flex flex-col justify-center text-center relative overflow-hidden">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-6 sm:p-10 mb-6 flex-1 flex flex-col justify-center text-center relative overflow-hidden">
                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-quran-gold/5 rounded-full pointer-events-none"></div>
                  <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-quran-dark/5 rounded-full pointer-events-none"></div>
                  
-                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 font-serif leading-relaxed relative z-10">
+                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white font-serif leading-relaxed relative z-10">
                      {currentQ.text}
                  </h2>
             </div>
@@ -360,18 +360,18 @@ const QuizPage: React.FC = () => {
                     const isSelected = selectedOption === option;
                     const isCorrect = option === currentQ.correctAnswer;
                     
-                    let btnClass = "bg-white border-stone-200 text-gray-600 hover:border-quran-gold/50"; // Default
+                    let btnClass = "bg-white dark:bg-slate-800 border-stone-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:border-quran-gold/50 dark:hover:border-quran-gold/50"; // Default
                     let icon = null;
 
                     if (showFeedback) {
                         if (isCorrect) {
-                            btnClass = "bg-green-50 border-green-500 text-green-700 ring-1 ring-green-500";
-                            icon = <CheckCircle className="w-5 h-5 text-green-600" />;
+                            btnClass = "bg-green-50 dark:bg-green-900/30 border-green-500 text-green-700 dark:text-green-400 ring-1 ring-green-500";
+                            icon = <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />;
                         } else if (isSelected && !isCorrect) {
-                            btnClass = "bg-red-50 border-red-500 text-red-700 ring-1 ring-red-500";
-                            icon = <XCircle className="w-5 h-5 text-red-600" />;
+                            btnClass = "bg-red-50 dark:bg-red-900/30 border-red-500 text-red-700 dark:text-red-400 ring-1 ring-red-500";
+                            icon = <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />;
                         } else {
-                            btnClass = "bg-stone-50 border-stone-100 text-gray-300 opacity-50";
+                            btnClass = "bg-stone-50 dark:bg-slate-700/50 border-stone-100 dark:border-slate-700 text-gray-300 dark:text-gray-600 opacity-50";
                         }
                     } else {
                         // Hover effects only when feedback not showing

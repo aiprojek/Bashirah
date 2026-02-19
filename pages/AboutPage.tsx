@@ -42,7 +42,7 @@ const AboutPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in min-h-screen pb-24">
             
             {/* Tab Navigation - Scrollable on Mobile */}
-            <div className="sticky top-0 z-10 bg-stone-50/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-stone-200/50 sm:border-none">
+            <div className="sticky top-0 z-10 bg-stone-50/95 dark:bg-slate-900/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-stone-200/50 dark:border-slate-700/50 sm:border-none transition-colors">
                 <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
@@ -53,8 +53,8 @@ const AboutPage: React.FC = () => {
                                 onClick={() => setActiveTab(tab.id as any)}
                                 className={`flex-shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all snap-start whitespace-nowrap border ${
                                     isActive 
-                                    ? 'bg-quran-dark text-white shadow-md border-quran-dark' 
-                                    : 'bg-white text-gray-500 border-stone-200 hover:bg-stone-50 hover:text-quran-dark'
+                                    ? 'bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark shadow-md border-quran-dark dark:border-quran-gold' 
+                                    : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-quran-dark dark:hover:text-white'
                                 }`}
                             >
                                 <Icon className="w-4 h-4" />
@@ -68,7 +68,7 @@ const AboutPage: React.FC = () => {
             </div>
 
             {/* CONTENT AREA */}
-            <div className="bg-white rounded-2xl border border-stone-100 shadow-sm min-h-[50vh]">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-stone-100 dark:border-slate-700 shadow-sm min-h-[50vh]">
                 
                 {/* --- TAB 1: TENTANG --- */}
                 {activeTab === 'about' && (
@@ -78,14 +78,14 @@ const AboutPage: React.FC = () => {
                         </div>
                         
                         <p className="font-arabic text-3xl text-quran-gold my-2 leading-relaxed">بَصِيرَة</p>
-                        <h2 className="text-3xl font-bold text-quran-dark font-serif mb-1 text-center">Bashirah</h2>
-                        <p className="text-sm font-serif italic text-gray-500 mb-4">"Mata Hati"</p>
+                        <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-1 text-center">Bashirah</h2>
+                        <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">"Mata Hati"</p>
 
-                        <div className="bg-stone-50 px-3 py-1 rounded-full text-[10px] text-gray-500 font-mono mb-6 border border-stone-200">
+                        <div className="bg-stone-50 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] text-gray-500 dark:text-gray-300 font-mono mb-6 border border-stone-200 dark:border-slate-600">
                             Versi 20260217
                         </div>
 
-                        <p className="text-gray-600 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
+                        <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
                             "Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan jiwa dan fitur yang memudahkan tadabbur."
                         </p>
 
@@ -103,7 +103,7 @@ const AboutPage: React.FC = () => {
                                     href="https://github.com/aiprojek/Bashirah" 
                                     target="_blank" 
                                     rel="noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-sm text-sm"
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-900 dark:bg-black text-white rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-sm text-sm"
                                 >
                                     <Github className="w-4 h-4" /> Github
                                 </a>
@@ -119,21 +119,21 @@ const AboutPage: React.FC = () => {
                         </div>
 
                         {/* License & Attribution Section */}
-                        <div className="w-full max-w-lg border-t border-stone-100 pt-8 text-center space-y-6">
+                        <div className="w-full max-w-lg border-t border-stone-100 dark:border-slate-700 pt-8 text-center space-y-6">
                             
                             {/* License Info */}
                             <div className="flex flex-col items-center gap-2">
-                                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 uppercase tracking-wide">
+                                <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                                     <ShieldCheck className="w-4 h-4 text-quran-gold" />
                                     Lisensi Open Source
                                 </div>
-                                <p className="text-xs text-gray-500 leading-relaxed">
+                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                                     Aplikasi ini adalah perangkat lunak bebas yang dilisensikan di bawah <br/>
                                     <a 
                                         href="https://www.gnu.org/licenses/gpl-3.0.html" 
                                         target="_blank" 
                                         rel="noreferrer"
-                                        className="text-quran-dark font-bold hover:text-quran-gold hover:underline transition-colors"
+                                        className="text-quran-dark dark:text-quran-gold font-bold hover:text-quran-gold hover:underline transition-colors"
                                     >
                                         GNU General Public License v3.0 (GPLv3)
                                     </a>.
@@ -141,7 +141,7 @@ const AboutPage: React.FC = () => {
                             </div>
 
                             {/* Data Sources */}
-                            <div className="text-[10px] text-gray-400 leading-relaxed">
+                            <div className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed">
                                 <p className="mb-1">
                                     Data Al-Quran berasal dari <a href="https://github.com/risan/quran-json" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Risan/Quran-JSON</a>.
                                 </p>
@@ -150,7 +150,7 @@ const AboutPage: React.FC = () => {
                                 </p>
                             </div>
                             
-                            <p className="text-xs text-gray-500 pt-4">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 pt-4">
                                 Dibuat dengan ❤️ oleh <a href="https://aiprojek01.my.id" target="_blank" rel="noreferrer" className="hover:text-quran-gold transition-colors font-bold">AI Projek</a>
                             </p>
                         </div>
@@ -162,13 +162,13 @@ const AboutPage: React.FC = () => {
                     <div className="p-6 sm:p-8">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             {featuresList.map((feat, idx) => (
-                                <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 hover:border-quran-gold/30 hover:bg-stone-50 transition-all">
-                                    <div className="w-10 h-10 rounded-full bg-quran-gold/10 flex items-center justify-center text-quran-dark shrink-0">
+                                <div key={idx} className="flex items-start gap-4 p-4 rounded-xl border border-stone-100 dark:border-slate-700 hover:border-quran-gold/30 dark:hover:border-quran-gold/30 hover:bg-stone-50 dark:hover:bg-slate-700/50 transition-all">
+                                    <div className="w-10 h-10 rounded-full bg-quran-gold/10 flex items-center justify-center text-quran-dark dark:text-quran-gold shrink-0">
                                         <feat.icon className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-800 text-sm mb-1">{feat.title}</h4>
-                                        <p className="text-xs text-gray-500 leading-relaxed">{feat.desc}</p>
+                                        <h4 className="font-bold text-gray-800 dark:text-gray-100 text-sm mb-1">{feat.title}</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{feat.desc}</p>
                                     </div>
                                 </div>
                             ))}
@@ -180,11 +180,11 @@ const AboutPage: React.FC = () => {
                 {activeTab === 'guide' && (
                     <div className="p-6 sm:p-8 space-y-8">
                         <section>
-                            <h3 className="text-lg font-bold text-quran-dark font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark text-white flex items-center justify-center text-xs">1</span>
+                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">1</span>
                                 Membaca Al-Quran
                             </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 pl-2 border-l-2 border-stone-100 ml-3">
+                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
                                 <li className="flex gap-2">
                                     <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
                                     <span><strong>Mode List:</strong> Tampilan default. Gulir ke bawah untuk membaca ayat demi ayat. Klik ayat untuk melihat opsi (Bookmark, Catatan).</span>
@@ -201,11 +201,11 @@ const AboutPage: React.FC = () => {
                         </section>
 
                         <section>
-                            <h3 className="text-lg font-bold text-quran-dark font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark text-white flex items-center justify-center text-xs">2</span>
+                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">2</span>
                                 Audio & Murottal
                             </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 pl-2 border-l-2 border-stone-100 ml-3">
+                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
                                 <li className="flex gap-2">
                                     <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
                                     <span>Klik ikon <strong>Play</strong> di setiap ayat untuk memutar audio.</span>
@@ -222,11 +222,11 @@ const AboutPage: React.FC = () => {
                         </section>
 
                         <section>
-                            <h3 className="text-lg font-bold text-quran-dark font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark text-white flex items-center justify-center text-xs">3</span>
+                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
+                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">3</span>
                                 Tadabbur & Fitur Lain
                             </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 pl-2 border-l-2 border-stone-100 ml-3">
+                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
                                 <li className="flex gap-2">
                                     <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
                                     <span><strong>Jurnal Tadabbur:</strong> Tulis refleksi pribadi Anda terhadap ayat tertentu melalui menu "Tulis Jurnal".</span>
@@ -248,17 +248,17 @@ const AboutPage: React.FC = () => {
                 {activeTab === 'contact' && (
                     <div className="p-6 sm:p-10 flex flex-col items-center">
                         <div className="max-w-lg w-full">
-                            <h3 className="text-xl font-bold text-quran-dark font-serif mb-2 text-center">Hubungi Kami</h3>
-                            <p className="text-gray-500 text-sm text-center mb-8">
+                            <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2 text-center">Hubungi Kami</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm text-center mb-8">
                                 Punya saran, kritik, atau menemukan <em>bug</em>? Kirimkan pesan langsung kepada pengembang.
                             </p>
 
                             <form onSubmit={handleSendMail} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Subjek</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Subjek</label>
                                     <input 
                                         type="text" 
-                                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all"
+                                        className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all"
                                         placeholder="Contoh: Saran Fitur Baru"
                                         value={subject}
                                         onChange={(e) => setSubject(e.target.value)}
@@ -266,9 +266,9 @@ const AboutPage: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Pesan</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Pesan</label>
                                     <textarea 
-                                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all min-h-[150px] resize-none"
+                                        className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all min-h-[150px] resize-none"
                                         placeholder="Tulis pesan Anda di sini..."
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
@@ -277,16 +277,16 @@ const AboutPage: React.FC = () => {
                                 </div>
                                 <button 
                                     type="submit"
-                                    className="w-full py-3.5 bg-quran-dark text-white rounded-xl font-bold hover:bg-quran-dark/90 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 transform"
+                                    className="w-full py-3.5 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 transform"
                                 >
                                     <Send className="w-4 h-4" />
                                     Kirim via Email
                                 </button>
                             </form>
                             
-                            <div className="mt-8 pt-8 border-t border-stone-100 text-center">
+                            <div className="mt-8 pt-8 border-t border-stone-100 dark:border-slate-700 text-center">
                                 <p className="text-xs text-gray-400 mb-2">Atau hubungi via email manual:</p>
-                                <div className="flex items-center justify-center gap-2 text-sm font-bold text-quran-dark bg-stone-50 py-2 rounded-lg select-all">
+                                <div className="flex items-center justify-center gap-2 text-sm font-bold text-quran-dark dark:text-gray-200 bg-stone-50 dark:bg-slate-700 py-2 rounded-lg select-all">
                                     <Mail className="w-4 h-4" /> aiprojek01@gmail.com
                                 </div>
                             </div>
