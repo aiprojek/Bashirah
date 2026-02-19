@@ -8,17 +8,10 @@
     "withGlobalTauri": true
   },
   "package": {
-    "productName": "bashirah",
+    "productName": "Bashirah",
     "version": "1.0.0"
   },
   "tauri": {
-    "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      }
-    },
     "bundle": {
       "active": true,
       "targets": "all",
@@ -33,6 +26,13 @@
     },
     "security": {
       "csp": null
+    },
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
     },
     "windows": [
       {

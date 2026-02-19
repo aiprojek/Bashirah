@@ -1,3 +1,4 @@
+
 {
   "name": "basirah-quran-app",
   "private": true,
@@ -8,18 +9,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
-    "cap": "cap",
-    "android:open": "cap open android",
-    "android:sync": "cap sync android",
-    "resources": "capacitor-assets generate"
+    "android": "tauri android",
+    "ios": "tauri ios"
   },
   "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/filesystem": "^6.0.0",
-    "@capacitor/share": "^6.0.0",
-    "@capacitor/status-bar": "^6.0.0",
-    "@tauri-apps/api": "^1.6.0",
+    "@tauri-apps/api": "^2.0.0-rc.0",
+    "@tauri-apps/plugin-shell": "^2.0.0-rc.0",
     "html2canvas": "^1.4.1",
     "idb": "^8.0.0",
     "lucide-react": "^0.344.0",
@@ -28,9 +23,7 @@
     "react-router-dom": "^6.22.3"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.4",
-    "@capacitor/cli": "^6.0.0",
-    "@tauri-apps/cli": "^1.6.0",
+    "@tauri-apps/cli": "^2.0.0-rc.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
