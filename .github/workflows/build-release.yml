@@ -45,7 +45,6 @@ jobs:
           targets: ${{ matrix.target == 'android' && 'aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android' || '' }}
 
       # --- DESKTOP DEPENDENCIES (Linux Only) ---
-      # Fix for Tauri v2: Requires libwebkit2gtk-4.1-dev, libsoup-3.0-dev, libjavascriptcoregtk-4.1-dev
       - name: Install Linux Desktop Deps
         if: matrix.platform == 'ubuntu-22.04' && matrix.target == 'desktop'
         run: |
@@ -74,14 +73,40 @@ jobs:
       - name: Install NPM Dependencies
         run: npm install
 
-      # Mobile Initialization
-      - name: Initialize Android
+      # Mobile Initialization & Fix Package Name Mismatch
+      - name: Fix and Initialize Android
         if: matrix.target == 'android'
         run: |
-          # Only run init if folder doesn't exist to allow caching/re-runs
-          if [ ! -d "src-tauri/gen/android" ]; then
-            npm run tauri android init
+          # 1. Backup Keystore if it exists (locally or committed)
+          if [ -f "src-tauri/gen/android/bashirah-release.jks" ]; then
+            mv src-tauri/gen/android/bashirah-release.jks /tmp/bashirah-release.jks
           fi
+
+          # 2. Wipe existing android folder to fix package name mismatch
+          rm -rf src-tauri/gen/android
+
+          # 3. Re-initialize Android project with new identifier
+          npm run tauri android init
+
+          # 4. Restore Keystore
+          if [ -f "/tmp/bashirah-release.jks" ]; then
+            mv /tmp/bashirah-release.jks src-tauri/gen/android/bashirah-release.jks
+          fi
+
+          # 5. Re-create key.properties
+          echo "storePassword=bashirahapp" > src-tauri/gen/android/key.properties
+          echo "keyPassword=bashirahapp" >> src-tauri/gen/android/key.properties
+          echo "keyAlias=bashirah" >> src-tauri/gen/android/key.properties
+          echo "storeFile=../bashirah-release.jks" >> src-tauri/gen/android/key.properties
+
+          # 6. Inject Signing Config into build.gradle.kts
+          GRADLE_FILE="src-tauri/gen/android/app/build.gradle.kts"
+          
+          # Add signingConfigs block
+          sed -i '/android {/a \    signingConfigs {\n        create("release") {\n            val keyPropsFile = file("../key.properties")\n            if (keyPropsFile.exists()) {\n                val keyProps = java.util.Properties()\n                keyProps.load(java.io.FileInputStream(keyPropsFile))\n                storeFile = file(keyProps["storeFile"] as String)\n                storePassword = keyProps["storePassword"] as String\n                keyAlias = keyProps["keyAlias"] as String\n                keyPassword = keyProps["keyPassword"] as String\n            }\n        }\n    }' $GRADLE_FILE
+          
+          # Update buildTypes release block to use signingConfig
+          sed -i '/getByName("release") {/a \            signingConfig = signingConfigs.getByName("release")' $GRADLE_FILE
 
       # ---------------------------------------------------------
       # BUILD ACTION 1: DESKTOP (Windows, Linux, macOS)
@@ -104,12 +129,10 @@ jobs:
       - name: Build Android APK
         if: matrix.target == 'android'
         run: |
-          # Generates APK in src-tauri/gen/android/app/build/outputs/apk/universal/release/
           npm run tauri android build -- --apk
         env:
           NDK_HOME: ${{ steps.setup-android.outputs.ndk-path }}
       
-      # Extract version from package.json to match the tag created by tauri-action
       - name: Get Version
         if: matrix.target == 'android'
         id: package-version
@@ -121,7 +144,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # Use the exact same tag format as tauri-action above
           tag_name: app-v${{ steps.package-version.outputs.current-version }}
           draft: true
           files: |
