@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
 import { 
-    Info, List, BookOpen, Mail, Coffee, Github, Send, 
+    Info, List, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
-    ShieldCheck 
+    ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
+    Smartphone, Moon
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const AboutPage: React.FC = () => {
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState<'about' | 'features' | 'guide' | 'contact'>('about');
+    const [activeTab, setActiveTab] = useState<'about' | 'features' | 'contact'>('about');
 
     // Contact Form State
     const [subject, setSubject] = useState('');
@@ -26,26 +27,32 @@ const AboutPage: React.FC = () => {
     const tabs = [
         { id: 'about', label: t('about_tab_about'), icon: Info },
         { id: 'features', label: t('about_tab_features'), icon: List },
-        { id: 'guide', label: t('about_tab_guide'), icon: BookOpen },
         { id: 'contact', label: t('about_tab_contact'), icon: Mail },
     ];
 
     const featuresList = [
-        { title: "Al-Quran Digital", desc: "Teks Rasm Utsmani & IndoPak.", icon: BookOpen },
-        { title: t('settings_trans') + " & " + t('settings_tafsir'), desc: "Multibahasa, Jalalayn, Kemenag, dll.", icon: BookMarked },
-        { title: t('settings_audio'), desc: t('download_all'), icon: Mic2 },
-        { title: "Pencarian", desc: t('search_placeholder'), icon: Search },
-        { title: t('tadabbur_title'), desc: t('tadabbur_desc'), icon: PenTool },
-        { title: t('nav_feelings'), desc: "Ayat pelipur lara.", icon: Heart },
-        { title: t('nav_topics'), desc: "Indeks tematik.", icon: LayoutGrid },
+        { title: t('feature_mushaf_title'), desc: t('feature_mushaf_desc'), icon: BookMarked },
+        { title: t('feature_tajweed_title'), desc: t('feature_tajweed_desc'), icon: Palette },
+        { title: t('feature_audio_title'), desc: t('feature_audio_desc'), icon: Mic2 },
+        { title: t('feature_trans_title'), desc: t('feature_trans_desc'), icon: BookMarked },
+        { title: t('feature_wbw_title'), desc: t('feature_wbw_desc'), icon: Type },
+        { title: t('feature_tadabbur_title'), desc: t('feature_tadabbur_desc'), icon: PenTool },
+        { title: t('feature_feelings_title'), desc: t('feature_feelings_desc'), icon: Heart },
+        { title: t('feature_topics_title'), desc: t('feature_topics_desc'), icon: LayoutGrid },
+        { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
+        { title: t('feature_names_title'), desc: t('feature_names_desc'), icon: Sparkles },
+        { title: t('feature_khatam_title'), desc: t('feature_khatam_desc'), icon: Target },
+        { title: t('feature_pwa_title'), desc: t('feature_pwa_desc'), icon: Smartphone },
+        { title: t('feature_dark_title'), desc: t('feature_dark_desc'), icon: Moon },
+        { title: t('feature_search_title'), desc: t('feature_search_desc'), icon: Search },
     ];
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in min-h-screen pb-24">
             
-            {/* Tab Navigation - Scrollable on Mobile */}
+            {/* Tab Navigation */}
             <div className="sticky top-0 z-10 bg-stone-50/95 dark:bg-slate-900/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-stone-200/50 dark:border-slate-700/50 sm:border-none transition-colors">
-                <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x">
+                <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x justify-center sm:justify-start">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
@@ -64,8 +71,6 @@ const AboutPage: React.FC = () => {
                             </button>
                         );
                     })}
-                    {/* Spacer for right padding in scroll view */}
-                    <div className="w-2 flex-shrink-0 sm:hidden"></div>
                 </div>
             </div>
 
@@ -84,7 +89,7 @@ const AboutPage: React.FC = () => {
                         <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">{t('app_subtitle')}</p>
 
                         <div className="bg-stone-50 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] text-gray-500 dark:text-gray-300 font-mono mb-6 border border-stone-200 dark:border-slate-600">
-                            {t('version')} 20260217
+                            {t('version')} 1.0.3
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
@@ -124,25 +129,60 @@ const AboutPage: React.FC = () => {
                         <div className="w-full max-w-lg border-t border-stone-100 dark:border-slate-700 pt-8 text-center space-y-6">
                             
                             {/* License Info */}
-                            <div className="flex flex-col items-center gap-2">
+                            <div className="flex flex-col items-center gap-3">
                                 <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                                     <ShieldCheck className="w-4 h-4 text-quran-gold" />
-                                    {t('about_license')}
+                                    {t('about_license_title')}
                                 </div>
-                                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    GNU General Public License v3.0 (GPLv3)
-                                </p>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-sm mx-auto">
+                                    <p className="mb-1">{t('about_license_text')}</p>
+                                    <a 
+                                        href="https://www.gnu.org/licenses/gpl-3.0.html" 
+                                        target="_blank" 
+                                        rel="noreferrer" 
+                                        className="inline-block px-3 py-1 bg-stone-100 dark:bg-slate-700 rounded-lg text-quran-dark dark:text-quran-gold font-bold hover:bg-stone-200 transition-colors border border-stone-200 dark:border-slate-600"
+                                    >
+                                        GNU General Public License v3.0 (GPLv3)
+                                    </a>
+                                </div>
                             </div>
 
                             {/* Data Sources */}
-                            <div className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed">
-                                <p className="mb-1 font-bold">{t('about_data_source')}:</p>
-                                <p>Risan/Quran-JSON, Al-Quran Cloud, EveryAyah.</p>
+                            <div className="flex flex-col items-center gap-3">
+                                <div className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                                    {t('about_source_title')}
+                                </div>
+                                <div className="text-[11px] text-gray-400 dark:text-gray-500 leading-relaxed space-y-2">
+                                    <p>
+                                        {t('about_source_quran')} <br/>
+                                        <a 
+                                            href="https://github.com/risan/quran-json" 
+                                            target="_blank" 
+                                            rel="noreferrer" 
+                                            className="text-quran-dark dark:text-quran-gold hover:underline font-medium"
+                                        >
+                                            Risan/Quran-JSON
+                                        </a>
+                                    </p>
+                                    <p>
+                                        {t('about_source_api')} <br/>
+                                        <a 
+                                            href="https://alquran.cloud/api" 
+                                            target="_blank" 
+                                            rel="noreferrer" 
+                                            className="text-quran-dark dark:text-quran-gold hover:underline font-medium"
+                                        >
+                                            Al Quran Cloud
+                                        </a>
+                                    </p>
+                                </div>
                             </div>
                             
-                            <p className="text-xs text-gray-500 dark:text-gray-400 pt-4">
-                                {t('about_created_by')} <a href="https://aiprojek01.my.id" target="_blank" rel="noreferrer" className="hover:text-quran-gold transition-colors font-bold">AI Projek</a>
-                            </p>
+                            <div className="pt-4 border-t border-dashed border-stone-200 dark:border-slate-700 w-2/3 mx-auto">
+                                <p className="text-[10px] text-gray-400 dark:text-gray-600">
+                                    {t('about_created_by')} <a href="https://aiprojek01.my.id" target="_blank" rel="noreferrer" className="hover:text-quran-gold transition-colors font-bold">AI Projek</a>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -166,14 +206,7 @@ const AboutPage: React.FC = () => {
                     </div>
                 )}
 
-                {/* --- TAB 3: PANDUAN --- */}
-                {activeTab === 'guide' && (
-                    <div className="p-6 sm:p-8 text-center text-gray-500">
-                        <p>Panduan penggunaan akan segera hadir.</p>
-                    </div>
-                )}
-
-                {/* --- TAB 4: PESAN --- */}
+                {/* --- TAB 3: PESAN --- */}
                 {activeTab === 'contact' && (
                     <div className="p-6 sm:p-10 flex flex-col items-center">
                         <div className="max-w-lg w-full">
@@ -184,21 +217,21 @@ const AboutPage: React.FC = () => {
 
                             <form onSubmit={handleSendMail} className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Subjek</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">{t('about_form_subject')}</label>
                                     <input 
                                         type="text" 
                                         className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all"
-                                        placeholder="Contoh: Saran Fitur Baru"
+                                        placeholder={t('about_form_placeholder_subject')}
                                         value={subject}
                                         onChange={(e) => setSubject(e.target.value)}
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">Pesan</label>
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-1">{t('about_form_message')}</label>
                                     <textarea 
                                         className="w-full px-4 py-3 rounded-xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none transition-all min-h-[150px] resize-none"
-                                        placeholder="Tulis pesan Anda di sini..."
+                                        placeholder={t('about_form_placeholder_message')}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
                                         required

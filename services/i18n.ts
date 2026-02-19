@@ -48,7 +48,24 @@ type TranslationKey =
   | 'about_tab_about' | 'about_tab_features' | 'about_tab_guide' | 'about_tab_contact'
   | 'about_desc' | 'about_license' | 'about_data_source' | 'about_created_by'
   | 'about_contact_title' | 'about_contact_desc' | 'about_btn_email' | 'about_or_manual'
-  | 'about_coffee'
+  | 'about_coffee' | 'about_license_text' | 'about_license_title' | 'about_source_title'
+  | 'about_source_quran' | 'about_source_api' | 'about_form_subject' | 'about_form_message'
+  | 'about_form_placeholder_subject' | 'about_form_placeholder_message'
+  // Features List
+  | 'feature_mushaf_title' | 'feature_mushaf_desc'
+  | 'feature_tajweed_title' | 'feature_tajweed_desc'
+  | 'feature_audio_title' | 'feature_audio_desc'
+  | 'feature_trans_title' | 'feature_trans_desc'
+  | 'feature_wbw_title' | 'feature_wbw_desc'
+  | 'feature_tadabbur_title' | 'feature_tadabbur_desc'
+  | 'feature_feelings_title' | 'feature_feelings_desc'
+  | 'feature_topics_title' | 'feature_topics_desc'
+  | 'feature_quiz_title' | 'feature_quiz_desc'
+  | 'feature_names_title' | 'feature_names_desc'
+  | 'feature_khatam_title' | 'feature_khatam_desc'
+  | 'feature_pwa_title' | 'feature_pwa_desc'
+  | 'feature_dark_title' | 'feature_dark_desc'
+  | 'feature_search_title' | 'feature_search_desc'
   // Loading & Nav
   | 'loading_title' | 'loading_desc'
   | 'prev_surah' | 'next_surah'
@@ -189,7 +206,8 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_tab_guide: "Panduan",
     about_tab_contact: "Pesan",
     about_desc: "\"Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan jiwa dan fitur yang memudahkan tadabbur.\"",
-    about_license: "Lisensi Open Source",
+    about_license_title: "Lisensi Open Source",
+    about_license_text: "Aplikasi ini adalah perangkat lunak bebas yang dilisensikan di bawah",
     about_data_source: "Sumber Data",
     about_created_by: "Dibuat dengan ❤️ oleh",
     about_contact_title: "Hubungi Kami",
@@ -197,6 +215,28 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_btn_email: "Kirim via Email",
     about_or_manual: "Atau hubungi via email manual:",
     about_coffee: "Traktir Kopi",
+    about_source_title: "Sumber Data",
+    about_source_quran: "Data Al-Quran berasal dari",
+    about_source_api: "API Ayat, Terjemahan & Audio dari",
+    about_form_subject: "Subjek",
+    about_form_message: "Pesan",
+    about_form_placeholder_subject: "Contoh: Saran Fitur Baru",
+    about_form_placeholder_message: "Tulis pesan Anda di sini...",
+
+    feature_mushaf_title: "Mode Mushaf & List", feature_mushaf_desc: "Nikmati pengalaman membaca seperti Mushaf cetak atau mode daftar ayat yang fleksibel.",
+    feature_tajweed_title: "Tajwid Berwarna", feature_tajweed_desc: "Bantu membaca dengan hukum tajwid yang ditandai warna.",
+    feature_audio_title: "Audio Murottal", feature_audio_desc: "Dengarkan lantunan ayat dari berbagai Qari ternama dunia (streaming/download).",
+    feature_trans_title: "Terjemahan & Tafsir", feature_trans_desc: "Dilengkapi terjemahan berbagai bahasa dan Tafsir Jalalayn/Kemenag.",
+    feature_wbw_title: "Terjemahan Per Kata", feature_wbw_desc: "Pahami makna mendalam setiap kata dalam ayat Al-Quran.",
+    feature_tadabbur_title: "Jurnal Tadabbur", feature_tadabbur_desc: "Catat hikmah dan pelajaran pribadi dari setiap ayat.",
+    feature_feelings_title: "Ayat Pelipur Lara", feature_feelings_desc: "Temukan ayat penenang hati sesuai emosi yang sedang dirasakan.",
+    feature_topics_title: "Indeks Topik", feature_topics_desc: "Jelajahi ayat berdasarkan tema kehidupan sehari-hari.",
+    feature_quiz_title: "Kuis Al-Quran", feature_quiz_desc: "Uji wawasan dan hafalan tentang surat dan ayat.",
+    feature_names_title: "Asmaul Husna", feature_names_desc: "Pelajari 99 Nama Allah beserta arti dan dalilnya.",
+    feature_khatam_title: "Target Khatam", feature_khatam_desc: "Pantau progres membaca harian untuk mencapai target khatam.",
+    feature_pwa_title: "Aplikasi PWA & Offline", feature_pwa_desc: "Dapat diinstal di HP/Desktop dan bekerja secara offline (setelah unduh data).",
+    feature_dark_title: "Mode Gelap", feature_dark_desc: "Nyaman dibaca pada malam hari.",
+    feature_search_title: "Pencarian Cepat", feature_search_desc: "Cari surat, ayat, atau terjemahan dengan mudah.",
     
     loading_title: "Memuat...",
     loading_desc: "Menyiapkan Keindahan Ayat...",
@@ -270,7 +310,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     version: "Versi",
 
     // --- DYNAMIC DATA CONTENT ---
-    // Tajweed (Normalized keys with underscores)
+    // Tajweed
     tajweed_nun_sukun_title: "Hukum Nun Sukun & Tanwin", tajweed_nun_sukun_desc: "Aturan membaca ketika Nun Mati atau Tanwin bertemu huruf hijaiyah.",
     tajweed_mim_sukun_title: "Hukum Mim Sukun", tajweed_mim_sukun_desc: "Aturan membaca ketika Mim Mati bertemu huruf hijaiyah.",
     tajweed_qalqalah_title: "Qalqalah (Pantulan)", tajweed_qalqalah_desc: "Aturan memantulkan bunyi huruf tertentu saat sukun.",
@@ -412,7 +452,8 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_tab_guide: "Guide",
     about_tab_contact: "Contact",
     about_desc: "\"Bringing the light of the Quran into your grasp, with a soul-soothing design and features that facilitate reflection.\"",
-    about_license: "Open Source License",
+    about_license_title: "Open Source License",
+    about_license_text: "This application is free software licensed under",
     about_data_source: "Data Sources",
     about_created_by: "Made with ❤️ by",
     about_contact_title: "Contact Us",
@@ -420,6 +461,28 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_btn_email: "Send via Email",
     about_or_manual: "Or contact manually via:",
     about_coffee: "Buy me a Coffee",
+    about_source_title: "Data Sources",
+    about_source_quran: "Quran data comes from",
+    about_source_api: "Verses API, Translation & Audio from",
+    about_form_subject: "Subject",
+    about_form_message: "Message",
+    about_form_placeholder_subject: "Example: New Feature Suggestion",
+    about_form_placeholder_message: "Write your message here...",
+
+    feature_mushaf_title: "Mushaf & List Mode", feature_mushaf_desc: "Enjoy reading experience like printed Mushaf or flexible verse list mode.",
+    feature_tajweed_title: "Colored Tajweed", feature_tajweed_desc: "Help reading with color-coded Tajweed rules.",
+    feature_audio_title: "Audio Recitation", feature_audio_desc: "Listen to verses recited by world-renowned Qaris (streaming/download).",
+    feature_trans_title: "Translation & Tafsir", feature_trans_desc: "Equipped with translations in various languages and Tafsir Jalalayn/Kemenag.",
+    feature_wbw_title: "Word by Word Translation", feature_wbw_desc: "Understand the deep meaning of each word in the Quranic verses.",
+    feature_tadabbur_title: "Reflections Journal", feature_tadabbur_desc: "Record personal wisdom and lessons from every verse.",
+    feature_feelings_title: "Verses for Feelings", feature_feelings_desc: "Find heart-soothing verses matching your current emotions.",
+    feature_topics_title: "Topic Index", feature_topics_desc: "Explore verses based on daily life themes.",
+    feature_quiz_title: "Quran Quiz", feature_quiz_desc: "Test your knowledge and memorization of surahs and verses.",
+    feature_names_title: "Asmaul Husna", feature_names_desc: "Learn 99 Names of Allah with meanings and proofs.",
+    feature_khatam_title: "Khatam Target", feature_khatam_desc: "Monitor daily reading progress to achieve khatam target.",
+    feature_pwa_title: "PWA & Offline App", feature_pwa_desc: "Installable on Mobile/Desktop and works offline (after downloading data).",
+    feature_dark_title: "Dark Mode", feature_dark_desc: "Comfortable reading at night.",
+    feature_search_title: "Quick Search", feature_search_desc: "Search surah, verse, or translation easily.",
 
     // New Translations
     loading_title: "Loading...",
