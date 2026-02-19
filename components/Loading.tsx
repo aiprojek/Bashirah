@@ -1,8 +1,11 @@
 
 import React from 'react';
 import Logo from './Logo';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const Loading: React.FC = () => {
+  const { t } = useLanguage();
+
   return (
     <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6 animate-fade-in">
       <div className="relative w-24 h-24">
@@ -18,9 +21,9 @@ const Loading: React.FC = () => {
       </div>
       
       <div className="text-center space-y-2">
-        <h3 className="text-quran-dark font-serif text-xl font-bold tracking-tight">Memuat...</h3>
+        <h3 className="text-quran-dark font-serif text-xl font-bold tracking-tight">{t('loading_title')}</h3>
         <div className="flex flex-col items-center gap-1">
-             <p className="text-xs text-gray-400 font-sans tracking-widest uppercase">Menyiapkan Keindahan Ayat...</p>
+             <p className="text-xs text-gray-400 font-sans tracking-widest uppercase">{t('loading_desc')}</p>
         </div>
       </div>
     </div>

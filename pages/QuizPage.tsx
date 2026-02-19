@@ -5,6 +5,7 @@ import { getAllSurahs } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Trophy, CheckCircle, XCircle, Brain, RefreshCw, Star, Loader2, User, Medal, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Question {
     text: string;
@@ -14,6 +15,7 @@ interface Question {
 }
 
 const QuizPage: React.FC = () => {
+    const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [surahs, setSurahs] = useState<Surah[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,13 +35,13 @@ const QuizPage: React.FC = () => {
 
     useEffect(() => {
         const initData = async () => {
-            const data = await getAllSurahs('id');
+            const data = await getAllSurahs(language);
             setSurahs(data);
             setLoading(false);
             setHighScores(StorageService.getQuizScores());
         };
         initData();
-    }, []);
+    }, [language]);
 
     const generateQuestions = (data: Surah[]): Question[] => {
         const generated: Question[] = [];
@@ -63,6 +65,16 @@ const QuizPage: React.FC = () => {
             const typeRoll = Math.random();
             let question: Question;
 
+            // Simplified question generation for now, ideally questions should be dynamic based on lang
+            // But since surah data is localized, we just need to localize the Question Text template
+            
+            const qTemplates = {
+                meaning: language === 'id' ? `Apa arti dari nama surat "${surah.transliteration}"?` : `What is the meaning of Surah "${surah.transliteration}"?`,
+                count: language === 'id' ? `Berapa jumlah ayat dalam surat "${surah.transliteration}"?` : `How many verses in Surah "${surah.transliteration}"?`,
+                reverse: language === 'id' ? `Surat manakah yang memiliki arti "${surah.translation}"?` : `Which Surah means "${surah.translation}"?`,
+                order: language === 'id' ? `Surat "${surah.transliteration}" adalah surat keberapa dalam Al-Quran?` : `What number is Surah "${surah.transliteration}" in the Quran?`
+            };
+
             if (typeRoll < 0.3) {
                 // TYPE: Meaning
                 const correctAnswer = surah.translation;
@@ -72,7 +84,7 @@ const QuizPage: React.FC = () => {
                     if(!options.includes(random)) options.push(random);
                 }
                 question = {
-                    text: `Apa arti dari nama surat "${surah.transliteration}"?`,
+                    text: qTemplates.meaning,
                     options: options.sort(() => 0.5 - Math.random()),
                     correctAnswer,
                     type: 'meaning'
@@ -86,13 +98,13 @@ const QuizPage: React.FC = () => {
                     if(!options.includes(random)) options.push(random);
                 }
                 question = {
-                    text: `Berapa jumlah ayat dalam surat "${surah.transliteration}"?`,
+                    text: qTemplates.count,
                     options: options.sort(() => 0.5 - Math.random()),
                     correctAnswer,
                     type: 'verse_count'
                 };
             } else if (typeRoll < 0.8) {
-                // TYPE: Revelation (City)
+                // TYPE: Revelation (City) -> Changed to Reverse Meaning for simplicity
                 const meaningTarget = surah.translation;
                 const correctName = surah.transliteration;
                 const opts = [correctName];
@@ -101,10 +113,10 @@ const QuizPage: React.FC = () => {
                     if(!opts.includes(s.transliteration)) opts.push(s.transliteration);
                 }
                 question = {
-                    text: `Surat manakah yang memiliki arti "${meaningTarget}"?`,
+                    text: qTemplates.reverse,
                     options: opts.sort(() => 0.5 - Math.random()),
                     correctAnswer: correctName,
-                    type: 'meaning' // inverse meaning
+                    type: 'meaning' 
                 };
             } else {
                  // TYPE: Order
@@ -115,7 +127,7 @@ const QuizPage: React.FC = () => {
                      if(!options.includes(random)) options.push(random);
                  }
                  question = {
-                     text: `Surat "${surah.transliteration}" adalah surat keberapa dalam Al-Quran?`,
+                     text: qTemplates.order,
                      options: options.sort(() => 0.5 - Math.random()),
                      correctAnswer,
                      type: 'order'
@@ -129,7 +141,7 @@ const QuizPage: React.FC = () => {
 
     const startGame = () => {
         if (!playerName.trim()) {
-            alert("Mohon masukkan nama Anda terlebih dahulu.");
+            alert(t('quiz_input_name'));
             return;
         }
         const q = generateQuestions(surahs);
@@ -226,10 +238,10 @@ const QuizPage: React.FC = () => {
                 </div>
                 
                 <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">
-                    Kuis Al-Quran
+                    {t('quiz_title')}
                 </h1>
                 <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm text-sm">
-                    Uji wawasanmu tentang nama-nama surat, arti, dan jumlah ayat.
+                    {t('quiz_desc')}
                 </p>
 
                 {/* Name Input */}
@@ -238,7 +250,7 @@ const QuizPage: React.FC = () => {
                         <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input 
                             type="text"
-                            placeholder="Masukkan Nama Anda"
+                            placeholder={t('quiz_input_name')}
                             value={playerName}
                             onChange={(e) => setPlayerName(e.target.value)}
                             className="w-full pl-10 pr-4 py-3 rounded-xl border border-stone-200 dark:border-slate-700 focus:border-quran-gold focus:ring-2 focus:ring-quran-gold/20 outline-none text-center font-bold text-quran-dark dark:text-white bg-white dark:bg-slate-800 shadow-sm transition-all"
@@ -251,7 +263,7 @@ const QuizPage: React.FC = () => {
                     disabled={!playerName.trim()}
                     className="w-full max-w-xs py-4 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold text-lg shadow-lg hover:shadow-xl hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all transform hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                    Mulai Main
+                    {t('quiz_btn_start')}
                 </button>
 
                 {/* Mini Leaderboard */}
@@ -259,7 +271,7 @@ const QuizPage: React.FC = () => {
                     <div className="mt-12 w-full max-w-sm">
                         <div className="flex items-center justify-center gap-2 mb-4">
                             <Trophy className="w-4 h-4 text-quran-gold" />
-                            <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest">Papan Skor</h3>
+                            <h3 className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-widest">{t('quiz_leaderboard')}</h3>
                         </div>
                         {renderLeaderboard(3)}
                     </div>
@@ -271,9 +283,9 @@ const QuizPage: React.FC = () => {
     // --- SCREEN: END ---
     if (gameState === 'end') {
         const percentage = Math.round((score / questions.length) * 100);
-        let message = "Teruslah Belajar!";
-        if (percentage >= 80) message = "MasyaAllah, Luar Biasa!";
-        else if (percentage >= 50) message = "Bagus, Tingkatkan Lagi!";
+        let message = t('quiz_msg_keep_learning');
+        if (percentage >= 80) message = t('quiz_msg_excellent');
+        else if (percentage >= 50) message = t('quiz_msg_good');
 
         return (
             <div className="max-w-xl mx-auto px-4 py-12 animate-fade-in text-center flex flex-col items-center">
@@ -284,12 +296,12 @@ const QuizPage: React.FC = () => {
                 
                 <h2 className="text-2xl font-bold text-quran-dark dark:text-white font-serif mb-1">{message}</h2>
                 <div className="text-5xl font-bold text-gray-800 dark:text-gray-200 mb-2 font-sans">{score}/{questions.length}</div>
-                <p className="text-gray-400 mb-8 text-xs font-bold uppercase tracking-wider">Skor {playerName}</p>
+                <p className="text-gray-400 mb-8 text-xs font-bold uppercase tracking-wider">{t('quiz_score')} {playerName}</p>
 
                 {/* Leaderboard Section */}
                 <div className="w-full max-w-md bg-stone-50/50 dark:bg-slate-800/50 rounded-2xl p-4 border border-stone-100 dark:border-slate-700 mb-8">
                     <h3 className="text-sm font-bold text-gray-600 dark:text-gray-300 mb-3 text-left flex items-center gap-2">
-                        <Star className="w-4 h-4 text-quran-gold fill-current" /> Peringkat Tertinggi
+                        <Star className="w-4 h-4 text-quran-gold fill-current" /> {t('quiz_leaderboard')}
                     </h3>
                     <div className="max-h-60 overflow-y-auto custom-scrollbar pr-1">
                         {renderLeaderboard()}
@@ -301,13 +313,13 @@ const QuizPage: React.FC = () => {
                         onClick={startGame}
                         className="py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90"
                     >
-                        <RefreshCw className="w-4 h-4" /> Main Lagi
+                        <RefreshCw className="w-4 h-4" /> {t('quiz_btn_play_again')}
                     </button>
                     <button 
                         onClick={() => navigate('/')}
                         className="py-3 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold hover:bg-stone-50 dark:hover:bg-slate-700"
                     >
-                        Kembali ke Beranda
+                        {t('quiz_btn_home')}
                     </button>
                 </div>
             </div>
@@ -326,14 +338,14 @@ const QuizPage: React.FC = () => {
                      <User className="w-4 h-4" /> {playerName}
                  </div>
                  <div className="text-xs font-bold px-2 py-1 bg-stone-100 dark:bg-slate-700 rounded text-gray-500 dark:text-gray-300">
-                     Skor: {score}
+                     {t('quiz_score')}: {score}
                  </div>
             </div>
             
             {/* Progress Bar */}
             <div className="mb-8">
                 <div className="flex justify-between text-xs font-bold text-gray-400 mb-2 uppercase tracking-wider">
-                    <span>Soal {currentIndex + 1}</span>
+                    <span>{t('quiz_question')} {currentIndex + 1}</span>
                     <span>{questions.length}</span>
                 </div>
                 <div className="h-2 w-full bg-stone-200 dark:bg-slate-700 rounded-full overflow-hidden">

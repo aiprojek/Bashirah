@@ -3,15 +3,18 @@ import React, { useState, useMemo } from 'react';
 import { Search, Sparkles } from 'lucide-react';
 import { ASMAUL_HUSNA, AsmaulHusna } from '../services/asmaulHusnaData';
 import AsmaulHusnaDetailModal from '../components/AsmaulHusnaDetailModal';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const AsmaulHusnaPage: React.FC = () => {
+    const { t, language } = useLanguage();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedName, setSelectedName] = useState<AsmaulHusna | null>(null);
 
     const filteredNames = useMemo(() => {
         return ASMAUL_HUSNA.filter(name => 
             name.latin.toLowerCase().includes(searchTerm.toLowerCase()) || 
-            name.translation_id.toLowerCase().includes(searchTerm.toLowerCase())
+            name.translation_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            name.translation_en.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [searchTerm]);
 
@@ -23,9 +26,9 @@ const AsmaulHusnaPage: React.FC = () => {
                 <div className="inline-block p-3 bg-quran-gold/10 rounded-full mb-4 ring-1 ring-quran-gold/20">
                     <Sparkles className="w-8 h-8 text-quran-gold" />
                 </div>
-                <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">Asmaul Husna</h1>
+                <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">{t('names_title')}</h1>
                 <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto font-serif italic text-sm">
-                    "Hanya milik Allah asma-ul husna (nama-nama yang maha indah), maka bermohonlah kepada-Nya dengan menyebut asma-ul husna itu..." (QS. Al-A'raf: 180)
+                    {t('names_desc')}
                 </p>
             </div>
 
@@ -37,7 +40,7 @@ const AsmaulHusnaPage: React.FC = () => {
                 <input
                     type="text"
                     className="block w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-full leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold transition-all shadow-sm text-gray-800 dark:text-white"
-                    placeholder="Cari nama atau arti..."
+                    placeholder={t('names_search')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -72,7 +75,7 @@ const AsmaulHusnaPage: React.FC = () => {
                                 {item.latin}
                             </h3>
                             <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium leading-snug px-1">
-                                {item.translation_id}
+                                {language === 'id' ? item.translation_id : item.translation_en}
                             </p>
                         </div>
                     </button>
@@ -81,7 +84,7 @@ const AsmaulHusnaPage: React.FC = () => {
 
             {filteredNames.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
-                    <p>Tidak ada nama yang cocok dengan pencarian Anda.</p>
+                    <p>{t('names_empty')}</p>
                 </div>
             )}
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Menu, ChevronLeft } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo'; // Import custom logo
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HeaderProps {
     onOpenSidebar: () => void;
@@ -11,20 +12,23 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const isHome = location.pathname === '/';
   
   // Title logic
   const getTitle = () => {
-      if (location.pathname === '/settings') return "Pengaturan";
-      if (location.pathname === '/library') return "Pustaka Saya";
-      if (location.pathname === '/topics') return "Indeks Topik";
-      if (location.pathname === '/duas') return "Koleksi Doa";
-      if (location.pathname === '/feelings') return "Ayat Pelipur Lara";
-      if (location.pathname === '/quiz') return "Kuis Al-Quran";
-      if (location.pathname === '/tadabbur') return "Jurnal Tadabbur";
-      if (location.pathname === '/about') return "Tentang Aplikasi";
-      return "Bashirah";
+      if (location.pathname === '/settings') return t('nav_settings');
+      if (location.pathname === '/library') return t('nav_library');
+      if (location.pathname === '/topics') return t('nav_topics');
+      if (location.pathname === '/duas') return t('nav_dua');
+      if (location.pathname === '/feelings') return t('nav_feelings');
+      if (location.pathname === '/quiz') return t('nav_quiz');
+      if (location.pathname === '/tadabbur') return t('nav_tadabbur');
+      if (location.pathname === '/about') return t('nav_about');
+      if (location.pathname === '/asmaul-husna') return t('nav_names');
+      if (location.pathname === '/tajweed-learn') return t('nav_tajweed');
+      return t('app_title');
   };
 
   const handleBack = () => {

@@ -3,8 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { Activity, Flame } from 'lucide-react';
 import * as StorageService from '../services/storageService';
 import { ReadingLog } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const ReadingHeatmap: React.FC = () => {
+    const { t } = useLanguage();
     const [history, setHistory] = useState<ReadingLog[]>([]);
 
     const loadData = () => {
@@ -52,10 +54,10 @@ const ReadingHeatmap: React.FC = () => {
         <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm border border-stone-200 dark:border-slate-700 mt-6">
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-quran-gold" /> Statistik Ibadah
+                    <Activity className="w-5 h-5 text-quran-gold" /> {t('stats_title')}
                 </h3>
                 <div className="flex items-center gap-2 text-[10px] text-gray-400 dark:text-gray-500">
-                    <span>Kurang</span>
+                    <span>{t('stats_less')}</span>
                     <div className="flex gap-0.5">
                         <div className="w-2 h-2 rounded-sm bg-stone-200 dark:bg-slate-700"></div>
                         <div className="w-2 h-2 rounded-sm bg-emerald-200 dark:bg-emerald-900/50"></div>
@@ -63,7 +65,7 @@ const ReadingHeatmap: React.FC = () => {
                         <div className="w-2 h-2 rounded-sm bg-emerald-600 dark:bg-emerald-500"></div>
                         <div className="w-2 h-2 rounded-sm bg-emerald-800 dark:bg-emerald-400"></div>
                     </div>
-                    <span>Sering</span>
+                    <span>{t('stats_more')}</span>
                 </div>
             </div>
 
@@ -78,7 +80,7 @@ const ReadingHeatmap: React.FC = () => {
                             >
                                 {/* Tooltip */}
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block z-50 whitespace-nowrap bg-gray-800 dark:bg-white text-white dark:text-gray-900 text-[10px] px-2 py-1 rounded shadow-lg font-bold">
-                                    {day.count} hal. pada {day.fullDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                    {day.count} {t('tab_page')} • {day.fullDate.toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                 </div>
                             </div>
                         ))}
@@ -90,10 +92,10 @@ const ReadingHeatmap: React.FC = () => {
             <div className="mt-4 flex gap-4 text-xs text-gray-500 dark:text-gray-400 border-t border-stone-100 dark:border-slate-700 pt-4">
                  <div className="flex items-center gap-2">
                      <Flame className="w-4 h-4 text-orange-500" />
-                     <span>Total Dibaca: <strong className="text-gray-800 dark:text-gray-200">{history.reduce((a,b) => a + b.pagesRead, 0)} Halaman</strong></span>
+                     <span>{t('stats_total_read')}: <strong className="text-gray-800 dark:text-gray-200">{history.reduce((a,b) => a + b.pagesRead, 0)} {t('tab_page')}</strong></span>
                  </div>
                  <div>
-                     <span>Hari Aktif: <strong className="text-gray-800 dark:text-gray-200">{history.filter(h => h.pagesRead > 0).length} Hari</strong></span>
+                     <span>{t('stats_active_days')}: <strong className="text-gray-800 dark:text-gray-200">{history.filter(h => h.pagesRead > 0).length}</strong></span>
                  </div>
             </div>
         </div>

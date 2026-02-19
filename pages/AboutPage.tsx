@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { 
     Info, List, BookOpen, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
-    ChevronRight, ShieldCheck 
+    ShieldCheck 
 } from 'lucide-react';
 import Logo from '../components/Logo';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const AboutPage: React.FC = () => {
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'about' | 'features' | 'guide' | 'contact'>('about');
 
     // Contact Form State
@@ -22,20 +24,20 @@ const AboutPage: React.FC = () => {
     };
 
     const tabs = [
-        { id: 'about', label: 'Tentang', icon: Info },
-        { id: 'features', label: 'Fitur', icon: List },
-        { id: 'guide', label: 'Panduan', icon: BookOpen },
-        { id: 'contact', label: 'Pesan', icon: Mail },
+        { id: 'about', label: t('about_tab_about'), icon: Info },
+        { id: 'features', label: t('about_tab_features'), icon: List },
+        { id: 'guide', label: t('about_tab_guide'), icon: BookOpen },
+        { id: 'contact', label: t('about_tab_contact'), icon: Mail },
     ];
 
     const featuresList = [
-        { title: "Al-Quran Digital", desc: "Teks Utsmani, IndoPak, dan Kemenag yang jelas.", icon: BookOpen },
-        { title: "Terjemahan & Tafsir", desc: "Multibahasa dan tafsir Jalalayn, Ibn Katsir, dll.", icon: BookMarked },
-        { title: "Audio Murottal", desc: "30 Juz dari berbagai Qari ternama, bisa diunduh.", icon: Mic2 },
-        { title: "Pencarian Cerdas", desc: "Cari ayat berdasarkan kata kunci atau topik.", icon: Search },
-        { title: "Jurnal Tadabbur", desc: "Catat renungan dan hikmah dari setiap ayat.", icon: PenTool },
-        { title: "Ayat Pelipur Lara", desc: "Kurasi ayat berdasarkan emosi (sedih, cemas, dll).", icon: Heart },
-        { title: "Indeks Topik", desc: "Eksplorasi ayat berdasarkan tema kehidupan.", icon: LayoutGrid },
+        { title: "Al-Quran Digital", desc: "Teks Rasm Utsmani & IndoPak.", icon: BookOpen },
+        { title: t('settings_trans') + " & " + t('settings_tafsir'), desc: "Multibahasa, Jalalayn, Kemenag, dll.", icon: BookMarked },
+        { title: t('settings_audio'), desc: t('download_all'), icon: Mic2 },
+        { title: "Pencarian", desc: t('search_placeholder'), icon: Search },
+        { title: t('tadabbur_title'), desc: t('tadabbur_desc'), icon: PenTool },
+        { title: t('nav_feelings'), desc: "Ayat pelipur lara.", icon: Heart },
+        { title: t('nav_topics'), desc: "Indeks tematik.", icon: LayoutGrid },
     ];
 
     return (
@@ -79,14 +81,14 @@ const AboutPage: React.FC = () => {
                         
                         <p className="font-arabic text-3xl text-quran-gold my-2 leading-relaxed">بَصِيرَة</p>
                         <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-1 text-center">Bashirah</h2>
-                        <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">"Mata Hati"</p>
+                        <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">{t('app_subtitle')}</p>
 
                         <div className="bg-stone-50 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] text-gray-500 dark:text-gray-300 font-mono mb-6 border border-stone-200 dark:border-slate-600">
-                            Versi 20260217
+                            {t('version')} 20260217
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
-                            "Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan jiwa dan fitur yang memudahkan tadabbur."
+                            {t('about_desc')}
                         </p>
 
                         <div className="flex flex-col w-full max-w-md gap-3 mb-10">
@@ -96,7 +98,7 @@ const AboutPage: React.FC = () => {
                                 rel="noreferrer"
                                 className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FFDD00] text-black rounded-xl font-bold hover:bg-[#FFEA00] transition-colors shadow-sm active:scale-95 transform duration-200"
                             >
-                                <Coffee className="w-5 h-5" /> Traktir Kopi
+                                <Coffee className="w-5 h-5" /> {t('about_coffee')}
                             </a>
                             <div className="flex gap-3">
                                 <a 
@@ -125,33 +127,21 @@ const AboutPage: React.FC = () => {
                             <div className="flex flex-col items-center gap-2">
                                 <div className="flex items-center gap-2 text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                                     <ShieldCheck className="w-4 h-4 text-quran-gold" />
-                                    Lisensi Open Source
+                                    {t('about_license')}
                                 </div>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                                    Aplikasi ini adalah perangkat lunak bebas yang dilisensikan di bawah <br/>
-                                    <a 
-                                        href="https://www.gnu.org/licenses/gpl-3.0.html" 
-                                        target="_blank" 
-                                        rel="noreferrer"
-                                        className="text-quran-dark dark:text-quran-gold font-bold hover:text-quran-gold hover:underline transition-colors"
-                                    >
-                                        GNU General Public License v3.0 (GPLv3)
-                                    </a>.
+                                    GNU General Public License v3.0 (GPLv3)
                                 </p>
                             </div>
 
                             {/* Data Sources */}
                             <div className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed">
-                                <p className="mb-1">
-                                    Data Al-Quran berasal dari <a href="https://github.com/risan/quran-json" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Risan/Quran-JSON</a>.
-                                </p>
-                                <p>
-                                    API Ayat, Terjemahan & Audio dari <a href="https://alquran.cloud/api" target="_blank" rel="noreferrer" className="text-quran-gold hover:underline">Al Quran Cloud</a>.
-                                </p>
+                                <p className="mb-1 font-bold">{t('about_data_source')}:</p>
+                                <p>Risan/Quran-JSON, Al-Quran Cloud, EveryAyah.</p>
                             </div>
                             
                             <p className="text-xs text-gray-500 dark:text-gray-400 pt-4">
-                                Dibuat dengan ❤️ oleh <a href="https://aiprojek01.my.id" target="_blank" rel="noreferrer" className="hover:text-quran-gold transition-colors font-bold">AI Projek</a>
+                                {t('about_created_by')} <a href="https://aiprojek01.my.id" target="_blank" rel="noreferrer" className="hover:text-quran-gold transition-colors font-bold">AI Projek</a>
                             </p>
                         </div>
                     </div>
@@ -178,69 +168,8 @@ const AboutPage: React.FC = () => {
 
                 {/* --- TAB 3: PANDUAN --- */}
                 {activeTab === 'guide' && (
-                    <div className="p-6 sm:p-8 space-y-8">
-                        <section>
-                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">1</span>
-                                Membaca Al-Quran
-                            </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Mode List:</strong> Tampilan default. Gulir ke bawah untuk membaca ayat demi ayat. Klik ayat untuk melihat opsi (Bookmark, Catatan).</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Mode Mushaf:</strong> Klik tombol "Mode Mushaf" di atas surat untuk tampilan halaman layaknya Al-Quran cetak. Geser atau klik tepi layar untuk membalik halaman.</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Tajwid:</strong> Ayat dilengkapi pewarnaan tajwid standar (Merah=Mad, Hijau=Ghunnah, Biru=Qalqalah).</span>
-                                </li>
-                            </ul>
-                        </section>
-
-                        <section>
-                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">2</span>
-                                Audio & Murottal
-                            </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span>Klik ikon <strong>Play</strong> di setiap ayat untuk memutar audio.</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span>Buka <strong>Pengaturan</strong> untuk mengganti Qari (Mishary, Sudais, dll) atau mengunduh audio agar bisa diputar offline.</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span>Gunakan fitur <strong>Muraja'ah</strong> di player bawah untuk mengulang-ulang ayat tertentu.</span>
-                                </li>
-                            </ul>
-                        </section>
-
-                        <section>
-                            <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-4 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark flex items-center justify-center text-xs">3</span>
-                                Tadabbur & Fitur Lain
-                            </h3>
-                            <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-300 pl-2 border-l-2 border-stone-100 dark:border-slate-700 ml-3">
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Jurnal Tadabbur:</strong> Tulis refleksi pribadi Anda terhadap ayat tertentu melalui menu "Tulis Jurnal".</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Ayat Pelipur Lara:</strong> Temukan ayat-ayat yang menenangkan hati berdasarkan emosi yang Anda rasakan.</span>
-                                </li>
-                                <li className="flex gap-2">
-                                    <ChevronRight className="w-4 h-4 text-quran-gold shrink-0 mt-0.5" />
-                                    <span><strong>Target Khatam:</strong> Set target hari khatam di beranda, sistem akan menghitung target halaman harian Anda.</span>
-                                </li>
-                            </ul>
-                        </section>
+                    <div className="p-6 sm:p-8 text-center text-gray-500">
+                        <p>Panduan penggunaan akan segera hadir.</p>
                     </div>
                 )}
 
@@ -248,9 +177,9 @@ const AboutPage: React.FC = () => {
                 {activeTab === 'contact' && (
                     <div className="p-6 sm:p-10 flex flex-col items-center">
                         <div className="max-w-lg w-full">
-                            <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2 text-center">Hubungi Kami</h3>
+                            <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2 text-center">{t('about_contact_title')}</h3>
                             <p className="text-gray-500 dark:text-gray-400 text-sm text-center mb-8">
-                                Punya saran, kritik, atau menemukan <em>bug</em>? Kirimkan pesan langsung kepada pengembang.
+                                {t('about_contact_desc')}
                             </p>
 
                             <form onSubmit={handleSendMail} className="space-y-4">
@@ -280,12 +209,12 @@ const AboutPage: React.FC = () => {
                                     className="w-full py-3.5 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95 transform"
                                 >
                                     <Send className="w-4 h-4" />
-                                    Kirim via Email
+                                    {t('about_btn_email')}
                                 </button>
                             </form>
                             
                             <div className="mt-8 pt-8 border-t border-stone-100 dark:border-slate-700 text-center">
-                                <p className="text-xs text-gray-400 mb-2">Atau hubungi via email manual:</p>
+                                <p className="text-xs text-gray-400 mb-2">{t('about_or_manual')}</p>
                                 <div className="flex items-center justify-center gap-2 text-sm font-bold text-quran-dark dark:text-gray-200 bg-stone-50 dark:bg-slate-700 py-2 rounded-lg select-all">
                                     <Mail className="w-4 h-4" /> aiprojek01@gmail.com
                                 </div>

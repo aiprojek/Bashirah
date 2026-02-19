@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap } from 'lucide-react';
 import Logo from './Logo';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useLanguage();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -62,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Home className={`w-5 h-5 ${isActive('/') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Beranda</span>
+                    <span>{t('nav_home')}</span>
                 </button>
                 
                 <button 
@@ -74,7 +76,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <LayoutGrid className={`w-5 h-5 ${isActive('/topics') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Indeks Topik</span>
+                    <span>{t('nav_topics')}</span>
                 </button>
 
                 <button 
@@ -86,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <GraduationCap className={`w-5 h-5 ${isActive('/tajweed-learn') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Belajar Tajwid</span>
+                    <span>{t('nav_tajweed')}</span>
                 </button>
 
                 <button 
@@ -98,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Sparkles className={`w-5 h-5 ${isActive('/asmaul-husna') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Asmaul Husna</span>
+                    <span>{t('nav_names')}</span>
                 </button>
 
                 <button 
@@ -110,7 +112,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Heart className={`w-5 h-5 ${isActive('/feelings') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Ayat Pelipur Lara</span>
+                    <span>{t('nav_feelings')}</span>
                 </button>
 
                 <button 
@@ -122,7 +124,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Trophy className={`w-5 h-5 ${isActive('/quiz') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Kuis & Trivia</span>
+                    <span>{t('nav_quiz')}</span>
                 </button>
                 
                 <button 
@@ -134,7 +136,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <BookHeart className={`w-5 h-5 ${isActive('/tadabbur') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Jurnal Tadabbur</span>
+                    <span>{t('nav_tadabbur')}</span>
                 </button>
 
                 <button 
@@ -146,7 +148,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <HeartHandshake className={`w-5 h-5 ${isActive('/duas') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Koleksi Doa</span>
+                    <span>{t('nav_dua')}</span>
                 </button>
 
                 <button 
@@ -158,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Bookmark className={`w-5 h-5 ${isActive('/library') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Pustaka Saya</span>
+                    <span>{t('nav_library')}</span>
                 </button>
 
                 <div className="my-4 border-t border-stone-100 dark:border-slate-800 mx-4"></div>
@@ -172,7 +174,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Settings className={`w-5 h-5 ${isActive('/settings') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Pengaturan</span>
+                    <span>{t('nav_settings')}</span>
                 </button>
 
                 <button 
@@ -184,13 +186,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }`}
                 >
                     <Info className={`w-5 h-5 ${isActive('/about') ? 'text-[#d4af37]' : ''}`} />
-                    <span>Tentang Aplikasi</span>
+                    <span>{t('nav_about')}</span>
                 </button>
             </nav>
 
             {/* Footer */}
             <div className="p-6 bg-stone-50 dark:bg-slate-800 border-t border-stone-100 dark:border-slate-700 text-center">
-                <p className="text-xs text-gray-400 dark:text-gray-500 font-serif italic">Bashirah</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 font-serif italic">{t('app_title')}</p>
                 <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Versi 20260217</p>
             </div>
         </div>

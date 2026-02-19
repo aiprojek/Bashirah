@@ -4,17 +4,10 @@ import { BookHeart, Plus, Save, Trash2, X, PenTool, Calendar, Loader2 } from 'lu
 import * as DB from '../services/db'; // Use DB directly
 import { TadabburData, TadabburTag } from '../types';
 import ConfirmationModal from '../components/ConfirmationModal';
-
-const TAGS: { id: TadabburTag; label: string; color: string }[] = [
-    { id: 'syukur', label: 'Syukur', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
-    { id: 'sabar', label: 'Sabar', color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
-    { id: 'istighfar', label: 'Istighfar', color: 'bg-stone-200 text-stone-600 dark:bg-slate-600 dark:text-slate-300' },
-    { id: 'doa', label: 'Doa', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
-    { id: 'ibrah', label: 'Ibrah/Pelajaran', color: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' },
-    { id: 'umum', label: 'Refleksi Umum', color: 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-300' },
-];
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TadabburPage: React.FC = () => {
+    const { t } = useLanguage();
     const [entries, setEntries] = useState<TadabburData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -27,6 +20,15 @@ const TadabburPage: React.FC = () => {
 
     // Modal State
     const [deleteId, setDeleteId] = useState<string | null>(null);
+
+    const TAGS: { id: TadabburTag; label: string; color: string }[] = [
+        { id: 'syukur', label: t('tag_gratitude'), color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
+        { id: 'sabar', label: t('tag_patience'), color: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300' },
+        { id: 'istighfar', label: t('tag_forgiveness'), color: 'bg-stone-200 text-stone-600 dark:bg-slate-600 dark:text-slate-300' },
+        { id: 'doa', label: t('tag_prayer'), color: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' },
+        { id: 'ibrah', label: t('tag_lesson'), color: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' },
+        { id: 'umum', label: t('tag_general'), color: 'bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-gray-300' },
+    ];
 
     useEffect(() => {
         loadEntries();
@@ -92,9 +94,9 @@ const TadabburPage: React.FC = () => {
                  <div className="inline-block p-4 bg-white dark:bg-slate-800 rounded-full shadow-sm mb-4 border border-stone-100 dark:border-slate-700">
                     <BookHeart className="w-8 h-8 text-quran-dark dark:text-white" />
                  </div>
-                 <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">Jurnal Tadabbur</h2>
+                 <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">{t('tadabbur_title')}</h2>
                  <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto text-sm italic">
-                     "Ikatlah ilmu dengan tulisan. Renungkan ayat-Nya, dan abadikan hikmah yang menyentuh hatimu."
+                     {t('tadabbur_desc')}
                  </p>
             </div>
 
@@ -106,12 +108,12 @@ const TadabburPage: React.FC = () => {
             ) : entries.length === 0 ? (
                 <div className="text-center py-16 bg-white/50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-stone-200 dark:border-slate-700">
                     <PenTool className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 dark:text-gray-500 text-sm">Belum ada catatan tadabbur.</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm">{t('tadabbur_empty')}</p>
                     <button 
                         onClick={() => handleOpenEditor()}
                         className="mt-4 px-5 py-2 bg-quran-gold text-white rounded-xl text-sm font-bold shadow-lg shadow-quran-gold/20 hover:bg-yellow-500 transition-all"
                     >
-                        Mulai Menulis
+                        {t('tadabbur_btn_write')}
                     </button>
                 </div>
             ) : (
@@ -134,7 +136,7 @@ const TadabburPage: React.FC = () => {
                                     </span>
                                     <div className="flex items-center gap-2 text-gray-400 dark:text-gray-500 text-xs">
                                         <Calendar className="w-3 h-3" />
-                                        <span>{date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                        <span>{date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                                     </div>
                                 </div>
 
@@ -171,14 +173,14 @@ const TadabburPage: React.FC = () => {
                         {/* Toolbar */}
                         <div className="px-6 py-4 border-b border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex justify-between items-center">
                             <h3 className="font-serif font-bold text-gray-800 dark:text-white">
-                                {currentId ? 'Edit Jurnal' : 'Tulis Jurnal Baru'}
+                                {currentId ? t('tadabbur_edit_title') : t('tadabbur_new_title')}
                             </h3>
                             <div className="flex gap-2">
                                 {currentId && (
                                     <button 
                                         onClick={() => setDeleteId(currentId)}
                                         className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        title="Hapus"
+                                        title={t('btn_delete')}
                                     >
                                         <Trash2 className="w-5 h-5" />
                                     </button>
@@ -196,7 +198,7 @@ const TadabburPage: React.FC = () => {
                         <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar">
                             <input 
                                 type="text" 
-                                placeholder="Judul Renungan..."
+                                placeholder={t('tadabbur_placeholder_title')}
                                 className="w-full text-2xl md:text-3xl font-serif font-bold bg-transparent border-none focus:ring-0 placeholder-gray-300 dark:placeholder-gray-600 text-quran-dark dark:text-white mb-6 p-0"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
@@ -221,7 +223,7 @@ const TadabburPage: React.FC = () => {
 
                             <textarea 
                                 className="w-full h-[50vh] bg-transparent border-none focus:ring-0 text-gray-700 dark:text-gray-200 font-serif text-lg leading-loose resize-none p-0 placeholder-gray-300 dark:placeholder-gray-600"
-                                placeholder="Tuliskan apa yang Anda rasakan, pelajari, atau syukuri hari ini..."
+                                placeholder={t('tadabbur_placeholder_content')}
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
                             ></textarea>
@@ -233,7 +235,7 @@ const TadabburPage: React.FC = () => {
                                 onClick={handleSave}
                                 className="px-6 py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold flex items-center gap-2 hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 shadow-lg"
                             >
-                                <Save className="w-4 h-4" /> Simpan
+                                <Save className="w-4 h-4" /> {t('btn_save')}
                             </button>
                         </div>
 
@@ -246,9 +248,9 @@ const TadabburPage: React.FC = () => {
                 isOpen={!!deleteId}
                 onClose={() => setDeleteId(null)}
                 onConfirm={confirmDelete}
-                title="Hapus Catatan?"
+                title={t('btn_delete') + "?"}
                 message="Catatan tadabbur yang dihapus tidak dapat dikembalikan lagi. Anda yakin?"
-                confirmText="Hapus"
+                confirmText={t('btn_delete')}
                 variant="danger"
             />
 

@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { DUAS } from '../services/duaData';
 import { Bookmark, Share2, Copy, ArrowRight, HeartHandshake, Sparkles, Check } from 'lucide-react';
 import * as StorageService from '../services/storageService';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const DuaCollectionPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [filter, setFilter] = useState<'all' | 'rabbana' | 'rabbi'>('all');
     const [bookmarks, setBookmarks] = useState<number[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -45,9 +47,9 @@ const DuaCollectionPage: React.FC = () => {
                 <div className="inline-block p-3 bg-quran-gold/10 rounded-full mb-4 ring-1 ring-quran-gold/20">
                     <HeartHandshake className="w-8 h-8 text-quran-gold" />
                 </div>
-                <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">Koleksi Doa</h2>
+                <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">{t('dua_title')}</h2>
                 <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto text-sm">
-                    Munajat indah para Nabi dan orang shaleh yang diabadikan dalam Al-Quran.
+                    {t('dua_desc')}
                 </p>
             </div>
 
@@ -57,19 +59,19 @@ const DuaCollectionPage: React.FC = () => {
                     onClick={() => setFilter('all')}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${filter === 'all' ? 'bg-quran-dark text-white border-quran-dark dark:bg-quran-gold dark:text-quran-dark dark:border-quran-gold' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'}`}
                 >
-                    Semua
+                    {t('dua_all')}
                 </button>
                 <button 
                     onClick={() => setFilter('rabbana')}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${filter === 'rabbana' ? 'bg-quran-dark text-white border-quran-dark dark:bg-quran-gold dark:text-quran-dark dark:border-quran-gold' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'}`}
                 >
-                    Rabbana (Ya Tuhan Kami)
+                    {t('dua_rabbana')}
                 </button>
                 <button 
                     onClick={() => setFilter('rabbi')}
                     className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${filter === 'rabbi' ? 'bg-quran-dark text-white border-quran-dark dark:bg-quran-gold dark:text-quran-dark dark:border-quran-gold' : 'bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'}`}
                 >
-                    Rabbi (Ya Tuhanku)
+                    {t('dua_rabbi')}
                 </button>
             </div>
 
@@ -90,7 +92,7 @@ const DuaCollectionPage: React.FC = () => {
                                 <div className="flex justify-between items-start mb-6">
                                     <div>
                                         <h3 className="font-bold text-gray-800 dark:text-gray-100 text-lg flex items-center gap-2">
-                                            {dua.title}
+                                            {t(`dua_${dua.id}_title`)}
                                             {dua.category === 'rabbana' && <span className="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 px-2 py-0.5 rounded-full font-sans uppercase tracking-wider">Rabbana</span>}
                                         </h3>
                                         <p className="text-xs text-gray-400 mt-1 flex items-center gap-1 cursor-pointer hover:text-quran-gold transition-colors" onClick={() => navigate(`/surah/${dua.surahId}#verse-${dua.verseId}`)}>
@@ -118,18 +120,18 @@ const DuaCollectionPage: React.FC = () => {
                                 {/* Translation */}
                                 <div className="bg-stone-50 dark:bg-slate-700/50 p-4 rounded-xl border-l-4 border-quran-gold">
                                     <p className="text-gray-600 dark:text-gray-300 italic font-serif text-sm leading-relaxed">
-                                        "{dua.translation}"
+                                        "{t(`dua_${dua.id}_desc`)}"
                                     </p>
                                 </div>
 
                                 {/* Footer Actions */}
                                 <div className="mt-4 flex justify-end gap-3">
                                      <button 
-                                        onClick={() => handleCopy(`${dua.arabic}\n\n"${dua.translation}"\n(QS ${dua.surahName}: ${dua.verseId})`, dua.id)}
+                                        onClick={() => handleCopy(`${dua.arabic}\n\n"${t(`dua_${dua.id}_desc`)}"\n(QS ${dua.surahName}: ${dua.verseId})`, dua.id)}
                                         className={`text-xs font-bold flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isCopied ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-white dark:bg-slate-700 border border-stone-200 dark:border-slate-600 text-gray-500 dark:text-gray-300 hover:border-quran-gold hover:text-quran-gold dark:hover:text-quran-gold dark:hover:border-quran-gold'}`}
                                     >
                                         {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                        {isCopied ? 'Disalin' : 'Salin Teks'}
+                                        {isCopied ? t('copied') : t('dua_copy')}
                                     </button>
                                 </div>
                             </div>
@@ -140,7 +142,7 @@ const DuaCollectionPage: React.FC = () => {
 
             {filteredDuas.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
-                    Tidak ada doa dalam kategori ini.
+                    {t('dua_empty')}
                 </div>
             )}
         </div>

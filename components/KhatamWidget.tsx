@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { Target, BookOpen, Calendar, Edit2, CheckCircle2, ChevronRight, Plus, Info, X } from 'lucide-react';
 import * as StorageService from '../services/storageService';
 import { KhatamTarget } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TOTAL_PAGES = 604; // Standard Madani Mushaf
 
 const KhatamWidget: React.FC = () => {
+    const { t } = useLanguage();
     const [target, setTarget] = useState<KhatamTarget | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [showHint, setShowHint] = useState(false);
@@ -72,9 +74,9 @@ const KhatamWidget: React.FC = () => {
                  </div>
 
                  <div className="relative z-10 text-center sm:text-left">
-                     <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2">Mulai Target Khatam</h3>
+                     <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif mb-2">{t('khatam_start_title')}</h3>
                      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
-                         Bangun kebiasaan membaca Al-Quran setiap hari. Tetapkan target harimu dan pantau progresmu.
+                         {t('khatam_start_desc')}
                      </p>
                  </div>
 
@@ -82,7 +84,7 @@ const KhatamWidget: React.FC = () => {
                      <div className="relative z-10 w-full sm:w-auto bg-stone-50 dark:bg-slate-700 p-4 rounded-xl border border-stone-200 dark:border-slate-600 animate-fade-in">
                          <div className="flex flex-col gap-3">
                             <div>
-                                <label className="text-xs font-bold text-gray-400 dark:text-gray-300 uppercase block mb-1">Target (Hari)</label>
+                                <label className="text-xs font-bold text-gray-400 dark:text-gray-300 uppercase block mb-1">{t('khatam_label_days')}</label>
                                 <input 
                                     type="number" 
                                     min="1" 
@@ -96,13 +98,13 @@ const KhatamWidget: React.FC = () => {
                                 onClick={handleSaveTarget}
                                 className="w-full py-2 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-lg text-sm font-bold hover:bg-quran-dark/90 transition-colors whitespace-nowrap"
                             >
-                                Simpan Target
+                                {t('btn_save')}
                             </button>
                              <button 
                                 onClick={() => setIsEditing(false)}
                                 className="w-full py-1 text-xs text-gray-400 dark:text-gray-300 hover:text-red-500 dark:hover:text-red-400"
                             >
-                                Batal
+                                {t('btn_cancel')}
                             </button>
                          </div>
                      </div>
@@ -112,7 +114,7 @@ const KhatamWidget: React.FC = () => {
                         className="relative z-10 px-6 py-3 bg-quran-gold text-white rounded-xl font-bold shadow-lg shadow-quran-gold/30 hover:bg-quran-gold/90 transition-all flex items-center gap-2 whitespace-nowrap"
                      >
                          <Plus className="w-5 h-5" />
-                         Buat Target
+                         {t('khatam_btn_create')}
                      </button>
                  )}
             </div>
@@ -130,12 +132,12 @@ const KhatamWidget: React.FC = () => {
              {isEditing ? (
                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 animate-fade-in border border-white/20">
                      <div className="flex justify-between items-center mb-4">
-                         <h4 className="font-bold text-sm">Update Progres Manual</h4>
-                         <button onClick={() => setIsEditing(false)}><div className="text-xs opacity-70 hover:opacity-100">Batal</div></button>
+                         <h4 className="font-bold text-sm">{t('khatam_progress_title')}</h4>
+                         <button onClick={() => setIsEditing(false)}><div className="text-xs opacity-70 hover:opacity-100">{t('btn_cancel')}</div></button>
                      </div>
                      <div className="flex gap-4 items-end">
                          <div className="flex-1">
-                             <label className="text-[10px] uppercase font-bold opacity-60 block mb-1">Halaman Sekarang</label>
+                             <label className="text-[10px] uppercase font-bold opacity-60 block mb-1">{t('khatam_progress_subtitle')}</label>
                              <input 
                                 type="number" 
                                 min="1" 
@@ -155,7 +157,7 @@ const KhatamWidget: React.FC = () => {
                             }}
                             className="px-4 py-2 bg-quran-gold text-white rounded-lg font-bold text-sm hover:bg-white hover:text-quran-dark transition-colors whitespace-nowrap"
                          >
-                             Simpan
+                             {t('btn_save')}
                          </button>
                      </div>
                  </div>
@@ -165,15 +167,14 @@ const KhatamWidget: React.FC = () => {
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <span className="bg-quran-gold/20 border border-quran-gold/30 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase text-quran-gold">
-                                    Target Khatam
+                                    {t('khatam_target')}
                                 </span>
                                 <span className="text-xs opacity-60 flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" /> {stats.daysLeft} hari lagi
+                                    <Calendar className="w-3 h-3" /> {stats.daysLeft} {t('khatam_remaining_days')}
                                 </span>
                             </div>
                             <h3 className="text-2xl font-bold font-serif leading-tight">
-                                Semangat! <br/> 
-                                <span className="text-quran-gold">Target {stats.dailyTarget} Halaman</span> Hari Ini
+                                <span className="text-quran-gold">{t('khatam_daily_target')}: {stats.dailyTarget} {t('tab_page')}</span>
                             </h3>
                         </div>
                         <button 
@@ -188,7 +189,7 @@ const KhatamWidget: React.FC = () => {
                     {/* Progress Bar */}
                     <div className="space-y-2">
                         <div className="flex justify-between text-xs font-medium opacity-80">
-                            <span>Halaman {target.currentPage} / 604</span>
+                            <span>{t('tab_page')} {target.currentPage} / 604</span>
                             <span>{Math.round((target.currentPage / TOTAL_PAGES) * 100)}%</span>
                         </div>
                         <div className="h-2 w-full bg-black/20 rounded-full overflow-hidden">
@@ -198,7 +199,7 @@ const KhatamWidget: React.FC = () => {
                             ></div>
                         </div>
                         <div className="flex justify-end">
-                             <p className="text-[10px] opacity-60 mt-1">Sisa {stats.pagesLeft} halaman menuju khatam</p>
+                             <p className="text-[10px] opacity-60 mt-1">{stats.pagesLeft} {t('khatam_remaining_pages')}</p>
                         </div>
                     </div>
                     
@@ -208,14 +209,14 @@ const KhatamWidget: React.FC = () => {
                             <div className="bg-black/20 backdrop-blur-md p-3 rounded-lg text-xs mb-3 animate-fade-in border border-white/5">
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="font-bold text-quran-gold flex items-center gap-2">
-                                        <Info className="w-3 h-3" /> Tips Update Progres
+                                        <Info className="w-3 h-3" /> {t('khatam_tips_title')}
                                     </div>
                                     <button onClick={() => setShowHint(false)}><X className="w-3 h-3 opacity-50 hover:opacity-100" /></button>
                                 </div>
                                 <ul className="space-y-1 opacity-80 list-disc list-inside">
-                                    <li><strong>Menu Ayat:</strong> Klik titik tiga (⋮) pada ayat &rarr; <em>Update Progres Khatam</em>.</li>
-                                    <li><strong>Mode Mushaf:</strong> Klik ikon target di toolbar atas.</li>
-                                    <li><strong>Manual:</strong> Gunakan tombol "Update Manual" di bawah ini (untuk Al-Quran fisik).</li>
+                                    <li>Menu Ayat: Klik (⋮) &rarr; <em>Update Progres Khatam</em>.</li>
+                                    <li>Mode Mushaf: Klik ikon target di toolbar.</li>
+                                    <li>Manual: Gunakan tombol Update di bawah.</li>
                                 </ul>
                             </div>
                          ) : null}
@@ -225,14 +226,14 @@ const KhatamWidget: React.FC = () => {
                                 onClick={() => setShowHint(!showHint)}
                                 className="text-[10px] opacity-60 hover:opacity-100 flex items-center gap-1 transition-opacity"
                              >
-                                 <Info className="w-3 h-3" /> Cara lain update?
+                                 <Info className="w-3 h-3" /> Tips?
                              </button>
 
                              <button 
                                 onClick={() => setIsEditing(true)}
                                 className="text-xs font-bold flex items-center gap-2 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors bg-white/5 border border-white/10 whitespace-nowrap"
                              >
-                                 Update Manual <ChevronRight className="w-3 h-3" />
+                                 {t('khatam_btn_update_manual')} <ChevronRight className="w-3 h-3" />
                              </button>
                          </div>
                     </div>

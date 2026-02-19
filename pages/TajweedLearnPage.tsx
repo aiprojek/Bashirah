@@ -3,9 +3,11 @@ import React, { useState } from 'react';
 import { TAJWEED_LEARNING_DATA, TajweedCategory, TajweedRuleItem } from '../services/tajweedData';
 import { BookOpen, ChevronRight, X, ArrowLeft, GraduationCap, Volume2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TajweedLearnPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [selectedCategory, setSelectedCategory] = useState<TajweedCategory | null>(null);
     const [selectedRule, setSelectedRule] = useState<TajweedRuleItem | null>(null);
 
@@ -18,6 +20,9 @@ const TajweedLearnPage: React.FC = () => {
             navigate('/');
         }
     };
+    
+    // Helper to format key (replace - with _)
+    const formatKey = (id: string) => id.replace(/-/g, '_');
 
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-fade-in min-h-screen pb-24 relative">
@@ -32,10 +37,10 @@ const TajweedLearnPage: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-bold text-quran-dark dark:text-gray-100 font-serif flex items-center gap-2">
                         <GraduationCap className="w-6 h-6 text-quran-gold" />
-                        Panduan Tajwid
+                        {t('tajweed_title')}
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Pelajari cara membaca Al-Quran dengan benar.
+                        {t('tajweed_desc')}
                     </p>
                 </div>
             </div>
@@ -51,11 +56,11 @@ const TajweedLearnPage: React.FC = () => {
                         >
                             <div className="absolute top-0 right-0 w-24 h-24 bg-quran-gold/5 rounded-bl-full -mr-8 -mt-8 pointer-events-none transition-transform group-hover:scale-110"></div>
                             
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-quran-gold transition-colors">{cat.title}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{cat.description}</p>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2 group-hover:text-quran-gold transition-colors">{t(`tajweed_${formatKey(cat.id)}_title`)}</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-4">{t(`tajweed_${formatKey(cat.id)}_desc`)}</p>
                             
                             <div className="flex items-center text-xs font-bold text-quran-dark dark:text-gray-200 uppercase tracking-wider bg-stone-50 dark:bg-slate-700 w-fit px-3 py-1.5 rounded-lg group-hover:bg-quran-dark dark:group-hover:bg-quran-gold group-hover:text-white dark:group-hover:text-quran-dark transition-colors">
-                                {cat.rules.length} Aturan
+                                {cat.rules.length} {t('tajweed_rules')}
                                 <ChevronRight className="w-3 h-3 ml-2" />
                             </div>
                         </button>
@@ -67,8 +72,8 @@ const TajweedLearnPage: React.FC = () => {
             {selectedCategory && !selectedRule && (
                 <div className="animate-fade-in">
                     <div className="bg-quran-gold/10 border border-quran-gold/20 p-5 rounded-2xl mb-6">
-                        <h3 className="font-bold text-xl text-quran-dark dark:text-quran-gold mb-1">{selectedCategory.title}</h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-300">{selectedCategory.description}</p>
+                        <h3 className="font-bold text-xl text-quran-dark dark:text-quran-gold mb-1">{t(`tajweed_${formatKey(selectedCategory.id)}_title`)}</h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{t(`tajweed_${formatKey(selectedCategory.id)}_desc`)}</p>
                     </div>
 
                     <div className="space-y-4">
@@ -83,11 +88,11 @@ const TajweedLearnPage: React.FC = () => {
                                         className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shrink-0"
                                         style={{ backgroundColor: rule.colorCode || '#1e3a34' }}
                                     >
-                                        {rule.name.charAt(0)}
+                                        {t(`tajweed_${formatKey(rule.id)}_name`).charAt(0)}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-gray-800 dark:text-gray-200">{rule.name}</h4>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{rule.description}</p>
+                                        <h4 className="font-bold text-gray-800 dark:text-gray-200">{t(`tajweed_${formatKey(rule.id)}_name`)}</h4>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{t(`tajweed_${formatKey(rule.id)}_desc`)}</p>
                                     </div>
                                 </div>
                                 <ChevronRight className="w-5 h-5 text-gray-300 dark:text-gray-500 group-hover:text-quran-gold" />
@@ -116,7 +121,7 @@ const TajweedLearnPage: React.FC = () => {
                                 >
                                     Tajwid
                                 </span>
-                                <h3 className="text-2xl font-bold text-quran-dark dark:text-white font-serif">{selectedRule.name}</h3>
+                                <h3 className="text-2xl font-bold text-quran-dark dark:text-white font-serif">{t(`tajweed_${formatKey(selectedRule.id)}_name`)}</h3>
                             </div>
                             <button 
                                 onClick={() => setSelectedRule(null)}
@@ -132,27 +137,27 @@ const TajweedLearnPage: React.FC = () => {
                             {/* Definition */}
                             <section>
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                                    <BookOpen className="w-4 h-4 text-quran-gold" /> Definisi
+                                    <BookOpen className="w-4 h-4 text-quran-gold" /> {t('tajweed_def')}
                                 </h4>
                                 <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed bg-stone-50 dark:bg-slate-700/50 p-4 rounded-xl border-l-4 border-stone-300 dark:border-slate-600">
-                                    {selectedRule.description}
+                                    {t(`tajweed_${formatKey(selectedRule.id)}_desc`)}
                                 </p>
                             </section>
 
                             {/* How to Read */}
                             <section>
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                                    <Volume2 className="w-4 h-4 text-quran-gold" /> Cara Membaca
+                                    <Volume2 className="w-4 h-4 text-quran-gold" /> {t('tajweed_how')}
                                 </h4>
                                 <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                                    {selectedRule.howToRead}
+                                    {t(`tajweed_${formatKey(selectedRule.id)}_how`)}
                                 </p>
                             </section>
 
                             {/* Examples */}
                             <section>
                                 <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 border-b border-stone-100 dark:border-slate-700 pb-2">
-                                    Contoh Lafadz
+                                    {t('tajweed_example')}
                                 </h4>
                                 <div className="space-y-4">
                                     {selectedRule.examples.map((ex, idx) => (
@@ -178,7 +183,7 @@ const TajweedLearnPage: React.FC = () => {
                                 onClick={() => setSelectedRule(null)}
                                 className="text-xs font-bold text-gray-400 hover:text-quran-dark dark:hover:text-quran-gold uppercase tracking-wider transition-colors"
                             >
-                                Tutup Penjelasan
+                                {t('tajweed_close')}
                             </button>
                         </div>
 

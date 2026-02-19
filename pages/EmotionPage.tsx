@@ -6,9 +6,11 @@ import {
     Heart, ChevronRight, X, ArrowRight, Quote, 
     CloudDrizzle, Waves, Feather, Flame, Sun, Droplets, Anchor, Compass
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const EmotionPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [selectedEmotion, setSelectedEmotion] = useState<EmotionTopic | null>(null);
 
     const handleVerseClick = (surahId: number, verseId: number) => {
@@ -38,10 +40,10 @@ const EmotionPage: React.FC = () => {
                         </div>
                     </div>
                     <h2 className="text-3xl md:text-4xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-3 tracking-tight">
-                        Penawar Hati
+                        {t('feelings_title')}
                     </h2>
                     <p className="text-gray-500 dark:text-gray-400 font-serif italic text-sm md:text-base max-w-lg mx-auto">
-                        "Ingatlah, hanya dengan mengingat Allah hati menjadi tenteram."
+                        {t('feelings_desc')}
                     </p>
                 </div>
             </div>
@@ -65,15 +67,15 @@ const EmotionPage: React.FC = () => {
                             </div>
                             
                             <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 font-serif mb-2 group-hover:text-quran-dark dark:group-hover:text-quran-gold transition-colors">
-                                {emotion.label}
+                                {t(`emotion_${emotion.id}_label`)}
                             </h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed opacity-80 line-clamp-2 mb-4 group-hover:opacity-100 font-sans">
-                                {emotion.description}
+                                {t(`emotion_${emotion.id}_desc`)}
                             </p>
                         </div>
                         
                         <div className="relative z-10 flex items-center text-[10px] font-bold uppercase tracking-widest text-quran-gold group-hover:translate-x-1 transition-transform duration-300">
-                            <span>Lihat Ayat</span>
+                            <span>{t('feelings_view')}</span>
                             <ChevronRight className="w-3 h-3 ml-1" />
                         </div>
                     </button>
@@ -97,9 +99,9 @@ const EmotionPage: React.FC = () => {
                                 <div className="w-16 h-16 rounded-full bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 flex items-center justify-center text-quran-dark dark:text-quran-gold mb-4 shadow-sm">
                                     {renderIcon(selectedEmotion.icon, "w-8 h-8")}
                                 </div>
-                                <h3 className="font-bold font-serif text-2xl text-quran-dark dark:text-white mb-2">{selectedEmotion.label}</h3>
+                                <h3 className="font-bold font-serif text-2xl text-quran-dark dark:text-white mb-2">{t(`emotion_${selectedEmotion.id}_label`)}</h3>
                                 <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs font-serif italic">
-                                    {selectedEmotion.description}
+                                    {t(`emotion_${selectedEmotion.id}_desc`)}
                                 </p>
                             </div>
                             
@@ -113,7 +115,7 @@ const EmotionPage: React.FC = () => {
 
                         {/* Verses List */}
                         <div className="flex-1 overflow-y-auto p-6 bg-[#fcfbf7] dark:bg-slate-900 space-y-3 custom-scrollbar">
-                            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">Ayat-Ayat Pilihan</h4>
+                            <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">{t('feelings_select')}</h4>
                             
                             {selectedEmotion.verses.map((ref, idx) => (
                                 <button
@@ -127,7 +129,7 @@ const EmotionPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-quran-dark dark:text-gray-100 text-base font-serif">QS. {ref.surahName}</h4>
-                                            <p className="text-xs text-gray-400 font-sans mt-0.5">Ayat ke-{ref.verseId}</p>
+                                            <p className="text-xs text-gray-400 font-sans mt-0.5">{t('lib_verse')} {ref.verseId}</p>
                                         </div>
                                     </div>
                                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 dark:text-gray-600 group-hover:text-quran-gold group-hover:bg-stone-50 dark:group-hover:bg-slate-700 transition-all">
@@ -143,7 +145,7 @@ const EmotionPage: React.FC = () => {
                                 onClick={() => setSelectedEmotion(null)}
                                 className="text-xs font-bold text-gray-400 hover:text-quran-dark dark:hover:text-quran-gold transition-colors uppercase tracking-wider"
                             >
-                                Tutup
+                                {t('btn_close')}
                             </button>
                         </div>
                     </div>

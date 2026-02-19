@@ -8,16 +8,17 @@ import KhatamWidget from '../components/KhatamWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
 import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage } from '../services/quranService';
 import * as StorageService from '../services/storageService';
-import { Surah, LanguageCode, LastReadData } from '../types';
+import { Surah, LastReadData } from '../types';
 import { Clock, ChevronRight, Sparkles, Bookmark, FileText, Loader2 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface HomePageProps {
-  appLang: LanguageCode;
   showTranslation: boolean;
   translationId: string;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translationId }) => {
+const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) => {
+  const { language, t } = useLanguage();
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
     const fetchSurahs = async () => {
       setLoading(true);
       try {
-        const data = await getAllSurahs(appLang);
+        const data = await getAllSurahs(language);
         setSurahs(data);
       } catch (e) {
         console.error(e);
@@ -63,7 +64,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
       }
     };
     fetchSurahs();
-  }, [appLang]);
+  }, [language]);
 
   const filteredSurahs = useMemo(() => {
     return surahs.filter(s => 
@@ -139,11 +140,11 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                 <button 
                     onClick={() => setShowAyatModal(true)}
                     className="absolute -top-3 -right-6 md:-right-8 z-20 animate-bounce hover:animate-none transition-transform hover:scale-110"
-                    title="Lihat Ayat Harian"
+                    title={t('daily_verse')}
                 >
                     <div className="flex items-center gap-1 bg-quran-gold text-white px-2 py-1 rounded-lg shadow-md text-[10px] font-bold border border-white dark:border-slate-800">
                         <Sparkles className="w-3 h-3 fill-white" />
-                        <span className="hidden md:inline">Ayat Harian</span>
+                        <span className="hidden md:inline">{t('daily_verse')}</span>
                     </div>
                     {/* Little triangle pointer */}
                     <div className="w-2 h-2 bg-quran-gold absolute left-2 -bottom-1 transform rotate-45 border-b border-r border-white dark:border-slate-800"></div>
@@ -151,8 +152,8 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
              )}
         </div>
 
-        <h2 className="text-4xl md:text-5xl font-bold text-quran-dark dark:text-gray-100 mb-4 font-serif">Baca & Pelajari Al-Quran</h2>
-        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto font-serif italic">Temukan kedamaian dalam setiap ayat suci-Nya.</p>
+        <h2 className="text-4xl md:text-5xl font-bold text-quran-dark dark:text-gray-100 mb-4 font-serif">{t('home_greeting')}</h2>
+        <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto font-serif italic">{t('home_subtitle')}</p>
       </div>
       
       {/* Search Bar - NOW PASSING TRANSLATION ID */}
@@ -181,7 +182,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                             <Clock className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Terakhir Dibaca</p>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">{t('last_read')}</p>
                             <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
                                 {lastRead.surahName} <span className="font-normal text-gray-400 text-sm">Ayat {lastRead.verseId}</span>
                             </h3>
@@ -209,7 +210,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                             : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                         }`}
                     >
-                        {tab === 'surah' ? 'Surat' : tab === 'juz' ? 'Juz' : tab === 'halaman' ? 'Halaman' : tab === 'hizb' ? 'Hizb' : 'Sajdah'}
+                        {tab === 'surah' ? t('tab_surah') : tab === 'juz' ? t('tab_juz') : tab === 'halaman' ? t('tab_page') : tab === 'hizb' ? 'Hizb' : 'Sajdah'}
                     </button>
                  ))}
             </div>
@@ -250,7 +251,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                               {juz.juz}
                           </div>
                           <div>
-                              <h4 className="font-bold text-gray-800 dark:text-gray-100">Juz {juz.juz}</h4>
+                              <h4 className="font-bold text-gray-800 dark:text-gray-100">{t('tab_juz')} {juz.juz}</h4>
                               <p className="text-xs text-gray-500 dark:text-gray-400">Mulai: {juz.label}</p>
                           </div>
                       </div>
@@ -291,7 +292,7 @@ const HomePage: React.FC<HomePageProps> = ({ appLang, showTranslation, translati
                           </div>
                           <div>
                               <h4 className="font-bold text-gray-700 dark:text-gray-200 text-sm">Hizb {hizb.id}</h4>
-                              <p className="text-[10px] text-gray-400">Juz {hizb.juz}</p>
+                              <p className="text-[10px] text-gray-400">{t('tab_juz')} {hizb.juz}</p>
                           </div>
                       </div>
                   </button>

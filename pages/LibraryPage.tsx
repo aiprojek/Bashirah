@@ -6,8 +6,10 @@ import { BookmarkData, NoteData } from '../types';
 import { Bookmark, ChevronRight, Trash2, FileText, X } from 'lucide-react';
 import ConfirmationModal from '../components/ConfirmationModal';
 import ReadingHeatmap from '../components/ReadingHeatmap'; // New Import
+import { useLanguage } from '../contexts/LanguageContext';
 
 const LibraryPage: React.FC = () => {
+  const { t } = useLanguage();
   const [bookmarks, setBookmarks] = useState<BookmarkData[]>([]);
   const [notes, setNotes] = useState<NoteData[]>([]);
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'notes'>('bookmarks');
@@ -82,7 +84,7 @@ const LibraryPage: React.FC = () => {
                     className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'bookmarks' ? 'text-quran-dark dark:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <Bookmark className={`w-4 h-4 ${activeTab === 'bookmarks' ? 'fill-current' : ''}`} />
-                    Bookmark
+                    {t('lib_bookmarks')}
                     {activeTab === 'bookmarks' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-quran-gold rounded-t-full mx-8"></div>}
                 </button>
                 <button 
@@ -90,7 +92,7 @@ const LibraryPage: React.FC = () => {
                     className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition-colors relative ${activeTab === 'notes' ? 'text-quran-dark dark:text-white' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'}`}
                 >
                     <FileText className={`w-4 h-4 ${activeTab === 'notes' ? 'fill-current' : ''}`} />
-                    Catatan
+                    {t('lib_notes')}
                      {activeTab === 'notes' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-quran-gold rounded-t-full mx-8"></div>}
                 </button>
             </div>
@@ -102,12 +104,12 @@ const LibraryPage: React.FC = () => {
                         {bookmarks.length === 0 ? (
                             <div className="p-12 text-center text-gray-400">
                                 <Bookmark className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                <p>Belum ada bookmark.</p>
+                                <p>{t('lib_empty_bk')}</p>
                                 <button 
                                     onClick={() => navigate('/')}
                                     className="mt-4 text-quran-gold hover:underline text-sm font-medium"
                                 >
-                                    Mulai Membaca
+                                    {t('lib_start_read')}
                                 </button>
                             </div>
                         ) : (
@@ -125,9 +127,9 @@ const LibraryPage: React.FC = () => {
                                             <div>
                                                 <h4 className="font-bold text-quran-dark dark:text-gray-100 text-lg">{bm.surahName}</h4>
                                                 <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs px-2 py-0.5 bg-stone-100 dark:bg-slate-700 rounded text-stone-500 dark:text-gray-400 font-medium">Ayat {bm.verseId}</span>
+                                                    <span className="text-xs px-2 py-0.5 bg-stone-100 dark:bg-slate-700 rounded text-stone-500 dark:text-gray-400 font-medium">{t('lib_verse')} {bm.verseId}</span>
                                                     <span className="text-xs text-gray-400">
-                                                        {new Date(bm.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}
+                                                        {new Date(bm.timestamp).toLocaleDateString(undefined, {day: 'numeric', month: 'short'})}
                                                     </span>
                                                 </div>
                                             </div>
@@ -137,7 +139,7 @@ const LibraryPage: React.FC = () => {
                                             <button
                                                 onClick={(e) => initiateRemoveBookmark(e, bm)}
                                                 className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                                title="Hapus"
+                                                title={t('btn_delete')}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -156,12 +158,12 @@ const LibraryPage: React.FC = () => {
                         {notes.length === 0 ? (
                             <div className="p-12 text-center text-gray-400">
                                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                                <p>Belum ada catatan.</p>
+                                <p>{t('lib_empty_note')}</p>
                                 <button 
                                     onClick={() => navigate('/')}
                                     className="mt-4 text-quran-gold hover:underline text-sm font-medium"
                                 >
-                                    Mulai Membaca
+                                    {t('lib_start_read')}
                                 </button>
                             </div>
                         ) : (
@@ -180,7 +182,7 @@ const LibraryPage: React.FC = () => {
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <h4 className="font-bold text-quran-dark dark:text-gray-100 text-sm">{note.surahName} : {note.verseId}</h4>
                                                     <span className="text-[10px] text-gray-400">
-                                                        {new Date(note.timestamp).toLocaleDateString('id-ID', {day: 'numeric', month: 'short'})}
+                                                        {new Date(note.timestamp).toLocaleDateString(undefined, {day: 'numeric', month: 'short'})}
                                                     </span>
                                                 </div>
                                                 <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-2 leading-relaxed italic">
@@ -193,7 +195,7 @@ const LibraryPage: React.FC = () => {
                                              <button
                                                 onClick={(e) => initiateRemoveNote(e, note)}
                                                 className="p-2 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                                                title="Hapus"
+                                                title={t('btn_delete')}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -219,7 +221,7 @@ const LibraryPage: React.FC = () => {
                     <div className="px-6 py-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
                         <div>
                             <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif">{selectedNote.surahName}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Ayat {selectedNote.verseId}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{t('lib_verse')} {selectedNote.verseId}</p>
                         </div>
                         <button 
                             onClick={() => setSelectedNote(null)}
@@ -235,7 +237,7 @@ const LibraryPage: React.FC = () => {
                              "{selectedNote.text}"
                          </div>
                          <div className="mt-6 text-xs text-gray-400 text-right">
-                             Dibuat pada {new Date(selectedNote.timestamp).toLocaleDateString('id-ID', { dateStyle: 'full' })}
+                             {t('lib_created')} {new Date(selectedNote.timestamp).toLocaleDateString(undefined, { dateStyle: 'full' })}
                          </div>
                     </div>
                     
@@ -244,7 +246,7 @@ const LibraryPage: React.FC = () => {
                             onClick={handleGoToVerseFromNote}
                             className="flex items-center gap-2 px-5 py-2.5 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold text-sm hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all shadow-md"
                         >
-                            Lihat Ayat <ChevronRight className="w-4 h-4" />
+                            {t('lib_view_verse')} <ChevronRight className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
@@ -256,11 +258,13 @@ const LibraryPage: React.FC = () => {
             isOpen={!!deleteTarget}
             onClose={() => setDeleteTarget(null)}
             onConfirm={handleConfirmDelete}
-            title={deleteTarget?.type === 'bookmark' ? 'Hapus Bookmark' : 'Hapus Catatan'}
+            title={deleteTarget?.type === 'bookmark' ? t('lib_delete_bk_title') : t('lib_delete_note_title')}
             message={deleteTarget?.type === 'bookmark' 
-                ? 'Apakah Anda yakin ingin menghapus bookmark untuk ayat ini?' 
-                : 'Catatan yang dihapus tidak dapat dikembalikan. Lanjutkan?'
+                ? t('lib_delete_bk_msg')
+                : t('lib_delete_note_msg')
             }
+            confirmText={t('btn_delete')}
+            variant="danger"
         />
 
     </div>

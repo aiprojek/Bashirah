@@ -13,11 +13,9 @@ import AsmaulHusnaPage from './pages/AsmaulHusnaPage';
 import TajweedLearnPage from './pages/TajweedLearnPage';
 import SurahDetailPage from './pages/SurahDetailPage';
 import SettingsPage from './pages/SettingsPage';
-import { LanguageCode, TranslationOption } from './types';
+import { TranslationOption } from './types';
 
 interface AppRoutesProps {
-  appLang: LanguageCode;
-  setAppLanguage: (lang: LanguageCode) => void;
   translationEdition: string;
   setTranslationEdition: (id: string) => void;
   tafsirEdition: string;
@@ -34,8 +32,6 @@ interface AppRoutesProps {
 }
 
 const AppRoutes: React.FC<AppRoutesProps> = ({
-  appLang,
-  setAppLanguage,
   translationEdition,
   setTranslationEdition,
   tafsirEdition,
@@ -56,7 +52,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         path="/" 
         element={
           <HomePage 
-            appLang={appLang} 
             showTranslation={showTranslation} 
             translationId={translationEdition} 
           />
@@ -75,7 +70,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         path="/surah/:id" 
         element={
           <SurahDetailPage 
-            appLang={appLang} 
             translationId={translationEdition} 
             tafsirId={tafsirEdition} 
             showTranslation={showTranslation} 
@@ -89,8 +83,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         path="/settings" 
         element={
           <SettingsPage 
-            currentAppLang={appLang} 
-            onAppLangChange={setAppLanguage} 
             currentTranslationId={translationEdition} 
             onTranslationChange={setTranslationEdition} 
             showTranslation={showTranslation} 

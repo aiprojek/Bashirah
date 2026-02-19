@@ -4,6 +4,7 @@ import { X, Volume2, BookOpen, Loader2, ArrowRight } from 'lucide-react';
 import { AsmaulHusna } from '../services/asmaulHusnaData';
 import { searchGlobalVerses } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AsmaulHusnaDetailModalProps {
     isOpen: boolean;
@@ -12,6 +13,7 @@ interface AsmaulHusnaDetailModalProps {
 }
 
 const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen, onClose, data }) => {
+    const { t, language } = useLanguage();
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -31,6 +33,9 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
         setLoading(true);
         
         try {
+            // Using translation ID to search for verses related to the meaning if needed, 
+            // but primarily searching arabic or specific known verses.
+            // For now, keeping the simple text search logic.
             const results = await searchGlobalVerses(data.arabic, 'quran-simple');
             setVerses(results.slice(0, 5));
         } catch (error) {
@@ -94,7 +99,9 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                         <h2 className="font-arabic text-6xl mb-4 drop-shadow-md py-2">{data.arabic}</h2>
                         
                         <h3 className="text-2xl font-bold font-serif mb-1">{data.latin}</h3>
-                        <p className="text-quran-gold text-sm font-medium">{data.translation_id}</p>
+                        <p className="text-quran-gold text-sm font-medium">
+                            {language === 'id' ? data.translation_id : data.translation_en}
+                        </p>
                         
                         <button 
                             onClick={playAudio}
@@ -106,7 +113,7 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                             }`}
                         >
                             {isPlaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
-                            {isPlaying ? 'Memutar...' : 'Dengarkan Pelafalan'}
+                            {isPlaying ? t('names_playing') : t('names_listen')}
                         </button>
                     </div>
                 </div>
@@ -115,13 +122,13 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                 <div className="flex-1 overflow-y-auto bg-stone-50 dark:bg-slate-900 p-6 custom-scrollbar">
                     <div className="flex items-center gap-2 mb-4 text-gray-500 dark:text-gray-400 font-bold text-xs uppercase tracking-wider">
                         <BookOpen className="w-4 h-4 text-quran-gold" />
-                        Dalil Al-Quran Terkait
+                        {t('names_dalil_title')}
                     </div>
 
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-10 text-gray-400 gap-2">
                             <Loader2 className="w-6 h-6 animate-spin text-quran-gold" />
-                            <span className="text-xs">Mencari ayat...</span>
+                            <span className="text-xs">{t('loading')}</span>
                         </div>
                     ) : verses.length > 0 ? (
                         <div className="space-y-3">
@@ -141,14 +148,14 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                                         {v.text}
                                     </p>
                                     <p className="text-xs text-gray-400 mt-2 italic">
-                                        Klik untuk baca lengkap...
+                                        {t('lib_view_verse')}
                                     </p>
                                 </button>
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-10 bg-white dark:bg-slate-800 rounded-xl border border-dashed border-stone-200 dark:border-slate-700">
-                            <p className="text-gray-400 text-sm">Tidak ditemukan ayat spesifik dengan lafaz persis ini dalam pencarian cepat.</p>
+                            <p className="text-gray-400 text-sm">{t('names_dalil_empty')}</p>
                         </div>
                     )}
                 </div>

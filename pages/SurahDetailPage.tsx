@@ -14,12 +14,12 @@ import MemorizationSettingsModal from '../components/MemorizationSettingsModal';
 import MushafView from '../components/MushafView';
 import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs } from '../services/quranService';
 import * as StorageService from '../services/storageService';
-import { Surah, SurahDetail, LanguageCode, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
+import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
 import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass } from 'lucide-react';
 import { useAudio } from '../contexts/AudioContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DetailPageProps {
-  appLang: LanguageCode;
   translationId?: string;
   tafsirId?: string;
   showTranslation: boolean;
@@ -29,7 +29,6 @@ interface DetailPageProps {
 }
 
 const SurahDetailPage: React.FC<DetailPageProps> = ({ 
-    appLang, 
     translationId, 
     tafsirId, 
     showTranslation, 
@@ -40,6 +39,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
+  const { language, t } = useLanguage();
   
   const [surah, setSurah] = useState<SurahDetail | null>(null);
   const [allSurahs, setAllSurahs] = useState<Surah[]>([]); 
@@ -75,8 +75,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   useEffect(() => {
-      getAllSurahs(appLang).then(setAllSurahs);
-  }, [appLang]);
+      getAllSurahs(language).then(setAllSurahs);
+  }, [language]);
 
   useEffect(() => {
     if(id) {
@@ -101,7 +101,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         const activeTafsir = showTafsir ? tafsirId : undefined;
         
         // Pass useTajweed param
-        const data = await getSurahDetail(parseInt(id), appLang, activeTranslation, activeTafsir, showWordByWord, showTajweed);
+        const data = await getSurahDetail(parseInt(id), language, activeTranslation, activeTafsir, showWordByWord, showTajweed);
         setSurah(data);
       } catch (e) {
         console.error(e);
@@ -110,7 +110,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       }
     };
     fetchDetail();
-  }, [id, appLang, translationId, tafsirId, showTranslation, showTafsir, showWordByWord, showTajweed]);
+  }, [id, language, translationId, tafsirId, showTranslation, showTafsir, showWordByWord, showTajweed]);
 
   // Scroll Handling for Virtualized List
   useEffect(() => {
@@ -273,8 +273,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   const VirtualizedFooter = () => (
       <div className="flex justify-between items-center mt-8 pt-6 border-t border-stone-200 dark:border-slate-700 pb-32">
-         {prevSurah ? (<button onClick={() => { handleNavigateSurah(prevSurah.id); }} className="flex flex-col items-start gap-1 p-3 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-xl transition-all group text-left"><span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> Sebelumnya</span><span className="font-bold text-quran-dark dark:text-gray-200 group-hover:text-quran-gold">{prevSurah.transliteration}</span></button>) : <div />}
-         {nextSurah ? (<button onClick={() => { handleNavigateSurah(nextSurah.id); }} className="flex flex-col items-end gap-1 p-3 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-xl transition-all group text-right"><span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1">Selanjutnya <ChevronRight className="w-3 h-3" /></span><span className="font-bold text-quran-dark dark:text-gray-200 group-hover:text-quran-gold">{nextSurah.transliteration}</span></button>) : <div />}
+         {prevSurah ? (<button onClick={() => { handleNavigateSurah(prevSurah.id); }} className="flex flex-col items-start gap-1 p-3 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-xl transition-all group text-left"><span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1"><ChevronLeft className="w-3 h-3" /> {t('prev_surah')}</span><span className="font-bold text-quran-dark dark:text-gray-200 group-hover:text-quran-gold">{prevSurah.transliteration}</span></button>) : <div />}
+         {nextSurah ? (<button onClick={() => { handleNavigateSurah(nextSurah.id); }} className="flex flex-col items-end gap-1 p-3 hover:bg-stone-50 dark:hover:bg-slate-700 rounded-xl transition-all group text-right"><span className="text-xs text-gray-400 uppercase tracking-wider flex items-center gap-1">{t('next_surah')} <ChevronRight className="w-3 h-3" /></span><span className="font-bold text-quran-dark dark:text-gray-200 group-hover:text-quran-gold">{nextSurah.transliteration}</span></button>) : <div />}
       </div>
   );
 

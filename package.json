@@ -2,7 +2,7 @@
 {
   "name": "basirah-quran-app",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,7 +12,9 @@
     "icons": "tauri icon public/logo.svg",
     "prebuild": "npm run icons",
     "android": "tauri android",
-    "ios": "tauri ios"
+    "ios": "tauri ios",
+    "build:android": "tauri android build",
+    "build:ios": "tauri ios build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

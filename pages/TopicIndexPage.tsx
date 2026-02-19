@@ -7,9 +7,11 @@ import {
     Moon, HeartHandshake, Users, Sparkles, Coins, Smile, BookOpen, 
     Lightbulb, ChevronRight, X, ArrowRight 
 } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const TopicIndexPage: React.FC = () => {
     const navigate = useNavigate();
+    const { t } = useLanguage();
     const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
 
     // Helper to render dynamic icon
@@ -31,9 +33,9 @@ const TopicIndexPage: React.FC = () => {
                 <div className="inline-block p-3 bg-quran-gold/10 rounded-full mb-4">
                     <BookOpen className="w-8 h-8 text-quran-gold" />
                 </div>
-                <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">Indeks Topik Al-Quran</h2>
+                <h2 className="text-3xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-2">{t('topics_title')}</h2>
                 <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto">
-                    Jelajahi ayat-ayat suci berdasarkan tema kehidupan sehari-hari, hukum, dan kisah teladan.
+                    {t('topics_desc')}
                 </p>
             </div>
 
@@ -55,13 +57,13 @@ const TopicIndexPage: React.FC = () => {
                                 {renderIcon(topic.iconName, "w-6 h-6")}
                             </div>
                             
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">{topic.title}</h3>
+                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">{t(`topic_${topic.id}_title`)}</h3>
                             <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed mb-4">
-                                {topic.description}
+                                {t(`topic_${topic.id}_desc`)}
                             </p>
                             
                             <div className="flex items-center text-xs font-bold text-quran-gold uppercase tracking-wider">
-                                <span>{topic.references.length} Referensi</span>
+                                <span>{topic.references.length} {t('topics_ref')}</span>
                                 <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                             </div>
                         </div>
@@ -85,8 +87,8 @@ const TopicIndexPage: React.FC = () => {
                                     {renderIcon(selectedTopic.iconName, "w-5 h-5")}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-gray-800 dark:text-white font-serif text-lg">{selectedTopic.title}</h3>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Kumpulan Ayat Pilihan</p>
+                                    <h3 className="font-bold text-gray-800 dark:text-white font-serif text-lg">{t(`topic_${selectedTopic.id}_title`)}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{t('topics_collection')}</p>
                                 </div>
                             </div>
                             <button 
@@ -110,7 +112,7 @@ const TopicIndexPage: React.FC = () => {
                                             {idx + 1}
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-quran-dark dark:text-gray-200 text-sm">Surat {ref.surahName}</h4>
+                                            <h4 className="font-bold text-quran-dark dark:text-gray-200 text-sm">{t('tab_surah')} {ref.surahName}</h4>
                                             <p className="text-xs text-gray-500 dark:text-gray-400">Ayat {ref.verseId}</p>
                                         </div>
                                     </div>
@@ -126,7 +128,7 @@ const TopicIndexPage: React.FC = () => {
                                 onClick={() => setSelectedTopic(null)}
                                 className="w-full py-3 bg-stone-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 rounded-xl font-bold text-sm hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
                             >
-                                Tutup
+                                {t('btn_close')}
                             </button>
                         </div>
                     </div>
