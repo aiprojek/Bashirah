@@ -5,13 +5,67 @@
 
 **Bashirah** adalah aplikasi Al-Quran web modern (Progressive Web App / PWA) dan Native (Android/Desktop) yang dirancang untuk memberikan pengalaman membaca, mendengar, dan mentadabburi Al-Quran yang nyaman, estetik, dan menenangkan jiwa.
 
-Aplikasi ini dibangun dengan teknologi web, mendukung penggunaan offline (setelah unduh data), dan memiliki antarmuka responsif yang optimal.
+Aplikasi ini dibangun dengan teknologi web terbaru, mendukung penggunaan offline (setelah unduh data), dan memiliki antarmuka responsif yang optimal.
 
 ## 📥 Unduh Aplikasi
 
 Dapatkan versi terbaru untuk perangkat Anda (Android APK, Windows, macOS, Linux) di halaman Rilis:
 
 [**🔗 Unduh Bashirah (GitHub Releases)**](https://github.com/aiprojek/Bashirah/releases)
+
+---
+
+## 🔐 Cara Build Android (Signed APK)
+
+Agar APK bisa diinstal di HP Android (bukan versi *unsigned*), ikuti langkah ini satu kali saja:
+
+### 1. Generate Keystore
+Jalankan perintah berikut di terminal (Root Project):
+
+```bash
+keytool -genkey -v -keystore src-tauri/gen/android/bashirah-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias bashirah -storepass bashirahapp -keypass bashirahapp -dname "CN=Bashirah, OU=Mobile, O=AIProjek, L=Indonesia, S=Indonesia, C=ID"
+```
+
+### 2. Konfigurasi Gradle
+Buka file `src-tauri/gen/android/app/build.gradle.kts`.
+Tambahkan blok `signingConfigs` di dalam blok `android { ... }` dan ubah `buildTypes`:
+
+```kotlin
+android {
+    // ... konfigurasi lain ...
+
+    // TAMBAHKAN INI:
+    signingConfigs {
+        create("release") {
+            val keyPropsFile = file("../key.properties")
+            if (keyPropsFile.exists()) {
+                val keyProps = java.util.Properties()
+                keyProps.load(java.io.FileInputStream(keyPropsFile))
+                storeFile = file(keyProps["storeFile"] as String)
+                storePassword = keyProps["storePassword"] as String
+                keyAlias = keyProps["keyAlias"] as String
+                keyPassword = keyProps["keyPassword"] as String
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("release") {
+            // AKTIFKAN SIGNING DISINI:
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+        }
+    }
+}
+```
+
+### 3. Build Ulang
+```bash
+npm run tauri android build
+```
+APK yang sudah ditandatangani akan muncul di:
+`src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
 
 ---
 
@@ -86,7 +140,7 @@ Dapatkan versi terbaru untuk perangkat Anda (Android APK, Windows, macOS, Linux)
 
 ## 📚 Sumber Data
 
-*   **Teks Al-Quran & Metadata**: [github.com/risan/quran-json](https://github.com/risan/quran-json).
-*   **Audio Murottal & Gambar Mushaf**: [Al-Quran Cloud](https://alquran.cloud/api).
+*   **Teks Al-Quran & Metadata**: [Github Risan](https://github.com/risan/quran-json).
+*   **Audio Murottal, Gambar Mushaf, Audio, Tajwid**: [Al-Quran Cloud](https://alquran.cloud/api).
 
-Dibuat dengan ❤️ untuk umat.
+Barakallahu fiikum.
