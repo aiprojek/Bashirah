@@ -102,11 +102,8 @@ jobs:
           # 6. Inject Signing Config into build.gradle.kts
           GRADLE_FILE="src-tauri/gen/android/app/build.gradle.kts"
           
-          # Add Imports to avoid 'java' naming conflict with Gradle plugins
-          sed -i '/android {/i import java.util.Properties\nimport java.io.FileInputStream' $GRADLE_FILE
-          
-          # Add signingConfigs block using imported classes and safe getProperty calls
-          sed -i '/android {/a \    signingConfigs {\n        create("release") {\n            val keyPropsFile = file("../key.properties")\n            if (keyPropsFile.exists()) {\n                val keyProps = Properties()\n                keyProps.load(FileInputStream(keyPropsFile))\n                storeFile = file(keyProps.getProperty("storeFile"))\n                storePassword = keyProps.getProperty("storePassword")\n                keyAlias = keyProps.getProperty("keyAlias")\n                keyPassword = keyProps.getProperty("keyPassword")\n            }\n        }\n    }' $GRADLE_FILE
+          # Add signingConfigs block using fully qualified names for Properties and FileInputStream
+          sed -i '/android {/a \    signingConfigs {\n        create("release") {\n            val keyPropsFile = file("../key.properties")\n            if (keyPropsFile.exists()) {\n                val keyProps = java.util.Properties()\n                keyProps.load(java.io.FileInputStream(keyPropsFile))\n                storeFile = file(keyProps.getProperty("storeFile"))\n                storePassword = keyProps.getProperty("storePassword")\n                keyAlias = keyProps.getProperty("keyAlias")\n                keyPassword = keyProps.getProperty("keyPassword")\n            }\n        }\n    }' $GRADLE_FILE
           
           # Update buildTypes release block to use signingConfig
           sed -i '/getByName("release") {/a \            signingConfig = signingConfigs.getByName("release")' $GRADLE_FILE
