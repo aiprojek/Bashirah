@@ -2,6 +2,8 @@
 import React, { useState, useRef } from 'react';
 import { Share2, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 
 interface ShareVerseModalProps {
     isOpen: boolean;
@@ -12,13 +14,13 @@ interface ShareVerseModalProps {
     translationText: string;
 }
 
-const ShareVerseModal: React.FC<ShareVerseModalProps> = ({ 
-    isOpen, 
-    onClose, 
-    surahName, 
-    verseNumber, 
-    arabicText, 
-    translationText 
+const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
+    isOpen,
+    onClose,
+    surahName,
+    verseNumber,
+    arabicText,
+    translationText
 }) => {
     const [generatingImage, setGeneratingImage] = useState(false);
     const [shareSuccess, setShareSuccess] = useState(false);
@@ -31,8 +33,8 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
 
         try {
             const canvas = await html2canvas(exportRef.current, {
-                scale: 1, 
-                backgroundColor: null, 
+                scale: 1,
+                backgroundColor: null,
                 useCORS: true,
                 logging: false,
                 windowWidth: 1080,
@@ -42,13 +44,25 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
             const image = canvas.toDataURL("image/png");
             const fileName = `Bashirah-${surahName}-${verseNumber}.png`;
 
-            // Web Share API
+            // 1. Try Capacitor Native Share first if on Native
+            if (Capacitor.isNativePlatform()) {
+                await Share.share({
+                    title: `QS. ${surahName} Ayat ${verseNumber}`,
+                    text: `Dibagikan dari aplikasi Bashirah.`,
+                    url: image,
+                    dialogTitle: 'Bagikan Ayat',
+                });
+                setGeneratingImage(false);
+                return;
+            }
+
+            // 2. Web Share API fallback
             if (navigator.share && navigator.canShare) {
                 const blob = await (await fetch(image)).blob();
                 const file = new File([blob], fileName, { type: 'image/png' });
-                
-                if(navigator.canShare({ files: [file] })) {
-                        await navigator.share({
+
+                if (navigator.canShare({ files: [file] })) {
+                    await navigator.share({
                         title: `QS. ${surahName} Ayat ${verseNumber}`,
                         text: `Dibagikan dari aplikasi Bashirah.`,
                         files: [file]
@@ -63,7 +77,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
             link.href = image;
             link.download = fileName;
             link.click();
-            
+
             // Show Success
             setShareSuccess(true);
             setTimeout(() => setShareSuccess(false), 3000);
@@ -80,13 +94,13 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
-            <div 
+            <div
                 className="absolute inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
             <div className="relative w-full max-w-sm z-10 flex flex-col items-center">
-                <button 
+                <button
                     onClick={onClose}
                     className="absolute -top-12 right-0 text-white/80 hover:text-white transition-colors p-2 bg-white/10 rounded-full"
                 >
@@ -99,7 +113,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] pointer-events-none"></div>
                         <div className="absolute -top-10 -right-10 w-32 h-32 bg-quran-gold/20 rounded-full blur-3xl"></div>
                         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                        
+
                         <div className="relative z-10 flex justify-center shrink-0">
                             <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-quran-gold/90 border border-quran-gold/30 px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm flex items-center gap-2">
                                 <Quote className="w-3 h-3 fill-current" /> Al-Quran Al-Kareem
@@ -107,12 +121,12 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                         </div>
 
                         <div className="relative z-10 flex-1 flex flex-col items-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth">
-                                <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] sm:leading-[3] drop-shadow-md mb-4 w-full pt-4 pb-2 px-1" dir="rtl">
-                                    {arabicText}
-                                </p>
-                                <p className="font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto text-stone-200 pb-4">
-                                    "{translationText}"
-                                </p>
+                            <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] sm:leading-[3] drop-shadow-md mb-4 w-full pt-4 pb-2 px-1" dir="rtl">
+                                {arabicText}
+                            </p>
+                            <p className="font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto text-stone-200 pb-4">
+                                "{translationText}"
+                            </p>
                         </div>
 
                         <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 border-t border-white/10 pt-3">
@@ -122,7 +136,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                     </div>
 
                     {/* HIDDEN EXPORT CARD */}
-                    <div 
+                    <div
                         ref={exportRef}
                         style={{ position: 'fixed', top: 0, left: '-9999px', width: '1080px', minHeight: '1080px', height: 'auto' }}
                         className="bg-gradient-to-br from-[#1e3a34] to-[#0f2420] text-white flex flex-col justify-between p-[80px] relative"
@@ -144,7 +158,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                                 <span className="text-2xl opacity-60 font-sans tracking-wide">Ayat {verseNumber}</span>
                             </div>
                         </div>
-                        
+
                         <div className="absolute bottom-[80px] left-[80px] right-[80px] flex justify-between items-end z-20">
                             <div className="text-left">
                                 <h1 className="text-5xl font-bold font-serif tracking-tight mb-2 text-white">Bashirah</h1>
@@ -156,12 +170,12 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={handleShare}
                         disabled={generatingImage || shareSuccess}
                         className={`w-full text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${shareSuccess ? 'bg-green-600' : 'bg-quran-gold hover:bg-yellow-500'}`}
                     >
-                         {generatingImage ? (
+                        {generatingImage ? (
                             <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
                         ) : shareSuccess ? (
                             <Check className="w-4 h-4 flex-shrink-0" />

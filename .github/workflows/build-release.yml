@@ -1,35 +1,16 @@
 
-name: Multi-Platform Release
+name: Build Release
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches:
+      - main
+    tags:
+      - 'v*'
 
 jobs:
-  release:
-    permissions:
-      contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # --- DESKTOP TARGETS ---
-          - platform: 'macos-latest'
-            target: 'desktop'
-            
-          - platform: 'windows-latest'
-            target: 'desktop'
-            
-          - platform: 'ubuntu-22.04'
-            target: 'desktop'
-            
-          # --- MOBILE TARGET ---
-          - platform: 'ubuntu-22.04'
-            target: 'android'
-
-    runs-on: ${{ matrix.platform }}
-    
+  build:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -37,114 +18,63 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
-      # Install Rust (including Android targets if needed)
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target == 'android' && 'aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android' || '' }}
-
-      # --- DESKTOP DEPENDENCIES (Linux Only) ---
-      - name: Install Linux Desktop Deps
-        if: matrix.platform == 'ubuntu-22.04' && matrix.target == 'desktop'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf imagemagick libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
-
-      # --- ANDROID DEPENDENCIES (Linux Runner) ---
-      - name: Install Android Deps
-        if: matrix.target == 'android'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-
-      - name: Setup Java (Android)
-        if: matrix.target == 'android'
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Android SDK
-        if: matrix.target == 'android'
-        uses: android-actions/setup-android@v3
-
-      # --- COMMON BUILD STEPS ---
-      - name: Install NPM Dependencies
+      - name: Install dependencies
         run: npm install
 
-      # Mobile Initialization & Fix Package Name Mismatch
-      - name: Fix and Initialize Android
-        if: matrix.target == 'android'
+      - name: Generate Assets
+        run: npx @capacitor/assets generate --android --assetPath public/logo.svg
+
+      - name: Build Web
+        run: npm run build
+
+      - name: Initialize or Sync Capacitor
         run: |
-          # 1. Backup Keystore if it exists (locally or committed)
-          if [ -f "src-tauri/gen/android/bashirah-release.jks" ]; then
-            mv src-tauri/gen/android/bashirah-release.jks /tmp/bashirah-release.jks
+          if [ ! -d "android" ]; then
+            npx cap add android
+          else
+            npx cap sync android
           fi
 
-          # 2. Wipe existing android folder to fix package name mismatch
-          rm -rf src-tauri/gen/android
-
-          # 3. Re-initialize Android project with new identifier
-          npm run tauri android init
-
-          # 4. Restore Keystore
-          if [ -f "/tmp/bashirah-release.jks" ]; then
-            mv /tmp/bashirah-release.jks src-tauri/gen/android/bashirah-release.jks
-          fi
-
-          # 5. Re-create key.properties
-          echo "storePassword=bashirahapp" > src-tauri/gen/android/key.properties
-          echo "keyPassword=bashirahapp" >> src-tauri/gen/android/key.properties
-          echo "keyAlias=bashirah" >> src-tauri/gen/android/key.properties
-          echo "storeFile=../bashirah-release.jks" >> src-tauri/gen/android/key.properties
-
-          # 6. Inject Signing Config into build.gradle.kts
-          GRADLE_FILE="src-tauri/gen/android/app/build.gradle.kts"
-          
-          # Add signingConfigs block using fully qualified names for Properties and FileInputStream
-          sed -i '/android {/a \    signingConfigs {\n        create("release") {\n            val keyPropsFile = file("../key.properties")\n            if (keyPropsFile.exists()) {\n                val keyProps = java.util.Properties()\n                keyProps.load(java.io.FileInputStream(keyPropsFile))\n                storeFile = file(keyProps.getProperty("storeFile"))\n                storePassword = keyProps.getProperty("storePassword")\n                keyAlias = keyProps.getProperty("keyAlias")\n                keyPassword = keyProps.getProperty("keyPassword")\n            }\n        }\n    }' $GRADLE_FILE
-          
-          # Update buildTypes release block to use signingConfig
-          sed -i '/getByName("release") {/a \            signingConfig = signingConfigs.getByName("release")' $GRADLE_FILE
-
-      # ---------------------------------------------------------
-      # BUILD ACTION 1: DESKTOP (Windows, Linux, macOS)
-      # ---------------------------------------------------------
-      - name: Build Desktop (Tauri Action)
-        if: matrix.target == 'desktop'
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tagName: app-v__VERSION__ 
-          releaseName: "Bashirah v__VERSION__"
-          releaseBody: "Release for Bashirah Al-Quran Digital (Tauri v2)"
-          releaseDraft: true
-          prerelease: false
-
-      # ---------------------------------------------------------
-      # BUILD ACTION 2: ANDROID (Manual Build & Upload)
-      # ---------------------------------------------------------
-      - name: Build Android APK
-        if: matrix.target == 'android'
+      - name: Build Android
+        working-directory: android
         run: |
-          npm run tauri android build -- --apk
-        env:
-          NDK_HOME: ${{ steps.setup-android.outputs.ndk-path }}
-      
-      - name: Get Version
-        if: matrix.target == 'android'
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
+          chmod +x gradlew
+          ./gradlew assembleRelease
 
-      - name: Upload Android APK
-        if: matrix.target == 'android'
-        uses: softprops/action-gh-release@v1
+      - name: Sign APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: android/app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
+          alias: ${{ secrets.ANDROID_ALIAS }}
+          keyStorePassword: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bashirah-${{ github.ref_name || 'latest' }}
+          path: |
+             ${{ steps.sign_app.outputs.signedReleaseFile || 'android/app/build/outputs/apk/release/app-release-unsigned.apk' }}
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          name: Bashirah ${{ github.ref_name }}
+          body: Release generated from Tag ${{ github.ref_name }}
+          # Professional naming for the release asset
+          tag_name: ${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: app-v${{ steps.package-version.outputs.current-version }}
-          draft: true
-          files: |
-            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk

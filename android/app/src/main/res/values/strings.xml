@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Bashirah</string>
+    <string name="title_activity_main">Bashirah</string>
+    <string name="package_name">com.aiprojek.bashirah</string>
+    <string name="custom_url_scheme">com.aiprojek.bashirah</string>
+</resources>

@@ -128,12 +128,14 @@
         text-rendering: optimizeLegibility;
       }
       
-      /* Ensure spans inside Arabic text behave strictly inline */
+      /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
       .font-arabic span {
         display: inline;
         margin: 0;
         padding: 0;
         border: none;
+        unicode-bidi: isolate;
+        font-variant-ligatures: contextual;
       }
     </style>
 <script type="importmap">
