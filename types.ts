@@ -100,6 +100,7 @@ export interface KhatamTarget {
     targetDays: number;
     currentPage: number;
     lastUpdated: number;
+    userName?: string;
 }
 
 export interface ReadingLog {

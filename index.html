@@ -203,6 +203,39 @@
         border-color: #d4af37 !important;
         background: rgba(212, 175, 55, 0.2);
       }
+      /* --- ANIMATIONS --- */
+      @keyframes bounce-subtle {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-3px); }
+      }
+      .animate-bounce-subtle {
+        animation: bounce-subtle 2s ease-in-out infinite;
+      }
+
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0); }
+        50% { transform: translateY(-10px) rotate(1deg); }
+      }
+      .animate-float {
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Custom scrollbar hide */
+      .custom-scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+      .custom-scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
     </style>
     <script type="importmap">
       {

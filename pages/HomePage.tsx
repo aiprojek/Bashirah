@@ -6,6 +6,7 @@ import Search from '../components/Search';
 import Loading from '../components/Loading';
 import KhatamWidget from '../components/KhatamWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
+import KhatamCelebrationModal from '../components/KhatamCelebrationModal';
 import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, LastReadData, KhatamTarget } from '../types';
@@ -25,6 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const [lastRead, setLastRead] = useState<LastReadData | null>(null);
   const [khatamTarget, setKhatamTarget] = useState<KhatamTarget | null>(null);
   const [khatamLastRead, setKhatamLastRead] = useState<LastReadData | null>(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   
   // State for Ayat of the Day Modal
   const [showAyatModal, setShowAyatModal] = useState(false);
@@ -57,11 +59,21 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
             // Since we want to show it as a card, let's keep it simple or try to fetch the first verse of that page.
         }
     };
-    loadData();
 
-    // Listen for storage updates
+    loadData();
+    
+    const handleKhatamComplete = (e: any) => {
+        setKhatamTarget(e.detail.target);
+        setShowCelebration(true);
+    };
+
     window.addEventListener('storage-update', loadData);
-    return () => window.removeEventListener('storage-update', loadData);
+    window.addEventListener('app:khatam-complete', handleKhatamComplete as EventListener);
+    
+    return () => {
+        window.removeEventListener('storage-update', loadData);
+        window.removeEventListener('app:khatam-complete', handleKhatamComplete as EventListener);
+    };
   }, []);
 
   useEffect(() => {
@@ -364,6 +376,12 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
           </div>
       )}
       
+      {/* Celebration Modal */}
+      <KhatamCelebrationModal 
+        isOpen={showCelebration} 
+        onClose={() => setShowCelebration(false)} 
+        target={khatamTarget} 
+      />
     </div>
   );
 };

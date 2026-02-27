@@ -33,6 +33,10 @@ type TranslationKey =
   | 'khatam_progress_title' | 'khatam_progress_subtitle' | 'khatam_daily_target'
   | 'khatam_remaining_days' | 'khatam_remaining_pages' | 'khatam_update_modal_title'
   | 'khatam_manual_page_input' | 'khatam_tips_title'
+  | 'khatam_est_completion' | 'khatam_speed' | 'khatam_days_active'
+  | 'khatam_cel_congrats' | 'khatam_cel_subtitle' | 'khatam_cel_name_label'
+  | 'khatam_cel_doa' | 'khatam_cel_btn_share' | 'khatam_cel_stats_avg'
+  | 'stats_less' | 'stats_more' | 'khatam_streak' | 'khatam_activity_7days'
   // Tadabbur
   | 'tadabbur_title' | 'tadabbur_desc' | 'tadabbur_empty' | 'tadabbur_btn_write'
   | 'tadabbur_edit_title' | 'tadabbur_new_title' | 'tadabbur_placeholder_title'
@@ -166,6 +170,15 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     khatam_update_modal_title: "Update Khatam?",
     khatam_manual_page_input: "Halaman ke-",
     khatam_tips_title: "Tips Update Progres",
+    khatam_est_completion: "Estimasi Selesai",
+    khatam_speed: "Kecepatan Baca",
+    khatam_days_active: "Hari Aktif",
+    khatam_cel_congrats: "Selamat! Telah Khatam Al-Quran",
+    khatam_cel_subtitle: "Khatm al-Qur'an al-Karim",
+    khatam_cel_name_label: "Diberikan kepada:",
+    khatam_cel_doa: "اللَّهُمَّ ارْحَمْنِي بِالْقُرْآنِ، وَاجْعَلْهُ لِي إِمَامًا وَنُورًا وَهُدًى وَرَحْمَةً",
+    khatam_cel_btn_share: "Bagikan Keberkahan",
+    khatam_cel_stats_avg: "Rata-rata Halaman/Hari",
 
     tadabbur_title: "Jurnal Tadabbur",
     tadabbur_desc: "\"Ikatlah ilmu dengan tulisan. Renungkan ayat-Nya, dan abadikan hikmah yang menyentuh hatimu.\"",
@@ -196,8 +209,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     quiz_btn_home: "Kembali ke Beranda",
 
     stats_title: "Statistik Ibadah",
-    stats_less: "Kurang",
-    stats_more: "Sering",
+    stats_less: "Sedikit",
+    stats_more: "Banyak",
+    khatam_streak: "Hari Berturut-turut",
+    khatam_activity_7days: "Aktivitas 7 Hari",
     stats_total_read: "Total Dibaca",
     stats_active_days: "Hari Aktif",
 
@@ -447,6 +462,15 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     khatam_update_modal_title: "Update Khatam?",
     khatam_manual_page_input: "Page No.",
     khatam_tips_title: "Progress Update Tips",
+    khatam_est_completion: "Estimated Completion",
+    khatam_speed: "Reading Speed",
+    khatam_days_active: "Active Days",
+    khatam_cel_congrats: "Congratulations! You've Completed the Quran",
+    khatam_cel_subtitle: "Khatm al-Qur'an al-Karim",
+    khatam_cel_name_label: "Awarded to:",
+    khatam_cel_doa: "O Allah, have mercy on me with the Quran, and make it for me a leader, a light, a guidance and a mercy.",
+    khatam_cel_btn_share: "Share the Blessing",
+    khatam_cel_stats_avg: "Average Pages/Day",
 
     tadabbur_title: "Reflections Journal",
     tadabbur_desc: "\"Bind knowledge with writing. Reflect on His verses, and preserve the wisdom that touches your heart.\"",
@@ -479,6 +503,8 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     stats_title: "Worship Statistics",
     stats_less: "Less",
     stats_more: "More",
+    khatam_streak: "Day Streak",
+    khatam_activity_7days: "7 Days Activity",
     stats_total_read: "Total Read",
     stats_active_days: "Active Days",
 
