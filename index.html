@@ -160,12 +160,18 @@
 
       /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
       .font-arabic span {
-        display: inline;
-        margin: 0;
-        padding: 0;
-        border: none;
-        unicode-bidi: isolate;
-        font-variant-ligatures: contextual;
+        display: inline !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        white-space: nowrap;
+        
+        /* Disable isolation which can break some shaping engines */
+        unicode-bidi: plaintext; 
+        
+        /* Force inherit shaping properties */
+        font-variant-ligatures: contextual !important;
+        -webkit-font-variant-ligatures: contextual !important;
       }
       /* Verse End Ornament - Final Perfect Circular Style */
       .verse-ornament {
