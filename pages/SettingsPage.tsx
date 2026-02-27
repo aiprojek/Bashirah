@@ -9,7 +9,7 @@ import * as AudioService from '../services/audioService';
 import * as MushafService from '../services/mushafService';
 import * as StorageService from '../services/storageService';
 import * as BackupService from '../services/backupService';
-import { downloadEdition, verifyEditionAvailability, getAllSurahs } from '../services/quranService';
+import { downloadEdition, verifyEditionAvailability, getAllSurahs, showToast } from '../services/quranService';
 import { useAudio } from '../contexts/AudioContext';
 import { useTheme } from '../contexts/ThemeContext'; 
 import { useLanguage } from '../contexts/LanguageContext';
@@ -144,7 +144,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       try {
           await BackupService.createBackup();
       } catch (e: any) {
-          alert(e.message || "Gagal membuat backup.");
+          showToast(e.message || "Gagal membuat backup.", "error");
       } finally {
           setIsBackupProcessing(false);
       }
@@ -167,11 +167,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
               setIsBackupProcessing(true);
               try {
                   await BackupService.restoreBackup(file);
-                  alert(t('settings_restore_success'));
-                  window.location.reload();
+                  showToast(t('settings_restore_success'), "success");
+                  setTimeout(() => window.location.reload(), 1500);
               } catch (err: any) {
                   console.error(err);
-                  alert(t('error') + ": " + err.message);
+                  showToast(`${t('error')}: ${err.message}`, "error");
               } finally {
                   setIsBackupProcessing(false);
                   if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input
@@ -186,7 +186,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       if (isDownloadingMushaf) return;
       requestConfirmation(t('settings_mushaf_download_title'), t('settings_mushaf_download_desc'), t('btn_download'), "primary", async () => {
           setIsDownloadingMushaf(true); setMushafProgress(0); setProcessingId(mushaf.id);
-          try { await MushafService.downloadMushaf(mushaf.id, (progress) => { setMushafProgress(progress); }); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true })); } catch (e: any) { console.error(e); alert(`Gagal mengunduh: ${e.message}`); } finally { setIsDownloadingMushaf(false); setMushafProgress(0); setProcessingId(null); }
+          try { await MushafService.downloadMushaf(mushaf.id, (progress) => { setMushafProgress(progress); }); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true })); } catch (e: any) { console.error(e); showToast(`Gagal mengunduh: ${e.message}`, "error"); } finally { setIsDownloadingMushaf(false); setMushafProgress(0); setProcessingId(null); }
       });
   };
   

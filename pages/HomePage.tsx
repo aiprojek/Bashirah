@@ -8,7 +8,7 @@ import KhatamWidget from '../components/KhatamWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
 import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage } from '../services/quranService';
 import * as StorageService from '../services/storageService';
-import { Surah, LastReadData } from '../types';
+import { Surah, LastReadData, KhatamTarget } from '../types';
 import { Clock, ChevronRight, Sparkles, Bookmark, FileText, Loader2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -23,6 +23,8 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [lastRead, setLastRead] = useState<LastReadData | null>(null);
+  const [khatamTarget, setKhatamTarget] = useState<KhatamTarget | null>(null);
+  const [khatamLastRead, setKhatamLastRead] = useState<LastReadData | null>(null);
   
   // State for Ayat of the Day Modal
   const [showAyatModal, setShowAyatModal] = useState(false);
@@ -41,8 +43,19 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
 
   useEffect(() => {
     const loadData = async () => {
-        setLastRead(await StorageService.getLastRead());
+        const lr = await StorageService.getLastRead();
+        const kt = await StorageService.getKhatamTarget();
+        setLastRead(lr);
+        setKhatamTarget(kt);
         setIsDailyAyatEnabled(await StorageService.getShowAyatOfTheDay());
+
+        // Derive last read from khatam if available
+        if (kt && kt.isActive) {
+            // We only have the page number in KhatamTarget, but we can potentially derive more from history
+            // For now, if we have a page number, we can show it as "Halaman X"
+            // If we want surah/verse info, we'd need to fetch it. 
+            // Since we want to show it as a card, let's keep it simple or try to fetch the first verse of that page.
+        }
     };
     loadData();
 
@@ -174,25 +187,52 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
             {/* Khatam Tracker */}
             <KhatamWidget />
 
-            {/* Last Read */}
-            {lastRead && (
-                <div className="mb-10 bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" onClick={handleContinueReading}>
-                    <div className="flex items-center gap-4">
-                        <div className="bg-quran-gold/10 p-3 rounded-full text-quran-gold">
-                            <Clock className="w-5 h-5" />
+            {/* Last Read Section - Now Dual Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                {/* 1. Manual Last Read */}
+                {lastRead && (
+                    <div className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" onClick={handleContinueReading}>
+                        <div className="flex items-center gap-4">
+                            <div className="bg-quran-gold/10 p-3 rounded-full text-quran-gold">
+                                <Bookmark className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">{t('last_read')} (Manual)</p>
+                                <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
+                                    {lastRead.surahName} <span className="font-normal text-gray-400 text-sm">Ayat {lastRead.verseId}</span>
+                                </h3>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">{t('last_read')}</p>
-                            <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
-                                {lastRead.surahName} <span className="font-normal text-gray-400 text-sm">Ayat {lastRead.verseId}</span>
-                            </h3>
+                        <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-full text-gray-400 dark:text-gray-300 group-hover:bg-quran-dark group-hover:text-white transition-colors">
+                            <ChevronRight className="w-5 h-5" />
                         </div>
                     </div>
-                    <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-full text-gray-400 dark:text-gray-300 group-hover:bg-quran-dark group-hover:text-white transition-colors">
-                        <ChevronRight className="w-5 h-5" />
+                )}
+
+                {/* 2. Khatam Progress Card */}
+                {khatamTarget && khatamTarget.isActive && (
+                    <div 
+                        className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" 
+                        onClick={() => handlePageClick(khatamTarget.currentPage)}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="bg-emerald-500/10 p-3 rounded-full text-emerald-600 dark:text-emerald-400">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Progres Khatam</p>
+                                <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
+                                    Halaman {khatamTarget.currentPage}
+                                    <span className="font-normal text-gray-400 text-sm ml-2">({Math.round((khatamTarget.currentPage / 604) * 100)}%)</span>
+                                </h3>
+                            </div>
+                        </div>
+                        <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-full text-gray-400 dark:text-gray-300 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                            <ChevronRight className="w-5 h-5" />
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </>
       )}
 

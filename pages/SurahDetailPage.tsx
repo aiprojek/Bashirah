@@ -12,7 +12,8 @@ import FontSettingsModal from '../components/FontSettingsModal';
 import ShareVerseModal from '../components/ShareVerseModal';
 import MemorizationSettingsModal from '../components/MemorizationSettingsModal';
 import MushafView from '../components/MushafView';
-import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs } from '../services/quranService';
+import ConfirmationModal from '../components/ConfirmationModal';
+import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
 import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass } from 'lucide-react';
@@ -70,6 +71,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   
   const [selectedWord, setSelectedWord] = useState<Word | null>(null);
   const [shareData, setShareData] = useState<{surahName: string, verse: Verse} | null>(null);
+  const [showKhatamConfirm, setShowKhatamConfirm] = useState(false);
+  const [pendingKhatamVerse, setPendingKhatamVerse] = useState<{id: number, page: number} | null>(null);
   const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse } = useAudio();
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
@@ -153,15 +156,29 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       await StorageService.setLastRead(surah.id, surah.transliteration, verseId, pageNum);
       setLastReadVerse(verseId);
   };
-  const handleUpdateKhatam = async (verseId: number) => {
+  const handleUpdateKhatam = (verseId: number) => {
       if(!surah) return;
       const verseObj = surah.verses.find(v => v.id === verseId);
       const pageNum = verseObj ? verseObj.page_number : undefined;
       if (pageNum) {
-          await StorageService.updateKhatamProgress(pageNum, surah.id, surah.transliteration, verseId);
-          setLastReadVerse(verseId);
-          alert(`Target Khatam diperbarui ke halaman ${pageNum} (Surat ${surah.transliteration} Ayat ${verseId}).`);
-      } else { alert("Gagal memuat data halaman."); }
+          setPendingKhatamVerse({ id: verseId, page: pageNum });
+          setShowKhatamConfirm(true);
+      } else { 
+          showToast("Gagal memuat data halaman.", "error");
+      }
+  };
+
+  const performKhatamUpdate = async () => {
+      if (!surah || !pendingKhatamVerse) return;
+      try {
+          await StorageService.updateKhatamProgress(pendingKhatamVerse.page);
+          showToast(`Target Khatam diperbarui ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}).`, "success");
+      } catch (e) {
+          showToast("Gagal memperbarui progres khatam.", "error");
+      } finally {
+          setShowKhatamConfirm(false);
+          setPendingKhatamVerse(null);
+      }
   };
   const handleTakeNote = async (verseId: number) => {
       if(!surah) return;
@@ -331,6 +348,16 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       <FontSettingsModal isOpen={showFontSettings} onClose={() => setShowFontSettings(false)} arabicFontSize={arabicFontSize} onArabicFontSizeChange={setArabicFontSize} translationFontSize={translationFontSize} onTranslationFontSizeChange={setTranslationFontSize} />
       {shareData && <ShareVerseModal isOpen={true} onClose={() => setShareData(null)} surahName={shareData.surahName} verseNumber={shareData.verse.id} arabicText={shareData.verse.text} translationText={shareData.verse.translation || ''} />}
       <MemorizationSettingsModal isOpen={showMemModal} onClose={() => setShowMemModal(false)} level={memLevel} onLevelChange={setMemLevel} isActive={isMemMode} onToggleActive={setIsMemMode} />
+      
+      <ConfirmationModal 
+          isOpen={showKhatamConfirm}
+          onClose={() => { setShowKhatamConfirm(false); setPendingKhatamVerse(null); }}
+          onConfirm={performKhatamUpdate}
+          title="Update Khatam?"
+          message={pendingKhatamVerse ? `Anda akan memperbarui progres khatam Anda ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}). Lanjutkan?` : ''}
+          confirmText="Ya, Update"
+          variant="primary"
+      />
     </div>
   );
 };

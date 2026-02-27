@@ -140,8 +140,8 @@ export const saveKhatamTarget = async (target: KhatamTarget) => {
     notifyUpdate();
 };
 
-// MODIFIED: This function explicitly handles Khatam Logic + Reading History + Last Read Sync
-export const updateKhatamProgress = async (currentPage: number, surahId?: number, surahName?: string, verseId?: number) => {
+// MODIFIED: This function explicitly handles Khatam Logic + Reading History
+export const updateKhatamProgress = async (currentPage: number) => {
     const target = await getKhatamTarget();
     
     // 1. Log History (Statistik Ibadah)
@@ -160,11 +160,8 @@ export const updateKhatamProgress = async (currentPage: number, surahId?: number
     } else {
         await logReading(1);
     }
-
-    // 3. Sync Last Read (Because if you update Khatam, you definitely read there)
-    if (surahId && surahName && verseId) {
-        await setLastRead(surahId, surahName, verseId, currentPage);
-    }
+    
+    // Manual Last Read and Khatam Progress are now tracked independently.
 };
 
 export const getReadingHistory = async (): Promise<ReadingLog[]> => {

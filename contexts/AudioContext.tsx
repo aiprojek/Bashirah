@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { RECITERS, Reciter } from '../types';
 import { getAudioUrl, isSurahDownloaded, downloadSurahAudio } from '../services/audioService';
+import { showToast } from '../services/quranService';
 import * as DB from '../services/db';
 
 interface PendingPlay {
@@ -334,7 +335,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               setIsPlaying(true);
           } catch (error) {
               console.error("Download failed", error);
-              alert("Gagal mengunduh. Memutar secara streaming...");
+              showToast("Gagal mengunduh. Memutar secara streaming...", "warning");
               setCurrentTotalVerses(totalVerses);
               setSurahName(surahName);
               setCurrentSurah(surahId);

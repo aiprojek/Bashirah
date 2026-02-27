@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Loader2, BookOpen, RefreshCw, Minimize2, Maximize2, ZoomIn, ZoomOut, Move, Bookmark, Check, Target } from 'lucide-react';
-import { getVersesByPage } from '../services/quranService';
+import { getVersesByPage, showToast } from '../services/quranService';
 import { getPageUrl } from '../services/mushafService';
 import * as StorageService from '../services/storageService';
 import { LastReadData } from '../types';
@@ -272,16 +272,21 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
       setIsMarkingRead(true);
       try {
            const verses = await getVersesByPage(currentPage, translationId);
+           let message = `Target Khatam diperbarui ke halaman ${currentPage}.`;
+           
            if (verses && verses.length > 0) {
               const lastVerse = verses[verses.length - 1];
-              await StorageService.updateKhatamProgress(currentPage, lastVerse.surah.number, lastVerse.surah.englishName, lastVerse.numberInSurah);
+              await StorageService.updateKhatamProgress(currentPage);
+              message = `Target Khatam diperbarui ke halaman ${currentPage} (Surat ${lastVerse.surah.englishName} Ayat ${lastVerse.numberInSurah}).`;
            } else {
                // Fallback if fetch fails (e.g. offline) - just update page number
                await StorageService.updateKhatamProgress(currentPage);
            }
+           showToast(message, "success");
       } catch(e) {
           // Fallback
           await StorageService.updateKhatamProgress(currentPage);
+          showToast("Progres khatam diperbarui.", "success");
       } finally {
           setIsMarkingRead(false);
       }

@@ -177,13 +177,6 @@ const KhatamWidget: React.FC = () => {
                                 <span className="text-quran-gold">{t('khatam_daily_target')}: {stats.dailyTarget} {t('tab_page')}</span>
                             </h3>
                         </div>
-                        <button 
-                            onClick={() => setIsEditing(true)}
-                            className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
-                            title="Edit Progres"
-                        >
-                            <Edit2 className="w-4 h-4" />
-                        </button>
                     </div>
 
                     {/* Progress Bar */}
@@ -233,7 +226,7 @@ const KhatamWidget: React.FC = () => {
                                 onClick={() => setIsEditing(true)}
                                 className="text-xs font-bold flex items-center gap-2 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors bg-white/5 border border-white/10 whitespace-nowrap"
                              >
-                                 {t('khatam_btn_update_manual')} <ChevronRight className="w-3 h-3" />
+                                 Update Target Khatam Manual <ChevronRight className="w-3 h-3" />
                              </button>
                          </div>
                     </div>
