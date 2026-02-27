@@ -45,6 +45,11 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Function to convert number to Arabic numerals
+  const toArabicNumerals = (n: number) => {
+    return n.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
+  };
 
   // --- TRANSITION STATE ---
   const [isTurning, setIsTurning] = useState(false);
@@ -573,9 +578,12 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                                         {verse.surah.englishName} : {verse.numberInSurah}
                                     </span>
                                 </div>
-                                <p className="text-right font-arabic text-2xl text-gray-800 leading-loose mb-4" dir="rtl">
-                                    {verse.text}
-                                </p>
+                                 <p className="text-right font-arabic text-2xl text-gray-800 dark:text-gray-100 leading-[2.5] mb-4" dir="rtl">
+                                     {verse.text}
+                                     <span className="verse-ornament">
+                                         {toArabicNumerals(verse.numberInSurah)}
+                                     </span>
+                                 </p>
                                 <p className="text-sm text-gray-600 leading-relaxed font-serif">
                                     {verse.translation}
                                 </p>

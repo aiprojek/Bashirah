@@ -32,6 +32,11 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
     // Ref for the hidden high-res card
     const exportRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
+    
+    // Function to convert number to Arabic numerals
+    const toArabicNumerals = (n: number) => {
+      return n.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
+    };
 
     useEffect(() => {
         if (isOpen && !ayat) {
@@ -143,8 +148,11 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                             </div>
 
                             <div className="relative z-10 flex-1 flex flex-col items-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth">
-                                 <p className="font-arabic text-2xl sm:text-3xl leading-[3] sm:leading-[4] drop-shadow-md mb-4 w-full pt-12 pb-2 px-1" dir="rtl">
+                                 <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] drop-shadow-md mb-4 w-full pt-12 pb-2 px-4 text-center" dir="rtl">
                                      {ayat.text}
+                                     <span className="verse-ornament">
+                                         {toArabicNumerals(ayat.verseNo)}
+                                     </span>
                                  </p>
                                  <p className="font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto text-stone-200 pb-8">
                                      "{ayat.translation}"
@@ -174,10 +182,15 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                 <div className="text-2xl font-bold uppercase tracking-[0.3em] text-quran-gold/90 border-2 border-quran-gold/30 px-8 py-3 rounded-full bg-black/20 flex items-center gap-4">
                                     <Quote className="w-6 h-6 fill-current" /> Ayat Harian
                                 </div>
-                                <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
-                                    <p className="font-arabic text-[64px] leading-[3] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">{ayat.text}</p>
-                                    <p className="font-serif text-[32px] italic opacity-90 leading-relaxed max-w-4xl mx-auto text-stone-200">"{ayat.translation}"</p>
-                                </div>
+                                 <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
+                                     <p className="font-arabic text-[64px] leading-[2] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">
+                                         {ayat.text}
+                                         <span className="verse-ornament align-middle !w-[100px] !h-[100px] !text-[40px] !border-[4px] mx-8">
+                                            {toArabicNumerals(ayat.verseNo)}
+                                         </span>
+                                     </p>
+                                     <p className="font-serif text-[32px] italic opacity-90 leading-relaxed max-w-4xl mx-auto text-stone-200">"{ayat.translation}"</p>
+                                 </div>
                                 <div className="flex flex-col items-center gap-3 border-t border-white/20 pt-8 pb-32 w-full">
                                     <h4 className="font-bold text-4xl text-quran-gold">{ayat.surah.englishName}</h4>
                                     <span className="text-2xl opacity-60 font-sans tracking-wide">Ayat {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
