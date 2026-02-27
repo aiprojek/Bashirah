@@ -79,17 +79,20 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   }, [language]);
 
   useEffect(() => {
-    if(id) {
-        const surahIdInt = parseInt(id);
-        const lr = StorageService.getLastRead();
-        if (lr && lr.surahId === surahIdInt) {
-            setLastReadVerse(lr.verseId);
-        }
-        const bms = StorageService.getBookmarks();
-        setBookmarkedVerses(bms.filter(b => b.surahId === surahIdInt).map(b => b.verseId));
-        const notes = StorageService.getNotes();
-        setVersesWithNotes(notes.filter(n => n.surahId === surahIdInt).map(n => n.verseId));
-    }
+    const loadStorageData = async () => {
+      if(id) {
+          const surahIdInt = parseInt(id);
+          const lr = await StorageService.getLastRead();
+          if (lr && lr.surahId === surahIdInt) {
+              setLastReadVerse(lr.verseId);
+          }
+          const bms = await StorageService.getBookmarks();
+          setBookmarkedVerses(bms.filter(b => b.surahId === surahIdInt).map(b => b.verseId));
+          const notes = await StorageService.getNotes();
+          setVersesWithNotes(notes.filter(n => n.surahId === surahIdInt).map(n => n.verseId));
+      }
+    };
+    loadStorageData();
   }, [id]);
 
   useEffect(() => {
@@ -137,39 +140,39 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const nextSurah = useMemo(() => (!surah || !allSurahs.length) ? null : allSurahs.find(s => s.id === surah.id + 1), [surah, allSurahs]);
   const handleNavigateSurah = (targetId: number) => navigate(`/surah/${targetId}`);
   const handleQuickJump = (surahId: number, verseId: number) => { navigate(`/surah/${surahId}#verse-${verseId}`); };
-  const handleToggleBookmark = (verseId: number) => {
+  const handleToggleBookmark = async (verseId: number) => {
       if(!surah) return;
-      const isAdded = StorageService.toggleBookmark(surah.id, surah.transliteration, verseId);
+      const isAdded = await StorageService.toggleBookmark(surah.id, surah.transliteration, verseId);
       if (isAdded) setBookmarkedVerses(prev => [...prev, verseId]);
       else setBookmarkedVerses(prev => prev.filter(v => v !== verseId));
   };
-  const handleSetLastRead = (verseId: number) => {
+  const handleSetLastRead = async (verseId: number) => {
       if(!surah) return;
       const verseObj = surah.verses.find(v => v.id === verseId);
       const pageNum = verseObj ? verseObj.page_number : undefined;
-      StorageService.setLastRead(surah.id, surah.transliteration, verseId, pageNum);
+      await StorageService.setLastRead(surah.id, surah.transliteration, verseId, pageNum);
       setLastReadVerse(verseId);
   };
-  const handleUpdateKhatam = (verseId: number) => {
+  const handleUpdateKhatam = async (verseId: number) => {
       if(!surah) return;
       const verseObj = surah.verses.find(v => v.id === verseId);
       const pageNum = verseObj ? verseObj.page_number : undefined;
       if (pageNum) {
-          StorageService.updateKhatamProgress(pageNum, surah.id, surah.transliteration, verseId);
+          await StorageService.updateKhatamProgress(pageNum, surah.id, surah.transliteration, verseId);
           setLastReadVerse(verseId);
           alert(`Target Khatam diperbarui ke halaman ${pageNum} (Surat ${surah.transliteration} Ayat ${verseId}).`);
       } else { alert("Gagal memuat data halaman."); }
   };
-  const handleTakeNote = (verseId: number) => {
+  const handleTakeNote = async (verseId: number) => {
       if(!surah) return;
       setEditingVerseId(verseId);
-      const existingNote = StorageService.getNoteForVerse(surah.id, verseId);
+      const existingNote = await StorageService.getNoteForVerse(surah.id, verseId);
       setCurrentNoteText(existingNote ? existingNote.text : '');
       setIsNoteModalOpen(true);
   };
-  const handleSaveNote = (text: string) => {
+  const handleSaveNote = async (text: string) => {
       if(!surah || editingVerseId === null) return;
-      StorageService.saveNote(surah.id, surah.transliteration, editingVerseId, text);
+      await StorageService.saveNote(surah.id, surah.transliteration, editingVerseId, text);
       if (text.trim() === '') setVersesWithNotes(prev => prev.filter(v => v !== editingVerseId));
       else setVersesWithNotes(prev => [...prev, editingVerseId]); 
   };

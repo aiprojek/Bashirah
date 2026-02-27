@@ -38,7 +38,7 @@ const QuizPage: React.FC = () => {
             const data = await getAllSurahs(language);
             setSurahs(data);
             setLoading(false);
-            setHighScores(StorageService.getQuizScores());
+            setHighScores(await StorageService.getQuizScores());
         };
         initData();
     }, [language]);
@@ -176,11 +176,11 @@ const QuizPage: React.FC = () => {
         }, 1200); 
     };
 
-    const finishGame = (finalScore: number) => {
+    const finishGame = async (finalScore: number) => {
         setGameState('end');
         // Save score
-        const newEntry = StorageService.saveQuizScore(playerName, finalScore, questions.length);
-        setHighScores(StorageService.getQuizScores());
+        const newEntry = await StorageService.saveQuizScore(playerName, finalScore, questions.length);
+        setHighScores(await StorageService.getQuizScores());
         setCurrentScoreId(newEntry.id);
     };
 

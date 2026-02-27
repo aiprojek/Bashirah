@@ -9,8 +9,8 @@ const ReadingHeatmap: React.FC = () => {
     const { t } = useLanguage();
     const [history, setHistory] = useState<ReadingLog[]>([]);
 
-    const loadData = () => {
-        setHistory(StorageService.getReadingHistory());
+    const loadData = async () => {
+        setHistory(await StorageService.getReadingHistory());
     };
 
     useEffect(() => {

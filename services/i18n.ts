@@ -330,6 +330,40 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     tajweed_mad_thabii_name: "Mad Thabi'i", tajweed_mad_thabii_desc: "Alif sesudah fathah, Ya sukun sesudah kasrah, Wau sukun sesudah dhommah.", tajweed_mad_thabii_how: "Dibaca panjang 2 harakat.",
     tajweed_mad_wajib_name: "Mad Wajib Muttashil", tajweed_mad_wajib_desc: "Mad Thabi'i bertemu Hamzah dalam satu kata.", tajweed_mad_wajib_how: "Wajib dibaca panjang 4 atau 5 harakat.",
     tajweed_mad_jaiz_name: "Mad Jaiz Munfashil", tajweed_mad_jaiz_desc: "Mad Thabi'i bertemu Hamzah di lain kata.", tajweed_mad_jaiz_how: "Boleh dibaca panjang 2, 4, atau 5 harakat.",
+
+    // Topics
+    topic_iman_title: "Iman & Aqidah", topic_iman_desc: "Ayat-ayat tentang keimanan kepada Allah, Malaikat, Kitab, dan Hari Akhir.",
+    topic_sabar_title: "Kesabaran", topic_sabar_desc: "Petunjuk Al-Quran tentang bersabar menghadapi ujian hidup.",
+    topic_keluarga_title: "Keluarga & Orang Tua", topic_keluarga_desc: "Hukum pernikahan, mendidik anak, dan berbakti pada orang tua.",
+    topic_doa_title: "Kumpulan Doa", topic_doa_desc: "Doa-doa para Nabi dan orang saleh yang diabadikan dalam Al-Quran.",
+    topic_rezeki_title: "Rezeki & Sedekah", topic_rezeki_desc: "Ayat tentang mencari nafkah, sedekah, dan keberkahan harta.",
+    topic_akhlak_title: "Akhlak Mulia", topic_akhlak_desc: "Perintah berlaku jujur, adil, rendah hati, dan menepati janji.",
+    topic_ibadah_title: "Ibadah", topic_ibadah_desc: "Shalat, Puasa, Haji, dan ibadah mahdhah lainnya.",
+    topic_ilmu_title: "Ilmu Pengetahuan", topic_ilmu_desc: "Ayat-ayat yang mendorong manusia untuk berpikir dan menuntut ilmu.",
+
+    // Emotions
+    emotion_sedih_label: "Kesedihan", emotion_sedih_desc: "Saat hati terasa sempit, air mata tak terbendung, dan butuh sandaran.",
+    emotion_cemas_label: "Kecemasan", emotion_cemas_desc: "Saat pikiran dipenuhi ketakutan akan masa depan dan hati tidak tenang.",
+    emotion_kesepian_label: "Kesepian", emotion_kesepian_desc: "Saat merasa sendiri, terasing, dan merasa tidak ada yang mengerti.",
+    emotion_marah_label: "Amarah", emotion_marah_desc: "Saat emosi memuncak, dada terasa panas, dan sulit dikendalikan.",
+    emotion_syukur_label: "Rasa Syukur", emotion_syukur_desc: "Saat hati dipenuhi cahaya kebahagiaan dan nikmat Allah terasa melimpah.",
+    emotion_berdosa_label: "Penyesalan", emotion_berdosa_desc: "Saat menyadari kekhilafan, merasa berdosa, dan ingin kembali.",
+    emotion_lelah_label: "Kelelahan", emotion_lelah_desc: "Saat perjuangan hidup terasa berat, fisik dan batin ingin bersandar.",
+    emotion_ragu_label: "Keraguan", emotion_ragu_desc: "Saat hati bimbang kehilangan arah dan sulit mengambil keputusan.",
+
+    // Duas
+    dua_d1_title: "Doa Sapu Jagat", dua_d1_desc: "Ya Tuhan kami, berilah kami kebaikan di dunia dan kebaikan di akhirat dan peliharalah kami dari siksa neraka.",
+    dua_d2_title: "Doa Memohon Kesabaran", dua_d2_desc: "Ya Tuhan kami, tuangkanlah kesabaran atas diri kami, dan kokohkanlah pendirian kami dan tolonglah kami terhadap orang-orang kafir.",
+    dua_d3_title: "Doa Agar Tidak Lupa", dua_d3_desc: "Ya Tuhan kami, janganlah Engkau hukum kami jika kami lupa atau kami tersalah.",
+    dua_d4_title: "Doa Keteguhan Hati", dua_d4_desc: "Ya Tuhan kami, janganlah Engkau jadikan hati kami condong kepada kesesatan sesudah Engkau beri petunjuk kepada kami, dan karuniakanlah kepada kami rahmat dari sisi-Mu.",
+    dua_d5_title: "Doa Nabi Ibrahim", dua_d5_desc: "Ya Tuhanku, jadikanlah aku dan anak cucuku orang-orang yang tetap mendirikan shalat, ya Tuhan kami, perkenankanlah doaku.",
+    dua_d6_title: "Doa Pengampunan Orang Tua", dua_d6_desc: "Ya Tuhan kami, beri ampunlah aku dan kedua ibu bapaku dan sekalian orang-orang mukmin pada hari terjadinya hisab.",
+    dua_d7_title: "Doa Nabi Musa", dua_d7_desc: "Ya Tuhanku, lapangkanlah untukku dadaku, dan mudahkanlah untukku urusanku.",
+    dua_d8_title: "Doa Tambahan Ilmu", dua_d8_desc: "Ya Tuhanku, tambahkanlah kepadaku ilmu pengetahuan.",
+    dua_d9_title: "Doa Nabi Yunus", dua_d9_desc: "Tidak ada Tuhan selain Engkau. Maha Suci Engkau, sesungguhnya aku adalah termasuk orang-orang yang zalim.",
+    dua_d10_title: "Doa Pasangan & Keturunan", dua_d10_desc: "Ya Tuhan kami, anugrahkanlah kepada kami isteri-isteri kami dan keturunan kami sebagai penyenang hati (kami), dan jadikanlah kami imam bagi orang-orang yang bertakwa.",
+    dua_d11_title: "Doa Mensyukuri Nikmat", dua_d11_desc: "Ya Tuhanku, tunjukilah aku untuk mensyukuri nikmat Engkau yang telah Engkau berikan kepadaku dan kepada ibu bapakku.",
+    dua_d12_title: "Doa Nabi Ayyub", dua_d12_desc: "(Ya Tuhanku), sesungguhnya aku telah ditimpa penyakit dan Engkau adalah Tuhan Yang Maha Penyayang di antara semua penyayang.",
   },
   en: {
     nav_home: "Home",
@@ -578,6 +612,40 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     tajweed_mad_thabii_name: "Mad Thabi'i", tajweed_mad_thabii_desc: "Natural elongation (Alif after fathah, etc).", tajweed_mad_thabii_how: "Read long for 2 counts.",
     tajweed_mad_wajib_name: "Mad Wajib Muttashil", tajweed_mad_wajib_desc: "Mad Thabi'i meets Hamzah in one word.", tajweed_mad_wajib_how: "Must be read long for 4 or 5 counts.",
     tajweed_mad_jaiz_name: "Mad Jaiz Munfashil", tajweed_mad_jaiz_desc: "Mad Thabi'i meets Hamzah in different word.", tajweed_mad_jaiz_how: "Can be read long for 2, 4, or 5 counts.",
+
+    // Topics
+    topic_iman_title: "Faith & Aqidah", topic_iman_desc: "Verses about faith in Allah, Angels, Books, and the Last Day.",
+    topic_sabar_title: "Patience", topic_sabar_desc: "Quranic guidance on being patient in facing life's trials.",
+    topic_keluarga_title: "Family & Parents", topic_keluarga_desc: "Laws of marriage, raising children, and being dutiful to parents.",
+    topic_doa_title: "Dua Collection", topic_doa_desc: "Supplications of Prophets and righteous people preserved in the Quran.",
+    topic_rezeki_title: "Provision & Charity", topic_rezeki_desc: "Verses about seeking livelihood, charity, and blessed wealth.",
+    topic_akhlak_title: "Noble Character", topic_akhlak_desc: "Commands to be honest, just, humble, and to keep promises.",
+    topic_ibadah_title: "Worship", topic_ibadah_desc: "Prayer, Fasting, Hajj, and other formal acts of worship.",
+    topic_ilmu_title: "Knowledge", topic_ilmu_desc: "Verses that encourage humans to think and seek knowledge.",
+
+    // Emotions
+    emotion_sedih_label: "Sadness", emotion_sedih_desc: "When the heart feels constricted, tears flow, and you need support.",
+    emotion_cemas_label: "Anxiety", emotion_cemas_desc: "When thoughts are filled with fear of the future and the heart is restless.",
+    emotion_kesepian_label: "Loneliness", emotion_kesepian_desc: "When feeling alone, isolated, and feeling no one understands.",
+    emotion_marah_label: "Anger", emotion_marah_desc: "When emotions peak, the chest feels hot, and it's hard to control.",
+    emotion_syukur_label: "Gratitude", emotion_syukur_desc: "When the heart is filled with light of happiness and Allah's blessings feel abundant.",
+    emotion_berdosa_label: "Regret", emotion_berdosa_desc: "When realizing mistakes, feeling sinful, and wanting to return.",
+    emotion_lelah_label: "Exhaustion", emotion_lelah_desc: "When life's struggle feels heavy, physical and mental self wants to lean.",
+    emotion_ragu_label: "Doubt", emotion_ragu_desc: "When the heart is in doubt, losing direction and finding it hard to decide.",
+
+    // Duas
+    dua_d1_title: "Comprehensive Supplication", dua_d1_desc: "Our Lord, give us in this world [that which is] good and in the Hereafter [that which is] good and protect us from the punishment of the Fire.",
+    dua_d2_title: "Request for Patience", dua_d2_desc: "Our Lord, pour upon us patience and plant firmly our feet and give us victory over the disbelieving people.",
+    dua_d3_title: "Prayer Against Forgetfulness", dua_d3_desc: "Our Lord, do not impose blame upon us if we have forgotten or erred.",
+    dua_d4_title: "Steadfastness of Heart", dua_d4_desc: "Our Lord, let not our hearts deviate after You have guided us and grant us from Yourself mercy.",
+    dua_d5_title: "Prophet Ibrahim's Prayer", dua_d5_desc: "My Lord, make me an establisher of prayer, and [many] from my descendants. Our Lord, and accept my supplication.",
+    dua_d6_title: "Forgiveness for Parents", dua_d6_desc: "Our Lord, forgive me and my parents and the believers the Day the account is established.",
+    dua_d7_title: "Prophet Musa's Prayer", dua_d7_desc: "My Lord, expand for me my breast [with assurance] and ease for me my task.",
+    dua_d8_title: "Increase in Knowledge", dua_d8_desc: "My Lord, increase me in knowledge.",
+    dua_d9_title: "Prophet Yunus's Prayer", dua_d9_desc: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+    dua_d10_title: "Spouse & Offspring", dua_d10_desc: "Our Lord, grant us from among our wives and offspring comfort to our eyes and make us an example for the righteous.",
+    dua_d11_title: "Gratitude for Blessings", dua_d11_desc: "My Lord, enable me to be grateful for Your favor which You have bestowed upon me and upon my parents.",
+    dua_d12_title: "Prophet Ayyub's Prayer", dua_d12_desc: "Indeed, adversity has touched me, and you are the Most Merciful of the merciful.",
   }
 };
 

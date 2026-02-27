@@ -81,8 +81,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
   useEffect(() => {
       // Check if khatam target exists to conditionally show the button
-      const target = StorageService.getKhatamTarget();
-      setHasKhatamTarget(!!(target && target.isActive));
+      const checkKhatamTarget = async () => {
+          const target = await StorageService.getKhatamTarget();
+          setHasKhatamTarget(!!(target && target.isActive));
+      };
+      checkKhatamTarget();
   }, [isMenuOpen]); // Check every time menu opens
 
   // Close menu when clicking outside
@@ -137,7 +140,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
                 <TajweedText text={verse.text} />
-                <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
+                <span className="verse-ornament" title={`Ayat ${verse.id}`}>
                      {toArabicNumerals(verse.id)}
                 </span>
              </p>
@@ -153,7 +156,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 style={{ fontSize: `${arabicFontSize}px` }}
              >
                 <TajweedText text={verse.text} />
-                <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
+                <span className="verse-ornament" title={`Ayat ${verse.id}`}>
                      {toArabicNumerals(verse.id)}
                 </span>
                 {/* Close Button to hide again */}
@@ -202,7 +205,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                     style={{ fontSize: `${arabicFontSize}px` }}
                  >
                     <TajweedText text={verse.text} />
-                    <span className="font-arabic text-quran-gold mx-2 inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
+                    <span className="verse-ornament">
                          {toArabicNumerals(verse.id)}
                     </span>
                  </p>
@@ -236,7 +239,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         </span>
                      );
                  })}
-                 <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
+                 <span className="verse-ornament">
                      {toArabicNumerals(verse.id)}
                  </span>
              </div>
@@ -261,7 +264,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         </span>
                      );
                  })}
-                 <span className="font-arabic text-quran-gold mx-2 select-none inline-block border border-quran-gold/40 rounded-full min-w-[40px] h-10 text-center leading-9 text-2xl">
+                 <span className="verse-ornament">
                      {toArabicNumerals(verse.id)}
                  </span>
              </div>

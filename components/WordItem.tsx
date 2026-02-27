@@ -18,7 +18,7 @@ const WordItem: React.FC<WordItemProps> = ({ word, verseNumber, onClick }) => {
   if (isEnd) {
       return (
         <div className="flex items-center justify-center self-center mb-4 mx-1">
-            <span className="font-arabic text-quran-gold text-2xl inline-flex border border-quran-gold/40 rounded-full w-10 h-10 items-center justify-center leading-none select-none bg-stone-50">
+            <span className="verse-ornament">
                 {toArabicNumerals(verseNumber)}
             </span>
         </div>

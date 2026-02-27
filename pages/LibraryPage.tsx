@@ -23,8 +23,11 @@ const LibraryPage: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setBookmarks(StorageService.getBookmarks());
-    setNotes(StorageService.getNotes());
+    const loadLibraryData = async () => {
+        setBookmarks(await StorageService.getBookmarks());
+        setNotes(await StorageService.getNotes());
+    };
+    loadLibraryData();
   }, []);
 
   const handleBookmarkClick = (bm: BookmarkData) => {
@@ -41,17 +44,17 @@ const LibraryPage: React.FC = () => {
       setDeleteTarget({ type: 'note', data: note });
   };
   
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
       if (!deleteTarget) return;
 
       if (deleteTarget.type === 'bookmark') {
           const bm = deleteTarget.data as BookmarkData;
-          StorageService.toggleBookmark(bm.surahId, bm.surahName, bm.verseId);
-          setBookmarks(StorageService.getBookmarks());
+          await StorageService.toggleBookmark(bm.surahId, bm.surahName, bm.verseId);
+          setBookmarks(await StorageService.getBookmarks());
       } else if (deleteTarget.type === 'note') {
           const note = deleteTarget.data as NoteData;
-          StorageService.deleteNote(note.id);
-          setNotes(StorageService.getNotes());
+          await StorageService.deleteNote(note.id);
+          setNotes(await StorageService.getNotes());
       }
       setDeleteTarget(null);
   };

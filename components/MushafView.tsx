@@ -68,13 +68,13 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   }, [startPage]);
 
   // Check Last Read Status
-  const checkLastRead = () => {
-      const lr = StorageService.getLastRead();
+  const checkLastRead = async () => {
+      const lr = await StorageService.getLastRead();
       if (lr) {
           setLastReadPage(lr.pageNumber || null);
       }
       
-      const target = StorageService.getKhatamTarget();
+      const target = await StorageService.getKhatamTarget();
       setHasKhatamTarget(!!(target && target.isActive));
   };
 
@@ -244,9 +244,10 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
           const verses = await getVersesByPage(currentPage, translationId);
           
           if (verses && verses.length > 0) {
+              const firstVerse = verses[0]; // Start of page
               const lastVerse = verses[verses.length - 1]; // Use the last verse of the page
               
-              StorageService.setLastRead(
+              await StorageService.setLastRead(
                   lastVerse.surah.number,
                   lastVerse.surah.englishName, // API returns englishName
                   lastVerse.numberInSurah,
@@ -268,14 +269,14 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
            const verses = await getVersesByPage(currentPage, translationId);
            if (verses && verses.length > 0) {
               const lastVerse = verses[verses.length - 1];
-              StorageService.updateKhatamProgress(currentPage, lastVerse.surah.number, lastVerse.surah.englishName, lastVerse.numberInSurah);
+              await StorageService.updateKhatamProgress(currentPage, lastVerse.surah.number, lastVerse.surah.englishName, lastVerse.numberInSurah);
            } else {
                // Fallback if fetch fails (e.g. offline) - just update page number
-               StorageService.updateKhatamProgress(currentPage);
+               await StorageService.updateKhatamProgress(currentPage);
            }
       } catch(e) {
           // Fallback
-          StorageService.updateKhatamProgress(currentPage);
+          await StorageService.updateKhatamProgress(currentPage);
       } finally {
           setIsMarkingRead(false);
       }

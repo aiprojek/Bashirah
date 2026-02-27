@@ -17,8 +17,8 @@ const KhatamWidget: React.FC = () => {
     const [daysInput, setDaysInput] = useState(30);
     const [currentPageInput, setCurrentPageInput] = useState(1);
 
-    const loadData = () => {
-        const saved = StorageService.getKhatamTarget();
+    const loadData = async () => {
+        const saved = await StorageService.getKhatamTarget();
         setTarget(saved);
         if (saved) {
             setCurrentPageInput(saved.currentPage);
@@ -35,7 +35,7 @@ const KhatamWidget: React.FC = () => {
         return () => window.removeEventListener('storage-update', handleUpdate);
     }, []);
 
-    const handleSaveTarget = () => {
+    const handleSaveTarget = async () => {
         const newTarget: KhatamTarget = {
             isActive: true,
             startDate: Date.now(),
@@ -43,7 +43,7 @@ const KhatamWidget: React.FC = () => {
             currentPage: currentPageInput,
             lastUpdated: Date.now()
         };
-        StorageService.saveKhatamTarget(newTarget);
+        await StorageService.saveKhatamTarget(newTarget);
         setTarget(newTarget);
         setIsEditing(false);
     };
@@ -148,10 +148,10 @@ const KhatamWidget: React.FC = () => {
                              />
                          </div>
                          <button 
-                            onClick={() => {
+                            onClick={async () => {
                                 const newTarget = { ...target, currentPage: currentPageInput, lastUpdated: Date.now() };
-                                StorageService.saveKhatamTarget(newTarget);
-                                StorageService.updateKhatamProgress(currentPageInput); // Log to history
+                                await StorageService.saveKhatamTarget(newTarget);
+                                await StorageService.updateKhatamProgress(currentPageInput); // Log to history
                                 setTarget(newTarget);
                                 setIsEditing(false);
                             }}

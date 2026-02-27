@@ -13,10 +13,13 @@ const DuaCollectionPage: React.FC = () => {
     const [bookmarks, setBookmarks] = useState<number[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
 
-    // Load Bookmarks (using existing storage service logic, but checking by verse ID for simplicity)
+    // Load Bookmarks
     useEffect(() => {
-        const bms = StorageService.getBookmarks();
-        setBookmarks(bms.map(b => b.verseId)); // Simple check, ideally check surah+verse
+        const loadBookmarks = async () => {
+            const bms = await StorageService.getBookmarks();
+            setBookmarks(bms.map(b => b.verseId));
+        };
+        loadBookmarks();
     }, []);
 
     const handleCopy = (text: string, id: string) => {
@@ -28,12 +31,12 @@ const DuaCollectionPage: React.FC = () => {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
-    const handleBookmark = (dua: typeof DUAS[0]) => {
+    const handleBookmark = async (dua: typeof DUAS[0]) => {
         // Toggle
-        StorageService.toggleBookmark(dua.surahId, dua.surahName, dua.verseId);
+        await StorageService.toggleBookmark(dua.surahId, dua.surahName, dua.verseId);
         
         // Refresh local state
-        const bms = StorageService.getBookmarks();
+        const bms = await StorageService.getBookmarks();
         setBookmarks(bms.map(b => b.verseId));
     };
 

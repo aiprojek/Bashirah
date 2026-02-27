@@ -1,81 +1,111 @@
-
 <!DOCTYPE html>
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
     <!-- Primary Meta Tags -->
     <title>Bashirah - Al-Quran Digital & Tadabbur</title>
-    <meta name="title" content="Bashirah - Al-Quran Digital & Tadabbur">
-    <meta name="description" content="Aplikasi Al-Quran Digital modern dengan fitur Tadabbur, Audio Murottal 30 Juz, Mode Mushaf, dan Ayat Pelipur Lara. Baca Al-Quran dengan nyaman, offline, dan bebas iklan.">
-    <meta name="keywords" content="Al-Quran, Quran Digital, Tadabbur, Murottal, Mushaf Madinah, Quran Indonesia, Jadwal Sholat, Belajar Mengaji, Islam">
-    <meta name="author" content="AI Projek">
-    <meta name="theme-color" content="#fcfbf7">
+    <meta name="title" content="Bashirah - Al-Quran Digital & Tadabbur" />
+    <meta
+      name="description"
+      content="Aplikasi Al-Quran Digital modern dengan fitur Tadabbur, Audio Murottal 30 Juz, Mode Mushaf, dan Ayat Pelipur Lara. Baca Al-Quran dengan nyaman, offline, dan bebas iklan."
+    />
+    <meta
+      name="keywords"
+      content="Al-Quran, Quran Digital, Tadabbur, Murottal, Mushaf Madinah, Quran Indonesia, Jadwal Sholat, Belajar Mengaji, Islam"
+    />
+    <meta name="author" content="AI Projek" />
+    <meta name="theme-color" content="#fcfbf7" />
 
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://basirah.app/">
-    <meta property="og:title" content="Bashirah - Al-Quran Digital & Tadabbur">
-    <meta property="og:description" content="Baca, dengar, dan tadabburi Al-Quran dengan antarmuka yang indah dan menenangkan. Dilengkapi fitur mode hafalan dan jurnal pribadi.">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop">
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://basirah.app/" />
+    <meta
+      property="og:title"
+      content="Bashirah - Al-Quran Digital & Tadabbur"
+    />
+    <meta
+      property="og:description"
+      content="Baca, dengar, dan tadabburi Al-Quran dengan antarmuka yang indah dan menenangkan. Dilengkapi fitur mode hafalan dan jurnal pribadi."
+    />
+    <meta
+      property="og:image"
+      content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop"
+    />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://basirah.app/">
-    <meta property="twitter:title" content="Bashirah - Al-Quran Digital & Tadabbur">
-    <meta property="twitter:description" content="Baca, dengar, dan tadabburi Al-Quran dengan antarmuka yang indah dan menenangkan.">
-    <meta property="twitter:image" content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop">
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://basirah.app/" />
+    <meta
+      property="twitter:title"
+      content="Bashirah - Al-Quran Digital & Tadabbur"
+    />
+    <meta
+      property="twitter:description"
+      content="Baca, dengar, dan tadabburi Al-Quran dengan antarmuka yang indah dan menenangkan."
+    />
+    <meta
+      property="twitter:image"
+      content="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop"
+    />
 
     <!-- Favicon & Icons -->
-    <link rel="icon" type="image/svg+xml" href="/logo.svg">
-    <link rel="apple-touch-icon" href="/logo.svg">
-    
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <link rel="apple-touch-icon" href="/logo.svg" />
+
     <!-- PWA -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
     <script>
       tailwind.config = {
-        darkMode: 'class', // Enable dark mode via class
+        darkMode: "class", // Enable dark mode via class
         theme: {
           extend: {
             fontFamily: {
-              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-              serif: ['"Lora"', 'serif'],
-              arabic: ['"Amiri"', 'serif'],
+              sans: ['"Plus Jakarta Sans"', "sans-serif"],
+              serif: ['"Lora"', "serif"],
+              arabic: ['"Amiri"', "serif"],
             },
             colors: {
               quran: {
-                dark: '#1e3a34', // Deep Islamic Green
-                gold: '#d4af37', // Classic Gold
-                cream: '#fcfbf7', // Paper-like background
-                text: '#2d3748',
-              }
+                dark: "#1e3a34", // Deep Islamic Green
+                gold: "#d4af37", // Classic Gold
+                cream: "#fcfbf7", // Paper-like background
+                text: "#2d3748",
+              },
             },
             backgroundImage: {
-              'pattern-overlay': "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e3a34' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
-            }
-          }
-        }
-      }
+              "pattern-overlay":
+                "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%231e3a34' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            },
+          },
+        },
+      };
     </script>
     <style>
       /* Fallback to local font if available (User manually adds them to public/fonts/) */
       @font-face {
-        font-family: 'Amiri';
-        src: url('/fonts/Amiri-Regular.ttf') format('truetype');
+        font-family: "Amiri";
+        src: url("/fonts/Amiri-Regular.ttf") format("truetype");
         font-weight: 400;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
-        font-family: 'Amiri';
-        src: url('/fonts/Amiri-Bold.ttf') format('truetype');
+        font-family: "Amiri";
+        src: url("/fonts/Amiri-Bold.ttf") format("truetype");
         font-weight: 700;
         font-style: normal;
         font-display: swap;
@@ -115,19 +145,19 @@
 
       /* --- ARABIC TEXT RENDERING FIXES --- */
       .font-arabic {
-        font-family: 'Amiri', serif;
+        font-family: "Amiri", serif;
         /* Force ligatures to ensure connected letters (Fix for Tajweed spans) */
         font-variant-ligatures: common-ligatures contextual;
         -webkit-font-variant-ligatures: common-ligatures contextual;
-        
+
         /* Activate OpenType features for Arabic shaping */
         font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
         -webkit-font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
-        
+
         /* Optimize for legibility over speed */
         text-rendering: optimizeLegibility;
       }
-      
+
       /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
       .font-arabic span {
         display: inline;
@@ -137,27 +167,69 @@
         unicode-bidi: isolate;
         font-variant-ligatures: contextual;
       }
+      /* Verse End Ornament */
+      .verse-ornament {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        position: relative;
+        color: #d4af37; /* Quran Gold */
+        font-family: "Amiri", serif;
+        font-size: 0.8em;
+        font-weight: bold;
+        user-select: none;
+        margin: 0 12px;
+        vertical-align: middle;
+      }
+      .verse-ornament::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-color: currentColor;
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z' /%3E%3Cpath d='M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z' transform='rotate(45 50 50)' /%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+        opacity: 0.15;
+      }
+      .verse-ornament::after {
+        content: "";
+        position: absolute;
+        inset: 4px;
+        border: 1.5px solid currentColor;
+        mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z' /%3E%3Cpath d='M50 0 L61 39 L100 50 L61 61 L50 100 L39 61 L0 50 L39 39 Z' transform='rotate(45 50 50)' /%3E%3C/svg%3E");
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      }
+      .dark .verse-ornament {
+        color: #d4af37;
+      }
     </style>
-<script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.4",
-    "react/": "https://esm.sh/react@^19.2.4/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
-    "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-    "idb": "https://esm.sh/idb@^8.0.3",
-    "react-virtuoso": "https://esm.sh/react-virtuoso@^4.18.1",
-    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
-    "vite": "https://esm.sh/vite@^7.3.1",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
-    "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
-    "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.1.0"
-  }
-}
-</script>
-</head>
-  <body class="bg-quran-cream dark:bg-slate-900 text-quran-text dark:text-gray-100 font-sans antialiased selection:bg-quran-gold selection:text-white transition-colors duration-300">
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "https://esm.sh/react@^19.2.4",
+          "react/": "https://esm.sh/react@^19.2.4/",
+          "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
+          "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
+          "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
+          "idb": "https://esm.sh/idb@^8.0.3",
+          "react-virtuoso": "https://esm.sh/react-virtuoso@^4.18.1",
+          "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+          "vite": "https://esm.sh/vite@^7.3.1",
+          "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
+          "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
+          "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.1.0"
+        }
+      }
+    </script>
+  </head>
+  <body
+    class="bg-quran-cream dark:bg-slate-900 text-quran-text dark:text-gray-100 font-sans antialiased selection:bg-quran-gold selection:text-white transition-colors duration-300"
+  >
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

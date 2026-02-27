@@ -40,9 +40,9 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const allPages = useMemo(() => Array.from({ length: 604 }, (_, i) => i + 1), []);
 
   useEffect(() => {
-    const loadData = () => {
-        setLastRead(StorageService.getLastRead());
-        setIsDailyAyatEnabled(StorageService.getShowAyatOfTheDay());
+    const loadData = async () => {
+        setLastRead(await StorageService.getLastRead());
+        setIsDailyAyatEnabled(await StorageService.getShowAyatOfTheDay());
     };
     loadData();
 

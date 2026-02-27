@@ -106,7 +106,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
         setMushafDownloads(status);
     };
     checkMushafStatus();
-    setShowDailyAyat(StorageService.getShowAyatOfTheDay());
+    const fetchInitialSettings = async () => {
+        setShowDailyAyat(await StorageService.getShowAyatOfTheDay());
+    };
+    fetchInitialSettings();
   }, [language]);
 
   // ... (keep audio logic) ...
@@ -126,9 +129,9 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       const ed = availableEditions.find(e => e.identifier === id);
       return ed ? ed.name : 'Unknown';
   }
-  const handleToggleDailyAyat = (enabled: boolean) => {
+  const handleToggleDailyAyat = async (enabled: boolean) => {
       setShowDailyAyat(enabled);
-      StorageService.setShowAyatOfTheDay(enabled);
+      await StorageService.setShowAyatOfTheDay(enabled);
   };
   const handleSetMushaf = (id: string) => {
       MushafService.setActiveMushafId(id);
