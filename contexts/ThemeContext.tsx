@@ -1,26 +1,34 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import * as DB from '../services/db';
 
 type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
+  isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('quran_theme') as Theme;
-      // Default to light for classic look, but respect saved preference
-      return savedTheme || 'light';
-    }
-    return 'light';
-  });
+  const [theme, setTheme] = useState<Theme>('light');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const initTheme = async () => {
+      const savedTheme = await DB.getSetting('theme') as Theme;
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+      setIsLoading(false);
+    };
+    initTheme();
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) return;
+
     const root = window.document.documentElement;
     
     // Apply class to HTML tag
@@ -30,15 +38,15 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       root.classList.remove('dark');
     }
     
-    localStorage.setItem('quran_theme', theme);
-  }, [theme]);
+    DB.setSetting('theme', theme);
+  }, [theme, isLoading]);
 
   const toggleTheme = () => {
     setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, isLoading }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -1,60 +1,60 @@
-
 import * as DB from './db';
-import { TadabburData } from '../types';
 
 interface BackupData {
     version: number;
     timestamp: number;
-    localStorage: Record<string, any>;
-    indexedDB: {
-        tadabbur: TadabburData[];
+    data: {
+        user_settings: any[];
+        bookmarks: any[];
+        notes: any[];
+        reading_history: any[];
+        quiz_scores: any[];
+        tadabbur: any[];
     };
 }
 
-const LOCAL_STORAGE_KEYS = [
-    'quran_last_read',
-    'quran_bookmarks',
-    'quran_notes',
-    'quran_khatam_target',
-    'quran_reading_history',
-    'quran_show_daily_ayat',
-    'quran_reciter_id',
-    'quran_theme',
-    'active_mushaf_id',
-    'quran_quiz_scores'
-];
-
 export const createBackup = async (): Promise<void> => {
     try {
-        // 1. Gather LocalStorage Data
-        const localStorageData: Record<string, any> = {};
-        LOCAL_STORAGE_KEYS.forEach(key => {
-            const val = localStorage.getItem(key);
-            if (val) {
-                try {
-                    localStorageData[key] = JSON.parse(val);
-                } catch (e) {
-                    localStorageData[key] = val; // Store as string if parse fails (rare)
-                }
-            }
-        });
-
-        // 2. Gather IndexedDB Data (Tadabbur)
-        const tadabburData = await DB.getAllTadabbur();
-
-        // 3. Construct Backup Object
+        const db = await DB.getDB();
+        
+        // 1. Gather all IndexedDB Data
         const backupPayload: BackupData = {
-            version: 1,
+            version: 2, // Incremented version
             timestamp: Date.now(),
-            localStorage: localStorageData,
-            indexedDB: {
-                tadabbur: tadabburData
+            data: {
+                user_settings: await db.getAll('user_settings'),
+                bookmarks: await db.getAll('bookmarks'),
+                notes: await db.getAll('notes'),
+                reading_history: await db.getAll('reading_history'),
+                quiz_scores: await db.getAll('quiz_scores'),
+                tadabbur: await db.getAll('tadabbur')
             }
         };
 
-        // 4. Create File and Download
-        const fileName = `bashirah-backup-${new Date().toISOString().split('T')[0]}.json`;
-        const jsonStr = JSON.stringify(backupPayload, null, 2);
+        // Note: user_settings getAll returns values but does not return keys if not in-line.
+        // Wait, 'user_settings' store doesn't have a keyPath, so getAll only gives values.
+        // We need keys to restore them.
+        
+        const settingsTx = db.transaction('user_settings', 'readonly');
+        const settingsStore = settingsTx.objectStore('user_settings');
+        const settings: Record<string, any> = {};
+        let cursor = await settingsStore.openCursor();
+        while (cursor) {
+            settings[cursor.key.toString()] = cursor.value;
+            cursor = await cursor.continue();
+        }
+        
+        // Update data with records where necessary
+        const structuredData = {
+            ...backupPayload.data,
+            user_settings: settings as any // Use as record for restoration
+        };
+
+        const finalPayload = { ...backupPayload, data: structuredData };
+
+        // 2. Create File and Download
+        const fileName = `bashirah-backup-v2-${new Date().toISOString().split('T')[0]}.json`;
+        const jsonStr = JSON.stringify(finalPayload, null, 2);
         const blob = new Blob([jsonStr], { type: 'application/json' });
         const href = URL.createObjectURL(blob);
         
@@ -82,28 +82,35 @@ export const restoreBackup = async (file: File): Promise<void> => {
                 const text = e.target?.result as string;
                 if (!text) throw new Error("File kosong");
 
-                const backupData: BackupData = JSON.parse(text);
+                const backupData: any = JSON.parse(text);
 
-                // Validate basic structure
-                if (!backupData.localStorage || !backupData.indexedDB) {
-                    throw new Error("Format file backup tidak valid.");
-                }
+                // 1. Access DB
+                const db = await DB.getDB();
 
-                // 1. Restore LocalStorage
-                Object.entries(backupData.localStorage).forEach(([key, value]) => {
-                    if (typeof value === 'object') {
-                        localStorage.setItem(key, JSON.stringify(value));
-                    } else {
-                        localStorage.setItem(key, String(value));
+                // 2. Restore User Settings
+                if (backupData.data.user_settings) {
+                    const tx = db.transaction('user_settings', 'readwrite');
+                    for (const [key, value] of Object.entries(backupData.data.user_settings)) {
+                        await tx.objectStore('user_settings').put(value, key);
                     }
-                });
-
-                // 2. Restore IndexedDB (Tadabbur)
-                if (backupData.indexedDB.tadabbur && Array.isArray(backupData.indexedDB.tadabbur)) {
-                    await DB.bulkPutTadabbur(backupData.indexedDB.tadabbur);
+                    await tx.done;
                 }
 
-                // 3. Trigger update event for UI refresh
+                // 3. Restore Collections
+                const collections = ['bookmarks', 'notes', 'reading_history', 'quiz_scores', 'tadabbur'];
+                for (const col of collections) {
+                    const items = backupData.data[col];
+                    if (items && Array.isArray(items)) {
+                        const tx = db.transaction(col as any, 'readwrite');
+                        const store = tx.objectStore(col as any);
+                        for (const item of items) {
+                            await store.put(item);
+                        }
+                        await tx.done;
+                    }
+                }
+
+                // 4. Trigger update event for UI refresh
                 window.dispatchEvent(new Event('storage-update'));
                 
                 resolve();

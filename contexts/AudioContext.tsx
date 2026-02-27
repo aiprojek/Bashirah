@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { RECITERS, Reciter } from '../types';
 import { getAudioUrl, isSurahDownloaded, downloadSurahAudio } from '../services/audioService';
+import * as DB from '../services/db';
 
 interface PendingPlay {
     surahId: number;
@@ -52,11 +53,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentTotalVerses, setCurrentTotalVerses] = useState<number>(0);
   const [surahName, setSurahName] = useState<string>('');
   
-  const [activeReciter, setActiveReciter] = useState<Reciter>(() => {
-      const stored = localStorage.getItem('quran_reciter_id');
-      return RECITERS.find(r => r.id === stored) || RECITERS[0];
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeReciter, setActiveReciter] = useState<Reciter>(RECITERS[0]);
+  const [isLoading, setIsLoading] = useState(true);
   
   // Download Prompt State
   const [downloadPrompt, setDownloadPrompt] = useState<PendingPlay | null>(null);
@@ -96,6 +94,19 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           isPlaying
       };
   }, [repeatSettings, currentLoopCount, currentVerse, currentSurah, currentTotalVerses, isPlaying]);
+
+  // Load Initial Settings
+  useEffect(() => {
+      const initAudioAction = async () => {
+          const stored = await DB.getSetting('reciter_id');
+          if (stored) {
+              const found = RECITERS.find(r => r.id === stored);
+              if (found) setActiveReciter(found);
+          }
+          setIsLoading(false);
+      };
+      initAudioAction();
+  }, []);
 
   // Initialize Audio Object ONCE
   if (!audioRef.current) {
@@ -371,11 +382,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   };
 
-  const setReciter = (reciterId: string) => {
+  const setReciter = async (reciterId: string) => {
       const found = RECITERS.find(r => r.id === reciterId);
       if (found) {
           setActiveReciter(found);
-          localStorage.setItem('quran_reciter_id', reciterId);
+          await DB.setSetting('reciter_id', reciterId);
       }
   };
 
