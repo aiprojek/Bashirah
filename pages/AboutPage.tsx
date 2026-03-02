@@ -52,7 +52,7 @@ const AboutPage: React.FC = () => {
             
             {/* Tab Navigation */}
             <div className="sticky top-0 z-10 bg-stone-50/95 dark:bg-slate-900/95 backdrop-blur-sm py-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-stone-200/50 dark:border-slate-700/50 sm:border-none transition-colors">
-                <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x justify-center sm:justify-start">
+                <div className="flex overflow-x-auto no-scrollbar gap-2 pb-2 sm:pb-0 snap-x justify-start">
                     {tabs.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;

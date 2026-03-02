@@ -105,10 +105,9 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
                     <div className="relative group">
                         <div 
                             ref={cardRef}
-                            className="w-full aspect-[4/5] bg-emerald-950 rounded-2xl p-8 text-white relative overflow-hidden flex flex-col items-center justify-between text-center"
+                            className="w-full bg-emerald-950 rounded-2xl p-4 sm:p-8 text-white relative overflow-hidden flex flex-col items-center justify-between text-center min-h-[450px] sm:aspect-[4/5] border-[6px] sm:border-[12px] border-[#ce9e00]"
                             style={{ 
-                                backgroundImage: 'radial-gradient(circle at center, #065f46 0%, #064e3b 100%)',
-                                border: '12px solid #ce9e00'
+                                backgroundImage: 'radial-gradient(circle at center, #065f46 0%, #064e3b 100%)'
                             }}
                         >
                             {/* Decorative Corner Ornaments */}
@@ -123,33 +122,33 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
                                 <h4 className="text-sm font-bold tracking-[0.2em] text-quran-gold uppercase mb-1">
                                     {t('khatam_cel_subtitle')}
                                 </h4>
-                                <h2 className="text-3xl font-serif font-bold mb-6">
+                                <h2 className="text-xl sm:text-3xl font-serif font-bold mb-4 sm:mb-6">
                                     {t('khatam_cel_congrats')}
                                 </h2>
                                 
-                                <div className="h-px w-24 bg-quran-gold/30 mx-auto mb-6"></div>
+                                <div className="h-px w-16 sm:w-24 bg-quran-gold/30 mx-auto mb-4 sm:mb-6"></div>
                                 
-                                <p className="text-xs opacity-60 italic mb-2">{t('khatam_cel_name_label')}</p>
-                                <h1 className="text-4xl font-serif font-bold text-quran-gold mb-8 drop-shadow-md underline decoration-quran-gold/30 underline-offset-8">
+                                <p className="text-[10px] sm:text-xs opacity-60 italic mb-1 sm:mb-2">{t('khatam_cel_name_label')}</p>
+                                <h1 className="text-2xl sm:text-4xl font-serif font-bold text-quran-gold mb-6 sm:mb-8 drop-shadow-md underline decoration-quran-gold/30 underline-offset-8">
                                     {name || '[Nama Anda]'}
                                 </h1>
 
                                 {/* Stats box inside card */}
                                 <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto mb-8">
-                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm">
-                                        <p className="text-[10px] uppercase opacity-60 mb-1">{t('khatam_cel_stats_avg')}</p>
-                                        <p className="text-lg font-bold text-quran-gold">{stats?.avgPagesPerDay || 0} <span className="text-xs font-normal">hal</span></p>
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-2 sm:p-3 backdrop-blur-sm">
+                                        <p className="text-[9px] sm:text-[10px] uppercase opacity-60 mb-1">{t('khatam_cel_stats_avg')}</p>
+                                        <p className="text-base sm:text-lg font-bold text-quran-gold">{stats?.avgPagesPerDay || 0} <span className="text-[10px] sm:text-xs font-normal">hal</span></p>
                                     </div>
-                                    <div className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm">
-                                        <p className="text-[10px] uppercase opacity-60 mb-1">{t('khatam_days_active')}</p>
-                                        <p className="text-lg font-bold text-quran-gold">{stats?.totalDaysActive || 0} <span className="text-xs font-normal">hari</span></p>
+                                    <div className="bg-white/5 border border-white/10 rounded-xl p-2 sm:p-3 backdrop-blur-sm">
+                                        <p className="text-[9px] sm:text-[10px] uppercase opacity-60 mb-1">{t('khatam_days_active')}</p>
+                                        <p className="text-base sm:text-lg font-bold text-quran-gold">{stats?.totalDaysActive || 0} <span className="text-[10px] sm:text-xs font-normal">hari</span></p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="relative z-10 w-full">
-                                <div className="bg-black/20 p-4 rounded-xl border border-white/5 mb-2">
-                                    <p className="text-xl font-serif mb-2 tracking-normal leading-[1.8] text-quran-gold" dir="rtl">
+                            <div className="relative z-10 w-full mb-2">
+                                <div className="bg-black/20 p-3 sm:p-4 rounded-xl border border-white/5 mb-2">
+                                    <p className="text-base sm:text-xl font-serif mb-1 sm:mb-2 tracking-normal leading-[1.6] sm:leading-[1.8] text-quran-gold" dir="rtl">
                                         {t('khatam_cel_doa')}
                                     </p>
                                     <p className="text-[10px] opacity-70 italic mb-2">

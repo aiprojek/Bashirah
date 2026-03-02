@@ -221,7 +221,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       const startPage = getSurahStartPage(surah.id);
       return (
           <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
-              <div className="bg-white dark:bg-slate-800 p-2 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center px-4 z-20 shadow-sm shrink-0">
+              <div className="bg-white dark:bg-slate-800 pt-5 pb-2 sm:p-2 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center px-4 z-20 shadow-sm shrink-0">
                    <div className="flex gap-1">
                         {prevSurah && (<button onClick={() => handleNavigateSurah(prevSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronLeft className="w-5 h-5" /></button>)}
                          {nextSurah && (<button onClick={() => handleNavigateSurah(nextSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronRight className="w-5 h-5" /></button>)}
@@ -239,7 +239,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   // --- VIRTUALIZED RENDER COMPONENTS ---
   const VirtualizedHeader = () => (
-    <div className="pb-4">
+    <div className="pt-4 sm:pt-0 pb-4">
         {/* Navigation & Controls */}
         <div className="flex flex-col gap-4 mb-6">
            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">

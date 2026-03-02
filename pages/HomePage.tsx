@@ -250,7 +250,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
 
       {/* TABS NAVIGATION */}
       {!searchTerm && (
-        <div className="flex justify-center mb-6 overflow-x-auto no-scrollbar">
+        <div className="flex justify-start px-4 mb-6 overflow-x-auto no-scrollbar">
             <div className="flex bg-stone-100 dark:bg-slate-800 p-1 rounded-xl whitespace-nowrap">
                  {(['surah', 'juz', 'halaman', 'hizb', 'sajdah'] as const).map((tab) => (
                     <button
