@@ -183,10 +183,14 @@ export const getAvailableEditions = async (): Promise<TranslationOption[]> => {
 
 export const verifyEditionAvailability = async (editionId: string): Promise<boolean> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/surah/1/${editionId}`);
-        const data = await response.json();
-        return data.code === 200 && data.data && data.data.ayahs && data.data.ayahs.length > 0;
+        if (!navigator.onLine) return false;
+        const response = await fetch(`${API_BASE_URL}/surah/1/${editionId}`, { 
+            method: 'GET', // Revert to GET for production/SW compatibility
+            cache: 'no-cache' 
+        });
+        return response.ok;
     } catch (e) {
+        console.error("Availability check failed", e);
         return false;
     }
 };
@@ -465,12 +469,23 @@ export const findOccurrences = async (searchTerm: string, type: 'root' | 'text')
 
 export const downloadEdition = async (editionId: string, onProgress?: (msg: string, percent: number) => void) => {
     try {
+        if (!navigator.onLine) {
+            throw new Error("Tidak ada koneksi internet. Pastikan Anda terhubung ke jaringan.");
+        }
+
         if (onProgress) onProgress("Menghubungi server...", 10);
         const isWorking = await verifyEditionAvailability(editionId);
-        if (!isWorking) throw new Error("Edisi ini tidak merespon dari server.");
+        
+        if (!isWorking) {
+            throw new Error("Edisi ini saat ini tidak tersedia di server atau server sedang sibuk. Silakan coba edisi lain atau ulangi nanti.");
+        }
 
         if (onProgress) onProgress("Mengunduh data...", 30);
         const response = await fetch(`${API_BASE_URL}/quran/${editionId}`);
+        
+        if (!response.ok) {
+            throw new Error(`Server merespon dengan status: ${response.status}. Gagal mengunduh.`);
+        }
 
         if (onProgress) onProgress("Memproses data...", 70);
         const data = await response.json();
@@ -481,11 +496,13 @@ export const downloadEdition = async (editionId: string, onProgress?: (msg: stri
             await DB.saveDownloadedEdition(data.data.edition);
             if (onProgress) onProgress("Selesai!", 100);
             return true;
+        } else {
+            throw new Error(data.message || "Data yang diterima tidak valid.");
         }
-        return false;
     } catch (e) {
         console.error("Download failed", e);
-        showToast(`Gagal mengunduh: ${e instanceof Error ? e.message : 'Kesalahan jaringan'}`);
+        const errorMsg = e instanceof Error ? e.message : 'Terjadi kesalahan jaringan yang tidak terduga.';
+        showToast(errorMsg, "error");
         throw e;
     }
 }

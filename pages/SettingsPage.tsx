@@ -200,7 +200,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       if(isDownloadingAudio) return;
       requestConfirmation(t('settings_audio_download_title'), t('settings_audio_download_desc'), t('btn_download'), "primary", async () => {
           setIsDownloadingAudio(true); setCurrentDownloadSurah(surah.id); setAudioProgress(0);
-          try { await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({...prev, [surah.id]: true})); } catch(e: any) { console.error(e); alert(`Gagal: ${e.message}`); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
+          try { await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({...prev, [surah.id]: true})); } catch(e: any) { console.error(e); showToast(`Gagal: ${e.message}`, "error"); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
       });
   };
   
@@ -211,7 +211,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleDownloadAllAudio = async () => { 
       requestConfirmation(t('settings_audio_download_all_title'), t('settings_audio_download_all_desc'), t('download_all'), "primary", async () => {
           setIsDownloadingAudio(true);
-          try { for (const s of surahs) { if (audioDownloads[s.id]) continue; setCurrentDownloadSurah(s.id); setAudioProgress(0); await AudioService.downloadSurahAudio(activeReciter, s.id, s.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({ ...prev, [s.id]: true })); } alert(t('success')); } catch (e: any) { console.error(e); alert(`Unduhan terhenti: ${e.message}`); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
+          try { for (const s of surahs) { if (audioDownloads[s.id]) continue; setCurrentDownloadSurah(s.id); setAudioProgress(0); await AudioService.downloadSurahAudio(activeReciter, s.id, s.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({ ...prev, [s.id]: true })); } showToast(t('success'), "success"); } catch (e: any) { console.error(e); showToast(`Unduhan terhenti: ${e.message}`, "error"); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
       });
   };
 
@@ -231,7 +231,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                setDownloadedIds(prev => [...prev, edition.identifier]);
                onToggleTajweed(true); // Auto enable after download
            } catch (e) {
-               console.error(e); alert(t('error'));
+               console.error(e); showToast(t('error'), "error");
            } finally {
                setProcessingId(null); setProcessingStatus(''); setDownloadProgress(0);
            }
@@ -271,14 +271,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       setProcessingStatus('...');
       try {
           const isWorking = await verifyEditionAvailability(edition.identifier);
-          if (!isWorking) { alert(t('settings_data_unavailable')); setProcessingId(null); return; }
+          if (!isWorking) { showToast(t('settings_data_unavailable'), "error"); setProcessingId(null); return; }
 
           requestConfirmation(t('settings_data_download_title'), t('settings_data_download_desc'), t('btn_use'), "primary", async () => {
                setProcessingId(edition.identifier); setProcessingStatus(t('loading')); setDownloadProgress(0);
-               try { await downloadEdition(edition.identifier, (msg, percent) => { setProcessingStatus(msg); setDownloadProgress(percent); }); setDownloadedIds(prev => [...prev, edition.identifier]); if(type==='translation') { onTranslationChange(edition.identifier); if(!showTranslation) onToggleTranslation(true); } else { onTafsirChange(edition.identifier); if(!showTafsir) onToggleTafsir(true); } } catch (e) { console.error(e); alert(t('error')); } finally { setProcessingId(null); setProcessingStatus(''); setDownloadProgress(0); }
+               try { await downloadEdition(edition.identifier, (msg, percent) => { setProcessingStatus(msg); setDownloadProgress(percent); }); setDownloadedIds(prev => [...prev, edition.identifier]); if(type==='translation') { onTranslationChange(edition.identifier); if(!showTranslation) onToggleTranslation(true); } else { onTafsirChange(edition.identifier); if(!showTafsir) onToggleTafsir(true); } } catch (e) { console.error(e); showToast(t('error'), 'error'); } finally { setProcessingId(null); setProcessingStatus(''); setDownloadProgress(0); }
           });
           setProcessingId(null);
-      } catch (error) { console.error(error); setProcessingId(null); alert(t('error')); }
+      } catch (error) { console.error(error); setProcessingId(null); showToast(t('error'), "error"); }
   };
 
   const renderEditionList = (type: 'translation' | 'tafsir') => {
