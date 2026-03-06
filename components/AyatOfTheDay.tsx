@@ -4,6 +4,7 @@ import { Share2, ArrowRight, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { getAyatOfTheDayData } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface AyatData {
     surah: {
@@ -24,6 +25,7 @@ interface AyatOfTheDayProps {
 }
 
 const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translationId }) => {
+    const { t } = useLanguage();
     const [ayat, setAyat] = useState<AyatData | null>(null);
     const [loading, setLoading] = useState(true);
     const [generatingImage, setGeneratingImage] = useState(false);
@@ -76,8 +78,8 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                 const file = new File([blob], fileName, { type: 'image/png' });
                 if(navigator.canShare({ files: [file] })) {
                         await navigator.share({
-                        title: 'Ayat of the Day',
-                        text: `Ayat Harian: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}`,
+                        title: t('daily_verse'),
+                        text: `${t('daily_verse')}: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}. ${t('share_capt_text')}`,
                         files: [file]
                     });
                     setGeneratingImage(false);
@@ -97,7 +99,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
 
         } catch (error) {
             console.error("Failed to generate image", error);
-            alert("Gagal membuat gambar.");
+            alert(t('share_failed'));
         } finally {
             setGeneratingImage(false);
         }
@@ -119,7 +121,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-sm z-10 flex flex-col items-center">
+            <div className="relative w-full max-sm z-10 flex flex-col items-center">
                 <button 
                     onClick={onClose}
                     className="absolute -top-12 right-0 text-white/80 hover:text-white transition-colors p-2 bg-white/10 rounded-full"
@@ -130,7 +132,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                 {loading ? (
                      <div className="bg-white rounded-3xl p-10 shadow-2xl border border-stone-100 flex flex-col items-center justify-center aspect-square w-full">
                         <Loader2 className="w-10 h-10 text-quran-gold animate-spin mb-4" />
-                        <p className="text-quran-dark font-serif animate-pulse">Menyiapkan ayat pilihan...</p>
+                        <p className="text-quran-dark font-serif animate-pulse">{t('loading_desc')}</p>
                     </div>
                 ) : ayat ? (
                     <div className="w-full flex flex-col gap-4">
@@ -143,16 +145,13 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                             
                             <div className="relative z-10 flex justify-center shrink-0">
                                 <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-quran-gold/90 border border-quran-gold/30 px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm flex items-center gap-2">
-                                    <Quote className="w-3 h-3 fill-current" /> Ayat Harian
+                                    <Quote className="w-3 h-3 fill-current" /> {t('daily_verse')}
                                 </div>
                             </div>
 
                             <div className="relative z-10 flex-1 flex flex-col items-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth">
                                  <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] drop-shadow-md mb-4 w-full pt-12 pb-2 px-4 text-center" dir="rtl">
                                      {ayat.text}
-                                     <span className="verse-ornament">
-                                         {toArabicNumerals(ayat.verseNo)}
-                                     </span>
                                  </p>
                                  <p className="font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto text-stone-200 pb-8">
                                      "{ayat.translation}"
@@ -161,7 +160,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
 
                             <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 border-t border-white/10 pt-3">
                                 <h4 className="font-bold text-base text-quran-gold">{ayat.surah.englishName}</h4>
-                                <span className="text-[10px] opacity-60 font-sans tracking-wide">Ayat {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
+                                <span className="text-[10px] opacity-60 font-sans tracking-wide">{t('tab_surah')} {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
                             </div>
                         </div>
 
@@ -179,28 +178,26 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                             <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px]"></div>
 
                             <div className="relative z-10 flex flex-col items-center h-full justify-center gap-12">
-                                <div className="text-2xl font-bold uppercase tracking-[0.3em] text-quran-gold/90 border-2 border-quran-gold/30 px-8 py-3 rounded-full bg-black/20 flex items-center gap-4">
-                                    <Quote className="w-6 h-6 fill-current" /> Ayat Harian
+                                <div className="text-2xl font-black uppercase tracking-[0.3em] text-quran-gold border-2 border-quran-gold/50 px-10 py-4 rounded-full bg-black/40 flex items-center justify-center gap-4 min-w-[400px]">
+                                    <Quote className="w-8 h-8 fill-current" /> 
+                                    <span className="leading-none mt-1">{t('daily_verse')}</span>
                                 </div>
                                  <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
                                      <p className="font-arabic text-[64px] leading-[2] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">
                                          {ayat.text}
-                                         <span className="verse-ornament align-middle !w-[100px] !h-[100px] !text-[40px] !border-[4px] mx-8">
-                                            {toArabicNumerals(ayat.verseNo)}
-                                         </span>
                                      </p>
                                      <p className="font-serif text-[32px] italic opacity-90 leading-relaxed max-w-4xl mx-auto text-stone-200">"{ayat.translation}"</p>
                                  </div>
                                 <div className="flex flex-col items-center gap-3 border-t border-white/20 pt-8 pb-32 w-full">
                                     <h4 className="font-bold text-4xl text-quran-gold">{ayat.surah.englishName}</h4>
-                                    <span className="text-2xl opacity-60 font-sans tracking-wide">Ayat {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
+                                    <span className="text-2xl opacity-60 font-sans tracking-wide">{t('tab_surah')} {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
                                 </div>
                             </div>
                             
                             <div className="absolute bottom-[80px] left-[80px] right-[80px] flex justify-between items-end z-20">
                                 <div className="text-left">
                                     <h1 className="text-5xl font-bold font-serif tracking-tight mb-2 text-white">Bashirah</h1>
-                                    <p className="text-xl font-sans uppercase tracking-[0.3em] opacity-60 text-white">Al Quran Digital</p>
+                                    <p className="text-xl font-sans uppercase tracking-[0.3em] opacity-60 text-white">{t('app_subtitle')}</p>
                                 </div>
                                 <div className="text-right">
                                     <p className="text-2xl font-sans font-medium tracking-wider opacity-60 text-white">bashirah.pages.dev</p>
@@ -214,7 +211,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                 onClick={handleGoToVerse}
                                 className="flex-1 bg-white hover:bg-stone-50 text-quran-dark py-3 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 border border-stone-200 whitespace-nowrap"
                             >
-                                <span>Baca Tafsir</span>
+                                <span>{t('lib_view_verse')}</span>
                                 <ArrowRight className="w-4 h-4 flex-shrink-0" />
                             </button>
                             <button 
@@ -229,7 +226,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                 ) : (
                                     <Share2 className="w-4 h-4 flex-shrink-0" />
                                 )}
-                                <span>{generatingImage ? 'Memproses...' : shareSuccess ? 'Tersimpan!' : 'Bagikan'}</span>
+                                <span>{generatingImage ? t('share_processing') : shareSuccess ? t('share_saved') : t('btn_share')}</span>
                             </button>
                         </div>
                     </div>

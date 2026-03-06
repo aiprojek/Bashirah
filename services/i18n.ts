@@ -78,11 +78,13 @@ type TranslationKey =
   | 'names_title' | 'names_desc' | 'names_search' | 'names_empty' | 'names_listen' | 'names_playing' | 'names_dalil_title' | 'names_dalil_empty'
   | 'tajweed_title' | 'tajweed_desc' | 'tajweed_rules' | 'tajweed_def' | 'tajweed_how' | 'tajweed_example' | 'tajweed_close'
   | 'feelings_title' | 'feelings_desc' | 'feelings_view' | 'feelings_select'
-  | 'dua_title' | 'dua_desc' | 'dua_all' | 'dua_rabbana' | 'dua_rabbi' | 'dua_copy' | 'dua_empty'
+  | 'dua_title' | 'dua_desc' | 'dua_all' | 'dua_rabbana' | 'dua_rabbi' | 'dua_copy' | 'dua_share' | 'dua_empty'
   | 'lib_bookmarks' | 'lib_notes' | 'lib_empty_bk' | 'lib_empty_note' | 'lib_start_read' | 'lib_verse' | 'lib_created' | 'lib_view_verse' | 'lib_delete_bk_title' | 'lib_delete_bk_msg' | 'lib_delete_note_title' | 'lib_delete_note_msg'
   // Common Actions
   | 'btn_download' | 'btn_delete' | 'btn_change' | 'btn_save' | 'btn_cancel'
-  | 'btn_close' | 'btn_open' | 'btn_use' | 'btn_active' | 'btn_share' | 'btn_copy'
+  | 'btn_close' | 'btn_open' | 'btn_use' | 'btn_active' | 'btn_share' | 'btn_share_image' | 'btn_copy'
+  | 'share_verse_title' | 'share_verse_marker' | 'share_capt_text' | 'share_capt_title'
+  | 'share_processing' | 'share_saved' | 'share_failed'
   | 'loading' | 'error' | 'success' | 'copied' | 'version'
   // DYNAMIC DATA KEYS (Topics, Emotions, Tajweed, Dua)
   | string;
@@ -293,6 +295,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     dua_rabbana: "Rabbana (Ya Tuhan Kami)",
     dua_rabbi: "Rabbi (Ya Tuhanku)",
     dua_copy: "Salin Teks",
+    dua_share: "Bagikan",
     dua_empty: "Tidak ada doa dalam kategori ini.",
     
     lib_bookmarks: "Bookmark",
@@ -318,7 +321,15 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     btn_use: "Gunakan",
     btn_active: "Aktif",
     btn_share: "Bagikan",
+    btn_share_image: "Bagikan Gambar",
     btn_copy: "Salin",
+    share_verse_title: "Ayat Pilihan",
+    share_verse_marker: "Ayat",
+    share_capt_text: "Dibagikan dari aplikasi Bashirah.",
+    share_capt_title: "Bagikan Ayat",
+    share_processing: "Memproses...",
+    share_saved: "Tersimpan!",
+    share_failed: "Gagal membuat gambar.",
     loading: "Memuat...",
     error: "Terjadi kesalahan",
     success: "Berhasil",
@@ -586,6 +597,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     dua_rabbana: "Rabbana (Our Lord)",
     dua_rabbi: "Rabbi (My Lord)",
     dua_copy: "Copy Text",
+    dua_share: "Share",
     dua_empty: "No dua in this category.",
 
     lib_bookmarks: "Bookmarks",
@@ -611,7 +623,15 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     btn_use: "Use",
     btn_active: "Active",
     btn_share: "Share",
+    btn_share_image: "Share Image",
     btn_copy: "Copy",
+    share_verse_title: "Selected Verse",
+    share_verse_marker: "Verse",
+    share_capt_text: "Shared from Bashirah app.",
+    share_capt_title: "Share Verse",
+    share_processing: "Processing...",
+    share_saved: "Saved!",
+    share_failed: "Failed to generate image.",
     loading: "Loading...",
     error: "An error occurred",
     success: "Success",

@@ -5,6 +5,8 @@ import { DUAS } from '../services/duaData';
 import { Bookmark, Share2, Copy, ArrowRight, HeartHandshake, Sparkles, Check } from 'lucide-react';
 import * as StorageService from '../services/storageService';
 import { useLanguage } from '../contexts/LanguageContext';
+import ShareVerseModal from '../components/ShareVerseModal';
+import { QuranDua } from '../types';
 
 const DuaCollectionPage: React.FC = () => {
     const navigate = useNavigate();
@@ -12,6 +14,7 @@ const DuaCollectionPage: React.FC = () => {
     const [filter, setFilter] = useState<'all' | 'rabbana' | 'rabbi'>('all');
     const [bookmarks, setBookmarks] = useState<number[]>([]);
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [shareData, setShareData] = useState<QuranDua | null>(null);
 
     // Load Bookmarks
     useEffect(() => {
@@ -128,20 +131,38 @@ const DuaCollectionPage: React.FC = () => {
                                 </div>
 
                                 {/* Footer Actions */}
-                                <div className="mt-4 flex justify-end gap-3">
-                                     <button 
+                                 <div className="mt-4 flex justify-end gap-3">
+                                      <button 
+                                        onClick={() => setShareData(dua)}
+                                        className="text-xs font-bold flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-700 border border-stone-200 dark:border-slate-600 text-gray-500 dark:text-gray-300 hover:border-quran-gold hover:text-quran-gold dark:hover:text-quran-gold dark:hover:border-quran-gold transition-colors"
+                                      >
+                                        <Share2 className="w-3 h-3" />
+                                        {t('dua_share')}
+                                      </button>
+                                      <button 
                                         onClick={() => handleCopy(`${dua.arabic}\n\n"${t(`dua_${dua.id}_desc`)}"\n(QS ${dua.surahName}: ${dua.verseId})`, dua.id)}
                                         className={`text-xs font-bold flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${isCopied ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-white dark:bg-slate-700 border border-stone-200 dark:border-slate-600 text-gray-500 dark:text-gray-300 hover:border-quran-gold hover:text-quran-gold dark:hover:text-quran-gold dark:hover:border-quran-gold'}`}
-                                    >
+                                      >
                                         {isCopied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                                         {isCopied ? t('copied') : t('dua_copy')}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+                                      </button>
+                                 </div>
+                             </div>
+                         </div>
+                     );
+                 })}
+             </div>
+
+             {shareData && (
+                <ShareVerseModal 
+                    isOpen={true} 
+                    onClose={() => setShareData(null)} 
+                    surahName={shareData.surahName} 
+                    verseNumber={shareData.verseId} 
+                    arabicText={shareData.arabic} 
+                    translationText={t(`dua_${shareData.id}_desc`) || shareData.translation} 
+                />
+             )}
 
             {filteredDuas.length === 0 && (
                 <div className="text-center py-20 text-gray-400">
