@@ -95,10 +95,20 @@ jobs:
       - name: Build and Sign Android APK
         working-directory: android
         run: |
-          # 1. Decode the keystore
-          echo "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > app/release.keystore
+          # 1. Decode the keystore robustly
+          # Using printf to avoid unexpected characters or newlines from echo
+          printf '%s' "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > app/release.keystore
 
-          # 2. Build and sign
+          # 2. Basic Diagnostics
+          echo "Dignostics for keystore:"
+          ls -l app/release.keystore
+          file app/release.keystore
+
+          # 3. Verify Keystore (This will show if it's readable by Java)
+          # We don't print the output to avoid leaking info, but we check if it fails
+          keytool -list -v -keystore app/release.keystore -storepass "${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" -alias "${{ secrets.ANDROID_ALIAS }}" > /dev/null && echo "Keystore verification: SUCCESS" || echo "Keystore verification: FAILED"
+
+          # 4. Build and sign
           chmod +x gradlew
           ./gradlew assembleRelease
         env:
