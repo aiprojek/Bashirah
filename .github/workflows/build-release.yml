@@ -87,7 +87,7 @@ jobs:
         run: npm ci
 
       - name: Generate Assets
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff' --assetPath assets/logo.png
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff'
 
       - name: Build Web
         run: npm run build

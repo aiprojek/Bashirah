@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Share2, ArrowRight, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { getAyatOfTheDayData } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -129,7 +131,19 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
             const image = canvas.toDataURL("image/png");
             const fileName = `Ayat-Harian-${ayat?.surah.englishName}-${ayat?.verseNo}-${selectedTheme}.png`;
 
-            // Web Share API (Works on Mobile Browsers & Tauri if supported)
+            // 1. Try Capacitor Native Share first if on Native
+            if (Capacitor.isNativePlatform()) {
+                await Share.share({
+                    title: t('daily_verse'),
+                    text: `${t('daily_verse')}: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}. ${t('share_capt_text')}`,
+                    url: image, // Share the Base64 data URL
+                    dialogTitle: t('daily_verse'),
+                });
+                setGeneratingImage(false);
+                return;
+            }
+
+            // 2. Web Share API fallback
             if (navigator.share && navigator.canShare) {
                 const blob = await (await fetch(image)).blob();
                 const file = new File([blob], fileName, { type: 'image/png' });

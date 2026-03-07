@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Share2, Download, Trophy, Star, Heart, CheckCircle2, User } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
 import { useLanguage } from '../contexts/LanguageContext';
 import { KhatamTarget } from '../types';
 import * as StorageService from '../services/storageService';
@@ -59,6 +61,17 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
             });
             const image = canvas.toDataURL('image/png');
             
+            if (Capacitor.isNativePlatform()) {
+                await Share.share({
+                    title: 'Khatam Al-Quran - Bashirah',
+                    text: `Alhamdulillah, saya telah khatam Al-Quran menggunakan aplikasi Bashirah! 📖✨`,
+                    url: image,
+                    dialogTitle: 'Bagikan Khatam'
+                });
+                setIsSharing(false);
+                return;
+            }
+
             if (navigator.share) {
                 const blob = await (await fetch(image)).blob();
                 const file = new File([blob], 'khatam-bashirah.png', { type: 'image/png' });

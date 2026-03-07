@@ -108,7 +108,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                 await Share.share({
                     title: `QS. ${surahName} ${t('share_verse_marker')} ${verseNumber}`,
                     text: t('share_capt_text'),
-                    url: image,
+                    url: image, // Added to share the image
                     dialogTitle: t('share_capt_title'),
                 });
                 setGeneratingImage(false);
