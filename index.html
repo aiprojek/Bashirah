@@ -61,16 +61,16 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
 
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
-        darkMode: "class", // Enable dark mode via class
+        darkMode: "class",
         theme: {
           extend: {
             fontFamily: {
@@ -80,9 +80,9 @@
             },
             colors: {
               quran: {
-                dark: "#1e3a34", // Deep Islamic Green
-                gold: "#d4af37", // Classic Gold
-                cream: "#fcfbf7", // Paper-like background
+                dark: "#1e3a34",
+                gold: "#d4af37",
+                cream: "#fcfbf7",
                 text: "#2d3748",
               },
             },
@@ -94,176 +94,17 @@
         },
       };
     </script>
-    <style>
-      /* Fallback to local font if available (User manually adds them to public/fonts/) */
-      @font-face {
-        font-family: "Amiri";
-        src: url("fonts/Amiri-Regular.ttf") format("truetype");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: "Amiri";
-        src: url("fonts/Amiri-Bold.ttf") format("truetype");
-        font-weight: 700;
-        font-style: normal;
-        font-display: swap;
-      }
-
-      /* Custom scrollbar for better aesthetics */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-      }
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
-      }
-      .dark ::-webkit-scrollbar-track {
-        background: #1e293b;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #d4af37;
-        border-radius: 4px;
-        opacity: 0.5;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: #1e3a34;
-      }
-      /* Hide scrollbar for clean UI where needed */
-      .no-scrollbar::-webkit-scrollbar {
-        display: none;
-      }
-      .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      /* Safe area for mobile PWA */
-      .safe-area-bottom {
-        padding-bottom: env(safe-area-inset-bottom);
-      }
-
-      /* --- ARABIC TEXT RENDERING FIXES --- */
-      .font-arabic {
-        font-family: "Amiri", serif;
-        /* Force ligatures to ensure connected letters (Fix for Tajweed spans) */
-        font-variant-ligatures: common-ligatures contextual;
-        -webkit-font-variant-ligatures: common-ligatures contextual;
-
-        /* Activate OpenType features for Arabic shaping */
-        font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
-        -webkit-font-feature-settings: "liga" 1, "calt" 1, "dlig" 1;
-
-        /* Optimize for legibility over speed */
-        text-rendering: optimizeLegibility;
-      }
-
-      /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
-      .font-arabic span,
-      .tajweed-container span {
-        display: inline !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        
-        /* Force inherit shaping properties - NO ISOLATION */
-        font-variant-ligatures: contextual !important;
-        -webkit-font-variant-ligatures: contextual !important;
-        font-feature-settings: "liga" 1, "calt" 1, "dlig" 1 !important;
-        
-        /* Ensure no gaps between spans */
-        letter-spacing: 0 !important;
-      }
-
-      .tajweed-container {
-        display: inline !important;
-        direction: rtl;
-      }
-      /* Verse End Ornament - Final Perfect Circular Style */
-      .font-arabic .verse-ornament, 
-      .verse-ornament {
-        display: inline-flex !important;
-        align-items: center;
-        justify-content: center;
-        
-        /* Relative sizing for perfect circularity at any scale */
-        width: 1.6em !important;
-        height: 1.6em !important;
-        flex: 0 0 1.6em !important;
-        
-        border: 3.5px solid #d4af37 !important; /* Thick high-contrast border */
-        border-radius: 50% !important;
-        
-        color: #d4af37 !important;
-        background: rgba(212, 175, 55, 0.1);
-        
-        font-family: 'Amiri', serif !important;
-        font-size: 0.65em !important; /* Number is slightly smaller than the circle */
-        font-weight: 900 !important;
-        
-        /* Spacing for RTL context */
-        margin-left: 0.4em !important;
-        margin-right: 0.8em !important; 
-        
-        vertical-align: middle;
-        user-select: none;
-        line-height: 1 !important;
-        box-sizing: border-box !important;
-        overflow: visible !important;
-        white-space: nowrap !important;
-      }
-      .dark .verse-ornament {
-        border-color: #d4af37 !important;
-        background: rgba(212, 175, 55, 0.2);
-      }
-      /* --- ANIMATIONS --- */
-      @keyframes bounce-subtle {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-3px); }
-      }
-      .animate-bounce-subtle {
-        animation: bounce-subtle 2s ease-in-out infinite;
-      }
-
-      @keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0); }
-        50% { transform: translateY(-10px) rotate(1deg); }
-      }
-      .animate-float {
-        animation: float 6s ease-in-out infinite;
-      }
-
-      .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-      }
-      @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-
-      /* Custom scrollbar hide */
-      .custom-scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-      .custom-scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-    </style>
     <script type="importmap">
       {
         "imports": {
-          "react": "https://esm.sh/react@^19.2.4",
-          "react/": "https://esm.sh/react@^19.2.4/",
-          "react-dom/": "https://esm.sh/react-dom@^19.2.4/",
-          "lucide-react": "https://esm.sh/lucide-react@^0.574.0",
-          "react-router-dom": "https://esm.sh/react-router-dom@^7.13.0",
-          "idb": "https://esm.sh/idb@^8.0.3",
-          "react-virtuoso": "https://esm.sh/react-virtuoso@^4.18.1",
-          "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
-          "vite": "https://esm.sh/vite@^7.3.1",
-          "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.4",
-          "vite-plugin-pwa": "https://esm.sh/vite-plugin-pwa@^1.2.0",
-          "@capacitor/cli": "https://esm.sh/@capacitor/cli@^8.1.0"
+          "react": "https://esm.sh/react@^18.2.0",
+          "react/": "https://esm.sh/react@^18.2.0/",
+          "react-dom/": "https://esm.sh/react-dom@^18.2.0/",
+          "lucide-react": "https://esm.sh/lucide-react@^0.344.0",
+          "react-router-dom": "https://esm.sh/react-router-dom@^6.22.3",
+          "idb": "https://esm.sh/idb@^8.0.0",
+          "react-virtuoso": "https://esm.sh/react-virtuoso@^4.7.11",
+          "html2canvas": "https://esm.sh/html2canvas@^1.4.1"
         }
       }
     </script>
