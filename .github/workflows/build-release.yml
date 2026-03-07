@@ -102,17 +102,18 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEYSTORE_PATH: "release.keystore"
         run: |
           # 1. Decode the keystore robustly
           if [ -z "$SIGNING_KEY" ]; then
             echo "ERROR: ANDROID_SIGNING_KEY secret is empty!"
             exit 1
           fi
-          
+
           # Use a temporary file to avoid shell expansion issues with large base64 strings
           echo "$SIGNING_KEY" > signing_key.base64
           base64 -d signing_key.base64 > app/release.keystore
-          
+
           # 2. Basic Diagnostics
           echo "Diagnostics for keystore:"
           ls -l app/release.keystore
@@ -121,15 +122,13 @@ jobs:
             exit 1
           fi
           file app/release.keystore
-          
+
           # 3. Verify Keystore readability
           keytool -list -v -keystore app/release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEYSTORE_ALIAS" || echo "Keystore verification: FAILED"
-          
+
           # 4. Build and sign
           chmod +x gradlew
           ./gradlew assembleRelease
-        env:
-          ANDROID_KEYSTORE_PATH: "release.keystore"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

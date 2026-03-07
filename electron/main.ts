@@ -22,7 +22,10 @@ function createWindow() {
     },
     width: 1200,
     height: 800,
+    autoHideMenuBar: true,
   });
+
+  win.setMenuBarVisibility(false);
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
