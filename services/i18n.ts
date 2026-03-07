@@ -85,6 +85,7 @@ type TranslationKey =
   | 'btn_close' | 'btn_open' | 'btn_use' | 'btn_active' | 'btn_share' | 'btn_share_image' | 'btn_copy'
   | 'share_verse_title' | 'share_verse_marker' | 'share_capt_text' | 'share_capt_title'
   | 'share_processing' | 'share_saved' | 'share_failed'
+  | 'theme_emerald' | 'theme_mushaf' | 'theme_night' | 'theme_royal'
   | 'loading' | 'error' | 'success' | 'copied' | 'version'
   // DYNAMIC DATA KEYS (Topics, Emotions, Tajweed, Dua)
   | string;
@@ -330,6 +331,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     share_processing: "Memproses...",
     share_saved: "Tersimpan!",
     share_failed: "Gagal membuat gambar.",
+    theme_emerald: "Zamrud",
+    theme_mushaf: "Mushaf",
+    theme_night: "Malam",
+    theme_royal: "Biru",
     loading: "Memuat...",
     error: "Terjadi kesalahan",
     success: "Berhasil",
@@ -632,6 +637,10 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     share_processing: "Processing...",
     share_saved: "Saved!",
     share_failed: "Failed to generate image.",
+    theme_emerald: "Emerald",
+    theme_mushaf: "Mushaf",
+    theme_night: "Night",
+    theme_royal: "Royal",
     loading: "Loading...",
     error: "An error occurred",
     success: "Success",
