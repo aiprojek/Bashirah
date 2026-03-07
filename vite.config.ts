@@ -8,6 +8,7 @@ import path from 'node:path';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: './',
   // Tauri expects a fixed port, fail if that port is not available
   server: {
     port: 1420,

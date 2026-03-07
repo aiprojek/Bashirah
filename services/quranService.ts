@@ -1,7 +1,7 @@
 import { Surah, SurahDetail, Verse, LanguageCode, TranslationOption, CURATED_EDITIONS, Word, SurahInfo } from '../types';
 import * as DB from './db';
 
-const QURAN_LOCAL_URL = '/quran-json/quran.json';
+const QURAN_LOCAL_URL = 'quran-json/quran.json';
 const API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_URL = 'https://api.quran.com/api/v4';
 
@@ -200,7 +200,7 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
         return cachedSurahLists[lang];
     }
     try {
-        const response = await fetch(`/quran-json/chapters/${lang}.json`);
+        const response = await fetch(`quran-json/chapters/${lang}.json`);
         if (!response.ok) {
             if (lang !== 'id') return getAllSurahs('id');
             throw new Error('Local chapters not found');
