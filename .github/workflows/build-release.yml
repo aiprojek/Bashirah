@@ -79,6 +79,9 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Install dependencies
         run: npm ci
 
@@ -94,28 +97,39 @@ jobs:
 
       - name: Build and Sign Android APK
         working-directory: android
+        env:
+          SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
+          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           # 1. Decode the keystore robustly
-          # Using printf to avoid unexpected characters or newlines from echo
-          printf '%s' "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > app/release.keystore
-
+          if [ -z "$SIGNING_KEY" ]; then
+            echo "ERROR: ANDROID_SIGNING_KEY secret is empty!"
+            exit 1
+          fi
+          
+          # Use a temporary file to avoid shell expansion issues with large base64 strings
+          echo "$SIGNING_KEY" > signing_key.base64
+          base64 -d signing_key.base64 > app/release.keystore
+          
           # 2. Basic Diagnostics
-          echo "Dignostics for keystore:"
+          echo "Diagnostics for keystore:"
           ls -l app/release.keystore
+          if [ ! -s app/release.keystore ]; then
+            echo "ERROR: Decoded keystore is empty!"
+            exit 1
+          fi
           file app/release.keystore
-
-          # 3. Verify Keystore (This will show if it's readable by Java)
-          # We don't print the output to avoid leaking info, but we check if it fails
-          keytool -list -v -keystore app/release.keystore -storepass "${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" -alias "${{ secrets.ANDROID_ALIAS }}" > /dev/null && echo "Keystore verification: SUCCESS" || echo "Keystore verification: FAILED"
-
+          
+          # 3. Verify Keystore readability
+          keytool -list -v -keystore app/release.keystore -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEYSTORE_ALIAS" || echo "Keystore verification: FAILED"
+          
           # 4. Build and sign
           chmod +x gradlew
           ./gradlew assembleRelease
         env:
           ANDROID_KEYSTORE_PATH: "release.keystore"
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
-          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
