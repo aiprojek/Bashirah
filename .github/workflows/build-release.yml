@@ -98,28 +98,41 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease
 
-      - name: Sign APK
-        id: sign_app
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: android/app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.ANDROID_SIGNING_KEY }}
-          alias: ${{ secrets.ANDROID_ALIAS }}
-          keyStorePassword: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: "34.0.0"
+      - name: Sign APK (Manual)
+        run: |
+          # Find zipalign and apksigner
+          BUILD_TOOLS_VERSION="34.0.0"
+          ZIPALIGN=$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/zipalign
+          APKSIGNER=$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner
+
+          # 1. ZipAlign the APK
+          $ZIPALIGN -v 4 android/app/build/outputs/apk/release/app-release-unsigned.apk Bashirah-release-aligned.apk
+
+          # 2. Decode the keystore
+          echo "${{ secrets.ANDROID_SIGNING_KEY }}" | base64 -d > release.keystore
+
+          # 3. Sign the APK
+          $APKSIGNER sign --ks release.keystore \
+            --ks-key-alias "${{ secrets.ANDROID_ALIAS }}" \
+            --ks-pass pass:"${{ secrets.ANDROID_KEY_STORE_PASSWORD }}" \
+            --key-pass pass:"${{ secrets.ANDROID_KEY_PASSWORD }}" \
+            --out Bashirah-release-signed.apk \
+            Bashirah-release-aligned.apk
+
+          # 4. Success check
+          $APKSIGNER verify Bashirah-release-signed.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Bashirah-APK-${{ github.ref_name }}-${{ github.run_number }}
-          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          path: Bashirah-release-signed.apk
 
       - name: Add APK to Release
         uses: softprops/action-gh-release@v2
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         with:
-          files: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          files: Bashirah-release-signed.apk
           tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
         env:
