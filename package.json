@@ -3,19 +3,46 @@
   "private": true,
   "version": "1.0.4",
   "type": "module",
+  "main": "dist-electron/main.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri",
-    "icons": "tauri icon public/logo.svg",
-    "prebuild": "npm run icons",
-    "android": "tauri android",
-    "ios": "tauri ios",
-    "build:android": "tauri android build",
-    "build:ios": "tauri ios build"
+    "icons": "npx @capacitor/assets generate --android --assetPath assets/logo.png",
+    "android": "npx cap run android",
+    "ios": "npx cap run ios",
+    "build:android": "npm run build && npx cap sync android",
+    "build:ios": "npm run build && npx cap sync ios",
+    "electron:dev": "vite",
+    "electron:build": "vite build && electron-builder"
+  },
+  "build": {
+    "appId": "com.basirah.app",
+    "productName": "Bashirah",
+    "directories": {
+      "output": "dist-electron_build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.png"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/icon.png"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "public/icon.png"
+    }
   },
   "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/share": "^6.0.0",
     "@tauri-apps/api": "^2.0.0",
     "@tauri-apps/plugin-shell": "^2.0.0",
     "html2canvas": "^1.4.1",
@@ -24,23 +51,24 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.22.3",
-    "react-virtuoso": "^4.7.11",
-    "@capacitor/core": "^6.0.0",
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/share": "^6.0.0"
+    "react-virtuoso": "^4.7.11"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.0",
+    "@capacitor/cli": "^6.0.0",
     "@tauri-apps/cli": "^2.0.0",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
+    "electron": "^40.8.0",
+    "electron-builder": "^26.8.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.5.3",
     "vite": "^5.4.1",
-    "vite-plugin-pwa": "^0.20.0",
-    "@capacitor/cli": "^6.0.0",
-    "@capacitor/assets": "^3.0.0"
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vite-plugin-pwa": "^0.20.0"
   }
 }

@@ -82,19 +82,14 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
     if (!text) return null;
 
     // Regex to match the format: [rule[content]
-    // Example: [h:4[ٱ]
     const PARSE_REGEX = /\[([^\[]+)\[([^\]]*)\]/g;
 
-    // Check if text actually contains this format
     if (!text.match(PARSE_REGEX)) {
-         // CRITICAL FIX: Explicitly set dark mode text color to white
          return <span className="text-quran-dark dark:text-white">{text}</span>;
     }
 
     const parts = text.split(PARSE_REGEX);
     const result: React.ReactNode[] = [];
-    
-    // Split with capturing groups returns: [text, rule, content, text, rule, content, ...]
     for (let i = 0; i < parts.length; i += 3) {
         const plainText = parts[i];
         const rule = parts[i + 1];
@@ -103,7 +98,6 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
         // 1. Add plain text part
         if (plainText) {
             result.push(
-                // CRITICAL FIX: Ensure plain parts are white in dark mode
                 <span key={`t-${i}`} className="text-quran-dark dark:text-white">
                     {plainText}
                 </span>
@@ -112,7 +106,6 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
 
         // 2. Add styled content part (if rule exists)
         if (rule && content !== undefined) {
-             // Extract base rule code (e.g., 'h:4' -> 'h')
              const baseRule = rule.split(':')[0].toLowerCase();
              const colorClass = getColorClass(baseRule);
              
@@ -127,7 +120,7 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
     return result;
   }, [text]);
 
-  return <>{elements}</>;
+  return <span className="tajweed-container">{elements}</span>;
 };
 
 export default TajweedText;

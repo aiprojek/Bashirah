@@ -159,17 +159,24 @@
       }
 
       /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
-      .font-arabic span {
+      .font-arabic span,
+      .tajweed-container span {
         display: inline !important;
         margin: 0 !important;
         padding: 0 !important;
         
-        /* Disable isolation which can break some shaping engines */
-        unicode-bidi: plaintext; 
-        
-        /* Force inherit shaping properties */
+        /* Force inherit shaping properties - NO ISOLATION */
         font-variant-ligatures: contextual !important;
         -webkit-font-variant-ligatures: contextual !important;
+        font-feature-settings: "liga" 1, "calt" 1, "dlig" 1 !important;
+        
+        /* Ensure no gaps between spans */
+        letter-spacing: 0 !important;
+      }
+
+      .tajweed-container {
+        display: inline !important;
+        direction: rtl;
       }
       /* Verse End Ornament - Final Perfect Circular Style */
       .font-arabic .verse-ornament, 

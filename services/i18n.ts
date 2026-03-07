@@ -86,6 +86,8 @@ type TranslationKey =
   | 'share_verse_title' | 'share_verse_marker' | 'share_capt_text' | 'share_capt_title'
   | 'share_processing' | 'share_saved' | 'share_failed'
   | 'theme_emerald' | 'theme_mushaf' | 'theme_night' | 'theme_royal'
+  | 'tadabbur_share_title' | 'tadabbur_share_capt'
+  | 'khatam_cert_verse_ar' | 'khatam_cert_verse_id' | 'khatam_period' | 'khatam_start' | 'khatam_end'
   | 'loading' | 'error' | 'success' | 'copied' | 'version'
   // DYNAMIC DATA KEYS (Topics, Emotions, Tajweed, Dua)
   | string;
@@ -335,6 +337,13 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     theme_mushaf: "Mushaf",
     theme_night: "Malam",
     theme_royal: "Biru",
+    tadabbur_share_title: "Refleksi Tadabbur",
+    tadabbur_share_capt: "Merenungi hikmah di balik ayat.",
+    khatam_cert_verse_ar: "وَلِتُكْمِلُوا۟ ٱلْعِدَّةَ وَلِتُكَبِّرُوا۟ ٱللَّهَ عَلَىٰ مَا هَدَىٰكُمْ وَلَعَلَّكُمْ تَشْكُرُونَ",
+    khatam_cert_verse_id: "Hendaklah kamu mencukupkan bilangannya dan hendaklah kamu mengagungkan Allah atas petunjuk-Nya yang diberikan kepadamu, supaya kamu bersyukur.",
+    khatam_period: "Masa Perjalanan",
+    khatam_start: "Mulai",
+    khatam_end: "Selesai",
     loading: "Memuat...",
     error: "Terjadi kesalahan",
     success: "Berhasil",
@@ -641,6 +650,13 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     theme_mushaf: "Mushaf",
     theme_night: "Night",
     theme_royal: "Royal",
+    tadabbur_share_title: "Tadabbur Reflection",
+    tadabbur_share_capt: "Reflecting on the wisdom behind the verse.",
+    khatam_cert_verse_ar: "وَلِتُكْمِلُوا۟ ٱلْعِدَّةَ وَلِتُكَبِّرُوا۟ ٱللَّهَ عَلَىٰ مَا هَدَىٰكُمْ وَلَعَلَّكُمْ تَشْكُرُونَ",
+    khatam_cert_verse_id: "That you should complete the number and that you should exalt Allah for His having guided you and that you may be grateful.",
+    khatam_period: "Journey Period",
+    khatam_start: "Start",
+    khatam_end: "Finish",
     loading: "Loading...",
     error: "An error occurred",
     success: "Success",

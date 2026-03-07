@@ -1,27 +1,28 @@
 
 import React, { useState, useRef } from 'react';
-import { Share2, Loader2, X, Quote, Check } from 'lucide-react';
+import { X, Share2, Download, Check, Loader2, Quote } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
 import { useLanguage } from '../contexts/LanguageContext';
+import { TadabburTag } from '../types';
 
-interface ShareVerseModalProps {
+interface ShareTadabburModalProps {
     isOpen: boolean;
     onClose: () => void;
-    surahName: string;
-    verseNumber: number;
-    arabicText: string;
-    translationText: string;
+    title: string;
+    content: string;
+    tag: TadabburTag;
+    timestamp: number;
 }
 
-const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
+const ShareTadabburModal: React.FC<ShareTadabburModalProps> = ({
     isOpen,
     onClose,
-    surahName,
-    verseNumber,
-    arabicText,
-    translationText
+    title,
+    content,
+    tag,
+    timestamp
 }) => {
     const { t } = useLanguage();
     const [generatingImage, setGeneratingImage] = useState(false);
@@ -73,6 +74,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
     };
 
     const currentTheme = themes[selectedTheme];
+    const date = new Date(timestamp);
 
     const handleShare = async () => {
         if (!exportRef.current) return;
@@ -91,6 +93,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                     const clonedEl = clonedDoc.body.querySelector('[data-export-card="true"]') as HTMLElement;
                     if (clonedEl) {
                         clonedEl.style.display = 'flex';
+                        // Fix backdrop-filter blur which is not supported by html2canvas
                         const badges = clonedEl.querySelectorAll('.backdrop-blur-sm');
                         badges.forEach((b: any) => {
                             b.style.backdropFilter = 'none';
@@ -101,29 +104,27 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
             });
 
             const image = canvas.toDataURL("image/png");
-            const fileName = `Bashirah-${surahName}-${verseNumber}-${selectedTheme}.png`;
+            const fileName = `Bashirah-Tadabbur-${Date.now()}.png`;
 
-            // 1. Try Capacitor Native Share first if on Native
             if (Capacitor.isNativePlatform()) {
                 await Share.share({
-                    title: `QS. ${surahName} ${t('share_verse_marker')} ${verseNumber}`,
-                    text: t('share_capt_text'),
+                    title: title,
+                    text: t('tadabbur_share_capt'),
                     url: image,
-                    dialogTitle: t('share_capt_title'),
+                    dialogTitle: t('tadabbur_share_title'),
                 });
                 setGeneratingImage(false);
                 return;
             }
 
-            // 2. Web Share API fallback
             if (navigator.share && navigator.canShare) {
                 const blob = await (await fetch(image)).blob();
                 const file = new File([blob], fileName, { type: 'image/png' });
 
                 if (navigator.canShare({ files: [file] })) {
                     await navigator.share({
-                        title: `QS. ${surahName} ${t('share_verse_marker')} ${verseNumber}`,
-                        text: t('share_capt_text'),
+                        title: title,
+                        text: t('tadabbur_share_capt'),
                         files: [file]
                      });
                     setGeneratingImage(false);
@@ -131,13 +132,11 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                 }
             }
 
-            // Fallback Download
             const link = document.createElement('a');
             link.href = image;
             link.download = fileName;
             link.click();
 
-            // Show Success
             setShareSuccess(true);
             setTimeout(() => setShareSuccess(false), 3000);
 
@@ -152,7 +151,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
+        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4 animate-fade-in">
             <div
                 className="absolute inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
@@ -170,38 +169,27 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                     {/* PREVIEW CARD */}
                     <div className={`relative aspect-square w-full overflow-hidden rounded-3xl bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} shadow-2xl border ${currentTheme.border} flex flex-col justify-between p-6 transition-all duration-500`}>
                         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] pointer-events-none"></div>
-                        {selectedTheme === 'emerald' && (
-                            <>
-                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-quran-gold/20 rounded-full blur-3xl"></div>
-                                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
-                            </>
-                        )}
-                        {selectedTheme === 'royal' && (
-                            <>
-                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-quran-gold/20 rounded-full blur-3xl"></div>
-                                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl"></div>
-                            </>
-                        )}
-
+                        
                         <div className="relative z-10 flex justify-center shrink-0">
-                            <div className={`text-[10px] font-bold uppercase tracking-[0.1em] border px-3 py-1 rounded-full backdrop-blur-sm flex items-center gap-2 ${currentTheme.badge}`}>
+                            <div className={`text-[10px] font-bold uppercase tracking-[0.2em] border px-4 py-1.5 rounded-full backdrop-blur-sm flex items-center gap-2 ${currentTheme.badge}`}>
                                 <Quote className="w-3 h-3 fill-current" /> 
-                                <span className="leading-none">{t('share_verse_title')}</span>
+                                <span className="leading-none">{t('tadabbur_share_title')}</span>
                             </div>
                         </div>
 
-                        <div className="relative z-10 flex-1 flex flex-col items-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth">
-                            <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] sm:leading-[3] drop-shadow-md mb-4 w-full pt-4 pb-2 px-1 text-center" dir="rtl">
-                                {arabicText.replace(/\d+/g, '').trim()}
-                            </p>
-                            <p className={`font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto ${currentTheme.subText} pb-4`}>
-                                "{translationText}"
-                            </p>
+                        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center overflow-y-auto custom-scrollbar my-4 px-2 scroll-smooth">
+                            <h3 className={`text-xl font-bold font-serif mb-4 leading-tight ${currentTheme.accent}`}>{title}</h3>
+                            <div className="relative">
+                                 <p className={`font-serif text-sm leading-relaxed italic opacity-90 ${currentTheme.subText}`}>
+                                    {content}
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 border-t border-white/10 pt-3">
-                            <h4 className={`font-bold text-base ${currentTheme.accent}`}>{surahName}</h4>
-                            <span className="text-[10px] opacity-60 font-sans tracking-wide">{t('share_verse_marker')} {verseNumber}</span>
+                        <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 border-t border-white/10 pt-4">
+                            <div className="flex items-center gap-2 text-[10px] opacity-60 font-sans tracking-widest uppercase">
+                                <span className="leading-none">{date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -210,48 +198,39 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                         ref={exportRef}
                         data-export-card="true"
                         style={{ position: 'fixed', top: 0, left: '-9999px', width: '1080px', minHeight: '1080px', height: 'auto' }}
-                        className={`bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} flex flex-col justify-between p-[80px] relative`}
+                        className={`bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} flex flex-col justify-between p-[100px] relative`}
                     >
                         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] pointer-events-none"></div>
-                        {selectedTheme === 'emerald' && (
-                            <>
-                                <div className="absolute -top-20 -right-20 w-[400px] h-[400px] bg-quran-gold/20 rounded-full blur-[100px]"></div>
-                                <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px]"></div>
-                            </>
-                        )}
-                        {selectedTheme === 'royal' && (
-                            <>
-                                <div className="absolute -top-20 -right-20 w-[400px] h-[400px] bg-quran-gold/20 rounded-full blur-[100px]"></div>
-                                <div className="absolute -bottom-20 -left-20 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px]"></div>
-                            </>
-                        )}
-
-                        <div className="relative z-10 flex flex-col items-center h-full justify-center gap-12">
-                            <div className={`text-2xl font-black uppercase tracking-[0.3em] border-2 px-10 py-4 rounded-full bg-black/40 flex items-center justify-center gap-4 min-w-[400px] h-[90px] ${currentTheme.badge}`}>
+                        
+                        <div className="relative z-10 flex flex-col items-center h-full justify-center gap-16">
+                            <div className={`text-2xl font-black uppercase tracking-[0.5em] border-2 px-12 py-5 rounded-full bg-black/30 flex items-center justify-center gap-6 min-w-[500px] h-[100px] ${currentTheme.badge}`}>
                                 <div className="flex items-center justify-center h-full">
-                                    <Quote className="w-8 h-8 fill-current" />
+                                    <Quote className="w-10 h-10 fill-current" />
                                 </div>
-                                <span className="leading-tight flex items-center h-full">{t('share_verse_title')}</span>
+                                <span className="leading-tight flex items-center h-full">{t('tadabbur_share_title')}</span>
                             </div>
-                            <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
-                                <p className="font-arabic text-[64px] leading-[2.5] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">
-                                    {arabicText.replace(/\d+/g, '').trim()}
+                            
+                            <div className="text-center w-full flex-1 flex flex-col items-center justify-center py-10 px-10">
+                                <h2 className={`text-6xl font-bold font-serif mb-16 tracking-tight leading-tight max-w-4xl ${currentTheme.accent}`}>{title}</h2>
+                                <p className={`font-serif text-[42px] italic opacity-95 leading-[1.8] max-w-4xl mx-auto ${currentTheme.subText}`}>
+                                    {content}
                                 </p>
-                                <p className={`font-serif text-[32px] italic opacity-90 leading-relaxed max-w-4xl mx-auto ${currentTheme.subText}`}>"{translationText}"</p>
                             </div>
-                            <div className="flex flex-col items-center gap-3 border-t border-white/20 pt-8 pb-32 w-full">
-                                <h4 className={`font-bold text-4xl ${currentTheme.accent}`}>QS. {surahName}</h4>
-                                <span className="text-2xl opacity-60 font-sans tracking-wide">{t('share_verse_marker')} {verseNumber}</span>
+
+                            <div className="flex flex-col items-center gap-4 border-t border-white/20 pt-16 pb-32 w-full">
+                                <div className="flex items-center justify-center gap-5 text-2xl opacity-60 font-sans tracking-[0.3em] uppercase h-[40px]">
+                                    <span className="leading-tight flex items-center h-full whitespace-nowrap">{date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="absolute bottom-[80px] left-[80px] right-[80px] flex justify-between items-end z-20">
+                        <div className="absolute bottom-[100px] left-[100px] right-[100px] flex justify-between items-end z-20">
                             <div className="text-left">
-                                <h1 className={`text-5xl font-bold font-serif tracking-tight mb-2 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>Bashirah</h1>
-                                <p className={`text-xl font-sans uppercase tracking-[0.3em] opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>{t('app_subtitle')}</p>
+                                <h1 className={`text-6xl font-bold font-serif tracking-tight mb-2 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>Bashirah</h1>
+                                <p className={`text-2xl font-sans uppercase tracking-[0.4em] opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>{t('app_subtitle')}</p>
                             </div>
                             <div className="text-right">
-                                <p className={`text-2xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.pages.dev</p>
+                                <p className={`text-3xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.pages.dev</p>
                             </div>
                         </div>
                     </div>
@@ -273,7 +252,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                     <button
                         onClick={handleShare}
                         disabled={generatingImage || shareSuccess}
-                        className={`w-full text-white py-3.5 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap ${shareSuccess ? 'bg-green-600' : 'bg-quran-gold hover:bg-yellow-500'}`}
+                        className={`w-full text-white py-4 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-3 whitespace-nowrap ${shareSuccess ? 'bg-green-600' : 'bg-quran-dark/80 hover:bg-black/90'}`}
                     >
                         {generatingImage ? (
                             <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
@@ -290,4 +269,4 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
     );
 };
 
-export default ShareVerseModal;
+export default ShareTadabburModal;

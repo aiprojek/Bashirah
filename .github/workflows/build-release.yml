@@ -14,7 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        platform: [macos-latest, ubuntu-22.04, windows-latest]
+        platform: [macos-latest, ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -25,11 +25,8 @@ jobs:
           node-version: 20
           cache: "npm"
 
-      - name: Install Rust (Stable)
-        uses: dtolnay/rust-toolchain@stable
-
       - name: Install Dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
+        if: matrix.platform == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libjavascriptcoregtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
@@ -37,16 +34,30 @@ jobs:
       - name: Install NPM Dependencies
         run: npm ci
 
-      - name: Build Tauri App
-        uses: tauri-apps/tauri-action@v0
+      - name: Build Electron App
+        run: npm run electron:build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Desktop Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tagName: v__VERSION__
-          releaseName: "Bashirah v__VERSION__"
-          body: "Release for Bashirah Al-Quran Digital"
-          draft: true
-          prerelease: false
+          name: Bashirah-Desktop-${{ matrix.platform }}-${{ github.run_number }}
+          path: dist-electron_build/*
+
+      - name: Add Desktop to Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist-electron_build/*.exe
+            dist-electron_build/*.dmg
+            dist-electron_build/*.AppImage
+            dist-electron_build/*.deb
+            dist-electron_build/*.zip
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-android:
     runs-on: ubuntu-latest
@@ -71,7 +82,7 @@ jobs:
         run: npm ci
 
       - name: Generate Assets
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff' --assetPath public/logo.svg
+        run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff' --assetPath assets/logo.png
 
       - name: Build Web
         run: npm run build
@@ -95,7 +106,6 @@ jobs:
           alias: ${{ secrets.ANDROID_ALIAS }}
           keyStorePassword: ${{ secrets.ANDROID_KEY_STORE_PASSWORD }}
           keyPassword: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          buildToolsVersion: "34.0.0"
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

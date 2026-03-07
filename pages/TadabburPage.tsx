@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { BookHeart, Plus, Save, Trash2, X, PenTool, Calendar, Loader2 } from 'lucide-react';
+import { BookHeart, Plus, Save, Trash2, X, PenTool, Calendar, Loader2, Share2 } from 'lucide-react';
 import * as DB from '../services/db'; // Use DB directly
 import { TadabburData, TadabburTag } from '../types';
 import ConfirmationModal from '../components/ConfirmationModal';
+import ShareTadabburModal from '../components/ShareTadabburModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const TadabburPage: React.FC = () => {
@@ -20,6 +21,7 @@ const TadabburPage: React.FC = () => {
 
     // Modal State
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
     const TAGS: { id: TadabburTag; label: string; color: string }[] = [
         { id: 'syukur', label: t('tag_gratitude'), color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' },
@@ -177,13 +179,22 @@ const TadabburPage: React.FC = () => {
                             </h3>
                             <div className="flex gap-2">
                                 {currentId && (
-                                    <button 
-                                        onClick={() => setDeleteId(currentId)}
-                                        className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                        title={t('btn_delete')}
-                                    >
-                                        <Trash2 className="w-5 h-5" />
-                                    </button>
+                                    <>
+                                        <button 
+                                            onClick={() => setIsShareModalOpen(true)}
+                                            className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                            title={t('btn_share')}
+                                        >
+                                            <Share2 className="w-5 h-5" />
+                                        </button>
+                                        <button 
+                                            onClick={() => setDeleteId(currentId)}
+                                            className="p-2 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                            title={t('btn_delete')}
+                                        >
+                                            <Trash2 className="w-5 h-5" />
+                                        </button>
+                                    </>
                                 )}
                                 <button 
                                     onClick={() => setIsEditorOpen(false)}
@@ -253,6 +264,18 @@ const TadabburPage: React.FC = () => {
                 confirmText={t('btn_delete')}
                 variant="danger"
             />
+
+            {/* Share Modal */}
+            {currentId && (
+                <ShareTadabburModal 
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    title={title}
+                    content={content}
+                    tag={selectedTag}
+                    timestamp={entries.find(e => e.id === currentId)?.timestamp || Date.now()}
+                />
+            )}
 
         </div>
     );

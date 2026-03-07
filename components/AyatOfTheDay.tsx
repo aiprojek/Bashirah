@@ -107,12 +107,23 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
 
         try {
             const canvas = await html2canvas(exportRef.current, {
-                scale: 1, 
+                scale: 2, 
                 backgroundColor: null, 
                 useCORS: true,
+                allowTaint: true,
                 logging: false,
                 windowWidth: 1080,
-                windowHeight: 1080, 
+                onclone: (clonedDoc) => {
+                    const clonedEl = clonedDoc.body.querySelector('[data-export-card="true"]') as HTMLElement;
+                    if (clonedEl) {
+                        clonedEl.style.display = 'flex';
+                        const badges = clonedEl.querySelectorAll('.backdrop-blur-sm');
+                        badges.forEach((b: any) => {
+                            b.style.backdropFilter = 'none';
+                            b.style.webkitBackdropFilter = 'none';
+                        });
+                    }
+                }
             });
 
             const image = canvas.toDataURL("image/png");
@@ -167,7 +178,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-sm z-10 flex flex-col items-center">
+            <div className="relative w-full max-w-sm z-10 flex flex-col items-center">
                 <button 
                     onClick={onClose}
                     className="absolute -top-12 right-0 text-white/80 hover:text-white transition-colors p-2 bg-white/10 rounded-full"
@@ -223,6 +234,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                         {/* === HIDDEN EXPORT CARD (GENERATOR) === */}
                         <div 
                             ref={exportRef}
+                            data-export-card="true"
                             style={{ 
                                 position: 'fixed', top: 0, left: '-9999px',
                                 width: '1080px', minHeight: '1080px', height: 'auto',
@@ -244,9 +256,11 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                             )}
 
                             <div className="relative z-10 flex flex-col items-center h-full justify-center gap-12">
-                                <div className={`text-2xl font-black uppercase tracking-[0.3em] border-2 px-10 py-4 rounded-full bg-black/40 flex items-center justify-center gap-4 min-w-[400px] ${currentTheme.badge}`}>
-                                    <Quote className="w-8 h-8 fill-current" /> 
-                                    <span className="leading-none mt-1">{t('daily_verse')}</span>
+                                <div className={`text-2xl font-black uppercase tracking-[0.3em] border-2 px-10 py-4 rounded-full bg-black/40 flex items-center justify-center gap-4 min-w-[400px] h-[90px] ${currentTheme.badge}`}>
+                                    <div className="flex items-center justify-center h-full">
+                                        <Quote className="w-8 h-8 fill-current" />
+                                    </div>
+                                    <span className="leading-tight flex items-center h-full">{t('daily_verse')}</span>
                                 </div>
                                  <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
                                      <p className="font-arabic text-[64px] leading-[2] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">
