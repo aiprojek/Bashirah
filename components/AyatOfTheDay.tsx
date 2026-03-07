@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Share2, ArrowRight, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { getAyatOfTheDayData } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
@@ -133,10 +134,17 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
 
             // 1. Try Capacitor Native Share first if on Native
             if (Capacitor.isNativePlatform()) {
+                const base64Data = image.split(',')[1];
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache
+                });
+
                 await Share.share({
                     title: t('daily_verse'),
                     text: `${t('daily_verse')}: QS ${ayat?.surah.englishName} : ${ayat?.verseNo}. ${t('share_capt_text')}`,
-                    url: image, // Share the Base64 data URL
+                    url: savedFile.uri,
                     dialogTitle: t('daily_verse'),
                 });
                 setGeneratingImage(false);

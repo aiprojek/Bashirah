@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { X, Share2, Download, Check, Loader2, Quote } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useLanguage } from '../contexts/LanguageContext';
 import { TadabburTag } from '../types';
@@ -107,10 +108,17 @@ const ShareTadabburModal: React.FC<ShareTadabburModalProps> = ({
             const fileName = `Bashirah-Tadabbur-${Date.now()}.png`;
 
             if (Capacitor.isNativePlatform()) {
+                const base64Data = image.split(',')[1];
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache
+                });
+
                 await Share.share({
                     title: title,
                     text: t('tadabbur_share_capt'),
-                    url: image,
+                    url: savedFile.uri,
                     dialogTitle: t('tadabbur_share_title'),
                 });
                 setGeneratingImage(false);

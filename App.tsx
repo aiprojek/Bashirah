@@ -12,6 +12,9 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { migrateFromLocalStorage } from './services/db';
 import AppRoutes from './routes';
 import Toast from './components/Toast';
+import { App as CapApp } from '@capacitor/app';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 
 const AppContent: React.FC = () => {
   const [translationEdition, setTranslationEdition] = useState<string>('id.indonesian');
@@ -40,6 +43,22 @@ const AppContent: React.FC = () => {
       if (editions.length > 0) setAvailableEditions(editions);
     };
     initData();
+
+    // Android Back Button Handling
+    let backListener: any;
+    if (Capacitor.isNativePlatform()) {
+      backListener = CapApp.addListener('backButton', ({ canGoBack }: { canGoBack: boolean }) => {
+        if (window.location.pathname === '/' || window.location.pathname === '/home') {
+          CapApp.exitApp();
+        } else {
+          window.history.back();
+        }
+      });
+    }
+
+    return () => {
+      if (backListener) backListener.remove();
+    };
   }, []);
 
   if (isMigrating || isThemeLoading || isLangLoading || isAudioLoading) {

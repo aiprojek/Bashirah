@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { Share2, Loader2, X, Quote, Check } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -105,10 +106,17 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
 
             // 1. Try Capacitor Native Share first if on Native
             if (Capacitor.isNativePlatform()) {
+                const base64Data = image.split(',')[1];
+                const savedFile = await Filesystem.writeFile({
+                    path: fileName,
+                    data: base64Data,
+                    directory: Directory.Cache
+                });
+
                 await Share.share({
                     title: `QS. ${surahName} ${t('share_verse_marker')} ${verseNumber}`,
                     text: t('share_capt_text'),
-                    url: image, // Added to share the image
+                    url: savedFile.uri,
                     dialogTitle: t('share_capt_title'),
                 });
                 setGeneratingImage(false);
