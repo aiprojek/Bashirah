@@ -4,11 +4,52 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
 
 jobs:
+  prepare-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      release_tag: ${{ steps.release_meta.outputs.release_tag }}
+      release_name: ${{ steps.release_meta.outputs.release_name }}
+      prerelease: ${{ steps.release_meta.outputs.prerelease }}
+      android_version_code: ${{ steps.release_meta.outputs.android_version_code }}
+      android_version_name: ${{ steps.release_meta.outputs.android_version_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Release Version
+        id: release_meta
+        run: |
+          release_date="$(date -u +'%Y.%m.%d')"
+          release_tag="v$(date -u +'%Y%m%d').${GITHUB_RUN_NUMBER}"
+          release_name="Bashirah ${release_tag}"
+          prerelease="true"
+          android_version_code="${GITHUB_RUN_NUMBER}"
+          android_version_name="${release_date}.${GITHUB_RUN_NUMBER}"
+
+          echo "release_tag=${release_tag}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${release_name}" >> "$GITHUB_OUTPUT"
+          echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
+          echo "android_version_code=${android_version_code}" >> "$GITHUB_OUTPUT"
+          echo "android_version_name=${android_version_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Create and Push Release Tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --tags origin "refs/tags/${{ steps.release_meta.outputs.release_tag }}" >/dev/null 2>&1; then
+            echo "Tag already exists, skip push."
+          else
+            git tag "${{ steps.release_meta.outputs.release_tag }}" "${GITHUB_SHA}"
+            git push origin "${{ steps.release_meta.outputs.release_tag }}"
+          fi
+
   publish-desktop:
+    needs: prepare-release
     permissions:
       contents: write
     strategy:
@@ -47,21 +88,22 @@ jobs:
 
       - name: Add Desktop to Release
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         with:
+          name: ${{ needs.prepare-release.outputs.release_name }}
           files: |
             dist-electron_build/*.exe
             dist-electron_build/*.dmg
             dist-electron_build/*.AppImage
             dist-electron_build/*.deb
             dist-electron_build/*.zip
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          tag_name: ${{ needs.prepare-release.outputs.release_tag }}
+          prerelease: ${{ needs.prepare-release.outputs.prerelease == 'true' }}
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish-android:
+    needs: prepare-release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -104,6 +146,8 @@ jobs:
           ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           ANDROID_KEYSTORE_PATH: "release.keystore"
+          ANDROID_VERSION_CODE: ${{ needs.prepare-release.outputs.android_version_code }}
+          ANDROID_VERSION_NAME: ${{ needs.prepare-release.outputs.android_version_name }}
         run: |
           # 1. Check if the secret is available
           echo "Checking secret availability..."
@@ -135,15 +179,17 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Bashirah-APK-${{ github.ref_name }}-${{ github.run_number }}
+          name: Bashirah-APK-v${{ needs.prepare-release.outputs.android_version_name }}
+          # Keep run-based artifact naming to avoid collisions in artifact storage.
           path: android/app/build/outputs/apk/release/app-release.apk
 
       - name: Add APK to Release
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         with:
+          name: ${{ needs.prepare-release.outputs.release_name }}
           files: android/app/build/outputs/apk/release/app-release.apk
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'latest' }}
-          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+          tag_name: ${{ needs.prepare-release.outputs.release_tag }}
+          prerelease: ${{ needs.prepare-release.outputs.prerelease == 'true' }}
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

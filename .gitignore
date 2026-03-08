@@ -24,3 +24,9 @@ src-tauri/target
 *.njsproj
 *.sln
 *.sw?
+
+# Android signing artifacts (never commit)
+*.keystore
+*.jks
+*.keystore.base64
+*.jks.base64

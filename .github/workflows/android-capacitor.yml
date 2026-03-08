@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "v*"
 
 jobs:
   build-android-debug:
@@ -32,8 +30,36 @@ jobs:
         run: |
           npx cap sync android
 
+      - name: Prepare Stable Debug Keystore (Optional)
+        working-directory: android
+        env:
+          ANDROID_DEBUG_SIGNING_KEY: ${{ secrets.ANDROID_DEBUG_SIGNING_KEY }}
+          ANDROID_DEBUG_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEYSTORE_PASSWORD }}
+          ANDROID_DEBUG_KEY_ALIAS: ${{ secrets.ANDROID_DEBUG_KEY_ALIAS }}
+          ANDROID_DEBUG_KEY_PASSWORD: ${{ secrets.ANDROID_DEBUG_KEY_PASSWORD }}
+        run: |
+          if [ -n "${ANDROID_DEBUG_SIGNING_KEY}" ]; then
+            printf "%s" "${ANDROID_DEBUG_SIGNING_KEY}" > debug_keystore.base64
+            base64 -d debug_keystore.base64 > app/debug-ci.keystore
+
+            keystore_password="${ANDROID_DEBUG_KEYSTORE_PASSWORD:-android}"
+            key_alias="${ANDROID_DEBUG_KEY_ALIAS:-androiddebugkey}"
+            key_password="${ANDROID_DEBUG_KEY_PASSWORD:-android}"
+
+            echo "ANDROID_DEBUG_KEYSTORE_PATH=app/debug-ci.keystore" >> "$GITHUB_ENV"
+            echo "ANDROID_DEBUG_KEYSTORE_PASSWORD=${keystore_password}" >> "$GITHUB_ENV"
+            echo "ANDROID_DEBUG_KEY_ALIAS=${key_alias}" >> "$GITHUB_ENV"
+            echo "ANDROID_DEBUG_KEY_PASSWORD=${key_password}" >> "$GITHUB_ENV"
+            echo "Using stable debug keystore from GitHub Secrets."
+          else
+            echo "No stable debug keystore secret found. Gradle default debug keystore will be used."
+          fi
+
       - name: Build Android Debug APK
         working-directory: android
+        env:
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+          ANDROID_VERSION_NAME: debug.${{ github.run_number }}
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug

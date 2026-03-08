@@ -1,5 +1,14 @@
 apply plugin: 'com.android.application'
 
+def androidVersionCodeEnv = System.getenv("ANDROID_VERSION_CODE")
+def androidVersionNameEnv = System.getenv("ANDROID_VERSION_NAME")
+def resolvedVersionCode = androidVersionCodeEnv != null ? androidVersionCodeEnv.toInteger() : 1
+def resolvedVersionName = androidVersionNameEnv != null ? androidVersionNameEnv : "1.0.0"
+def debugKeystorePath = System.getenv("ANDROID_DEBUG_KEYSTORE_PATH")
+def debugKeystorePassword = System.getenv("ANDROID_DEBUG_KEYSTORE_PASSWORD")
+def debugKeyAlias = System.getenv("ANDROID_DEBUG_KEY_ALIAS")
+def debugKeyPassword = System.getenv("ANDROID_DEBUG_KEY_PASSWORD")
+
 android {
     namespace "com.aiprojek.bashirah"
     compileSdk rootProject.ext.compileSdkVersion
@@ -8,8 +17,8 @@ android {
         applicationId "com.aiprojek.bashirah"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,6 +27,14 @@ android {
         }
     }
     signingConfigs {
+        debug {
+            if (debugKeystorePath != null) {
+                storeFile file(debugKeystorePath)
+                storePassword debugKeystorePassword
+                keyAlias debugKeyAlias
+                keyPassword debugKeyPassword
+            }
+        }
         release {
             if (System.getenv("ANDROID_KEYSTORE_PATH") != null) {
                 storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
@@ -28,6 +45,11 @@ android {
         }
     }
     buildTypes {
+        debug {
+            if (debugKeystorePath != null) {
+                signingConfig signingConfigs.debug
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
