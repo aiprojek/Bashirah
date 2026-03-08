@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import AudioPlayer from './components/AudioPlayer';
 import AudioDownloadModal from './components/AudioDownloadModal';
-import { getAvailableEditions } from './services/quranService';
+import { getAvailableEditions, showToast } from './services/quranService';
 import { TranslationOption, DEFAULT_EDITIONS } from './types';
 import { AudioProvider, useAudio } from './contexts/AudioContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
@@ -27,6 +27,10 @@ const AppContent: React.FC = () => {
   const [availableEditions, setAvailableEditions] = useState<TranslationOption[]>(DEFAULT_EDITIONS);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMigrating, setIsMigrating] = useState(true);
+  const lastBackPressRef = useRef(0);
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { isLoading: isThemeLoading } = useTheme();
   const { isLoading: isLangLoading } = useLanguage();
@@ -47,11 +51,26 @@ const AppContent: React.FC = () => {
     // Android Back Button Handling
     let backListener: any;
     if (Capacitor.isNativePlatform()) {
-      backListener = CapApp.addListener('backButton', ({ canGoBack }: { canGoBack: boolean }) => {
-        if (window.location.pathname === '/' || window.location.pathname === '/home') {
+      backListener = CapApp.addListener('backButton', () => {
+        // 1) Close sidebar first (native-like modal/back behavior)
+        if (isSidebarOpen) {
+          setIsSidebarOpen(false);
+          return;
+        }
+
+        // 2) If not on home, navigate back within app stack
+        if (location.pathname !== '/') {
+          navigate(-1);
+          return;
+        }
+
+        // 3) On home, require double-back to exit
+        const now = Date.now();
+        if (now - lastBackPressRef.current < 1800) {
           CapApp.exitApp();
         } else {
-          window.history.back();
+          lastBackPressRef.current = now;
+          showToast('Tekan sekali lagi untuk keluar aplikasi.', 'info');
         }
       });
     }
@@ -59,7 +78,7 @@ const AppContent: React.FC = () => {
     return () => {
       if (backListener) backListener.remove();
     };
-  }, []);
+  }, [isSidebarOpen, location.pathname, navigate]);
 
   if (isMigrating || isThemeLoading || isLangLoading || isAudioLoading) {
     return (

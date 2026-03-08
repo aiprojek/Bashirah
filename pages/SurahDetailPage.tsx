@@ -29,6 +29,8 @@ interface DetailPageProps {
   showTajweed: boolean;
 }
 
+const EDGE_SWIPE_ZONE_PX = 32;
+
 const SurahDetailPage: React.FC<DetailPageProps> = ({ 
     translationId, 
     tafsirId, 
@@ -76,6 +78,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse } = useAudio();
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
+  const listSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
       getAllSurahs(language).then(setAllSurahs);
@@ -143,6 +146,32 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const nextSurah = useMemo(() => (!surah || !allSurahs.length) ? null : allSurahs.find(s => s.id === surah.id + 1), [surah, allSurahs]);
   const handleNavigateSurah = (targetId: number) => navigate(`/surah/${targetId}`);
   const handleQuickJump = (surahId: number, verseId: number) => { navigate(`/surah/${surahId}#verse-${verseId}`); };
+  const handleListTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+      if (viewMode !== 'list') return;
+      const t = e.touches[0];
+      listSwipeStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+  const handleListTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+      if (viewMode !== 'list') return;
+      if (showInfoModal || showQuickJump || showMemModal || isNoteModalOpen || showFontSettings || !!selectedWord || !!shareData) return;
+      if (!listSwipeStartRef.current) return;
+
+      const start = listSwipeStartRef.current;
+      const end = e.changedTouches[0];
+      const deltaX = start.x - end.clientX;
+      const deltaY = Math.abs(start.y - end.clientY);
+      const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+      const fromLeftEdge = start.x <= EDGE_SWIPE_ZONE_PX;
+      const fromRightEdge = start.x >= (viewportWidth - EDGE_SWIPE_ZONE_PX);
+      listSwipeStartRef.current = null;
+
+      // Horizontal-first swipe gesture for quick surah navigation.
+      if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > deltaY * 1.25) {
+          // Edge swipe only: from right edge for next, from left edge for previous.
+          if (deltaX > 0 && fromRightEdge && nextSurah) handleNavigateSurah(nextSurah.id); // Swipe left -> next surah
+          if (deltaX < 0 && fromLeftEdge && prevSurah) handleNavigateSurah(prevSurah.id); // Swipe right -> previous surah
+      }
+  };
   const handleToggleBookmark = async (verseId: number) => {
       if(!surah) return;
       const isAdded = await StorageService.toggleBookmark(surah.id, surah.transliteration, verseId);
@@ -221,14 +250,14 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       const startPage = getSurahStartPage(surah.id);
       return (
           <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
-              <div className="bg-white dark:bg-slate-800 pt-5 pb-2 sm:p-2 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center px-4 z-20 shadow-sm shrink-0">
+              <div className="bg-white dark:bg-slate-800 pt-4 pb-2 sm:p-2 border-b border-stone-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between sm:items-center gap-2 px-4 z-20 shadow-sm shrink-0">
                    <div className="flex gap-1">
                         {prevSurah && (<button onClick={() => handleNavigateSurah(prevSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronLeft className="w-5 h-5" /></button>)}
                          {nextSurah && (<button onClick={() => handleNavigateSurah(nextSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronRight className="w-5 h-5" /></button>)}
                    </div>
-                   <div className="flex gap-2">
+                   <div className="flex gap-2 self-end sm:self-auto">
                         <button onClick={() => setShowQuickJump(true)} className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors"><Compass className="w-5 h-5" /></button>
-                       <button onClick={() => setViewMode('list')} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors whitespace-nowrap"><ScrollText className="w-4 h-4" /> Mode List</button>
+                       <button onClick={() => setViewMode('list')} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors whitespace-nowrap min-h-10"><ScrollText className="w-4 h-4" /> <span className="hidden sm:inline">Mode List</span></button>
                    </div>
               </div>
               <div className="flex-1 relative overflow-hidden"><MushafView startPage={startPage} translationId={translationId || 'id.indonesian'} /></div>
@@ -239,7 +268,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   // --- VIRTUALIZED RENDER COMPONENTS ---
   const VirtualizedHeader = () => (
-    <div className="pt-4 sm:pt-0 pb-4">
+    <div className="pt-6 sm:pt-2 px-4 sm:px-6 lg:px-8 pb-4">
         {/* Navigation & Controls */}
         <div className="flex flex-col gap-4 mb-6">
            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -262,7 +291,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                         <Compass className="w-4 h-4" />
                     </button>
                 </div>
-                <button onClick={() => setViewMode('mushaf')} className="flex items-center justify-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-stone-200 dark:border-slate-700 text-sm font-bold text-quran-dark dark:text-gray-100 hover:border-quran-gold dark:hover:border-quran-gold transition-colors flex-shrink-0 w-full sm:w-auto">
+                <button onClick={() => setViewMode('mushaf')} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-stone-200 dark:border-slate-700 text-sm font-bold text-quran-dark dark:text-gray-100 hover:border-quran-gold dark:hover:border-quran-gold transition-colors flex-shrink-0 w-full sm:w-auto min-h-10">
                     <BookOpen className="w-4 h-4 text-quran-gold" /> Mode Mushaf
                 </button>
            </div>
@@ -299,7 +328,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   );
 
   return (
-    <div className="max-w-4xl mx-auto h-full flex flex-col">
+    <div className="max-w-4xl mx-auto h-full flex flex-col" onTouchStart={handleListTouchStart} onTouchEnd={handleListTouchEnd}>
       <div className="flex-1">
           <Virtuoso
             ref={virtuosoRef}
@@ -309,35 +338,77 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                 Header: VirtualizedHeader,
                 Footer: VirtualizedFooter
             }}
-            itemContent={(index, verse) => (
-                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700 p-2 md:p-8 mb-4 mx-4 sm:mx-6 lg:mx-8">
-                     <VerseItem 
-                        key={verse.id} 
-                        verse={verse} 
-                        surahId={surah.id} 
-                        totalVerses={surah.total_verses} 
-                        surahName={surah.transliteration} 
-                        verseTranslation={showTranslation ? verse.translation : undefined} 
-                        verseTafsir={showTafsir ? verse.tafsir : undefined} 
-                        isBookmarked={bookmarkedVerses.includes(verse.id)} 
-                        isLastRead={lastReadVerse === verse.id} 
-                        hasNote={versesWithNotes.includes(verse.id)} 
-                        showWordByWord={showWordByWord} 
-                        memorizationMode={{ isActive: isMemMode, level: memLevel, hideTranslation: hideTranslation }} 
-                        onToggleBookmark={handleToggleBookmark} 
-                        onSetLastRead={handleSetLastRead} 
-                        onTakeNote={handleTakeNote} 
-                        onWordClick={setSelectedWord} 
-                        onUpdateKhatam={handleUpdateKhatam} 
-                        onShare={handleShareVerse} 
-                        isAudioPlaying={audioSurah === surah.id && audioVerse === verse.id} 
-                        onPlayAudio={() => playVerse(surah.id, verse.id, surah.total_verses, surah.transliteration)} 
-                        arabicFontSize={arabicFontSize} 
-                        translationFontSize={translationFontSize} 
-                        isTajweedMode={showTajweed} 
-                      />
-                </div>
-            )}
+            itemContent={(index, verse) => {
+                const prevVerse = index > 0 ? surah.verses[index - 1] : null;
+                const isNewPage = verse.page_number && (!prevVerse || prevVerse.page_number !== verse.page_number);
+                const isNewJuz = verse.juz_number && (!prevVerse || prevVerse.juz_number !== verse.juz_number);
+                const isNewHizb = verse.hizb_number && (!prevVerse || prevVerse.hizb_number !== verse.hizb_number);
+                const isNewRuku = verse.ruku_number && (!prevVerse || prevVerse.ruku_number !== verse.ruku_number);
+
+                return (
+                    <div className="mx-4 sm:mx-6 lg:mx-8 mb-4">
+                        {/* Boundaries Dividers */}
+                        {(isNewPage || isNewJuz || isNewHizb || isNewRuku) && (
+                            <div className="mb-6 flex flex-col gap-2">
+                                <div className="flex items-center gap-3">
+                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-slate-700 to-stone-200 dark:to-slate-700"></div>
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        {isNewJuz && (
+                                            <span className="px-3 py-1 bg-quran-dark text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
+                                                Juz {verse.juz_number}
+                                            </span>
+                                        )}
+                                        {isNewHizb && (
+                                            <span className="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
+                                                Hizb {verse.hizb_number}
+                                            </span>
+                                        )}
+                                        {isNewPage && (
+                                            <span className="px-3 py-1 bg-quran-gold text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
+                                                Halaman {verse.page_number}
+                                            </span>
+                                        )}
+                                        {isNewRuku && (
+                                            <span className="px-3 py-1 bg-stone-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold border border-stone-200 dark:border-slate-600 rounded-full uppercase tracking-widest">
+                                                Ruku {verse.ruku_number}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="h-px flex-1 bg-gradient-to-l from-transparent via-stone-200 dark:via-slate-700 to-stone-200 dark:to-slate-700"></div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-100 dark:border-slate-700 p-2 md:p-8">
+                            <VerseItem 
+                                key={verse.id} 
+                                verse={verse} 
+                                surahId={surah.id} 
+                                totalVerses={surah.total_verses} 
+                                surahName={surah.transliteration} 
+                                verseTranslation={showTranslation ? verse.translation : undefined} 
+                                verseTafsir={showTafsir ? verse.tafsir : undefined} 
+                                isBookmarked={bookmarkedVerses.includes(verse.id)} 
+                                isLastRead={lastReadVerse === verse.id} 
+                                hasNote={versesWithNotes.includes(verse.id)} 
+                                showWordByWord={showWordByWord} 
+                                memorizationMode={{ isActive: isMemMode, level: memLevel, hideTranslation: hideTranslation }} 
+                                onToggleBookmark={handleToggleBookmark} 
+                                onSetLastRead={handleSetLastRead} 
+                                onTakeNote={handleTakeNote} 
+                                onWordClick={setSelectedWord} 
+                                onUpdateKhatam={handleUpdateKhatam} 
+                                onShare={handleShareVerse} 
+                                isAudioPlaying={audioSurah === surah.id && audioVerse === verse.id} 
+                                onPlayAudio={() => playVerse(surah.id, verse.id, surah.total_verses, surah.transliteration)} 
+                                arabicFontSize={arabicFontSize} 
+                                translationFontSize={translationFontSize} 
+                                isTajweedMode={showTajweed} 
+                            />
+                        </div>
+                    </div>
+                );
+            }}
           />
       </div>
 

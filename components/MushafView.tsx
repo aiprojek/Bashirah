@@ -1,11 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Loader2, BookOpen, RefreshCw, Minimize2, Maximize2, ZoomIn, ZoomOut, Move, Bookmark, Check, Target } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { getVersesByPage, showToast } from '../services/quranService';
-import { getPageUrl } from '../services/mushafService';
+import { getPageUrl, isMushafInitialized, setMushafInitialized } from '../services/mushafService';
 import * as StorageService from '../services/storageService';
 import { LastReadData } from '../types';
 import ConfirmationModal from './ConfirmationModal';
+import MushafSetupOverlay from './MushafSetupOverlay';
 
 interface MushafViewProps {
   startPage: number;
@@ -13,7 +15,12 @@ interface MushafViewProps {
   translationId: string;
 }
 
+type TurnDirection = 'next' | 'prev' | null;
+const EDGE_SWIPE_ZONE_PX = 32;
+
 const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translationId }) => {
+  const navigate = useNavigate();
+  const [isInitialized, setIsInitialized] = useState(isMushafInitialized());
   const [currentPage, setCurrentPage] = useState(startPage);
   const [loadingImage, setLoadingImage] = useState(true);
   const [error, setError] = useState(false);
@@ -53,6 +60,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
 
   // --- TRANSITION STATE ---
   const [isTurning, setIsTurning] = useState(false);
+  const [turnDirection, setTurnDirection] = useState<TurnDirection>(null);
 
   // Double Tap Detection
   const lastTapRef = useRef<number>(0);
@@ -98,6 +106,8 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
 
   // Load Image URLs on page change
   useEffect(() => {
+    if (!isInitialized) return;
+
     setLoadingImage(true);
     setError(false);
     setShowTranslationSheet(false);
@@ -122,32 +132,35 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
     loadImages();
   }, [currentPage, isDualPage, rightPageNum, leftPageNum]);
 
-  // --- PAGE TURN LOGIC (FADE) ---
-  const changePageWithAnimation = (newPage: number) => {
+  // --- PAGE TURN LOGIC (BOOK FLIP) ---
+  const changePageWithAnimation = (newPage: number, direction: Exclude<TurnDirection, null>) => {
       if (newPage < 1 || newPage > 604) return;
       if (isTurning) return;
 
       setIsTurning(true);
+      setTurnDirection(direction);
       
-      // Fade Out
       setTimeout(() => {
           setCurrentPage(newPage);
-          // Fade In
+      }, 170);
+
+      setTimeout(() => {
           setIsTurning(false);
-      }, 300); 
+          setTurnDirection(null);
+      }, 560); 
   };
 
   const handleNextPage = () => {
     const increment = isDualPage ? 2 : 1;
     if (currentPage < 604) {
-        changePageWithAnimation(Math.min(currentPage + increment, 604));
+        changePageWithAnimation(Math.min(currentPage + increment, 604), 'next');
     }
   };
 
   const handlePrevPage = () => {
     const decrement = isDualPage ? 2 : 1;
     if (currentPage > 1) {
-        changePageWithAnimation(Math.max(currentPage - decrement, 1));
+        changePageWithAnimation(Math.max(currentPage - decrement, 1), 'prev');
     }
   };
 
@@ -187,7 +200,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
       } else {
           // Swipe Logic for Page Turn
           if ('touches' in e) {
-             dragStartRef.current = { x: e.touches[0].clientX, y: 0 };
+             dragStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
           }
       }
   };
@@ -209,11 +222,21 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
           setIsDragging(false);
       } else if (scale === 1 && 'changedTouches' in e) {
           const touchEnd = e.changedTouches[0].clientX;
+          const touchEndY = e.changedTouches[0].clientY;
           const touchStart = dragStartRef.current.x;
-          const distance = touchStart - touchEnd;
+          const touchStartY = dragStartRef.current.y;
+          const distanceX = touchStart - touchEnd;
+          const distanceY = Math.abs(touchStartY - touchEndY);
+          const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+          const fromLeftEdge = touchStart <= EDGE_SWIPE_ZONE_PX;
+          const fromRightEdge = touchStart >= (viewportWidth - EDGE_SWIPE_ZONE_PX);
           
-          if (distance > 50) handleNextPage(); // Swipe Left -> Next Page
-          if (distance < -50) handlePrevPage(); // Swipe Right -> Prev Page
+          // Horizontal-first swipe to avoid conflicting with vertical gestures.
+          if (Math.abs(distanceX) > 50 && Math.abs(distanceX) > distanceY * 1.2) {
+              // Edge swipe only: from right edge for next, from left edge for previous.
+              if (distanceX > 0 && fromRightEdge) handleNextPage(); // Swipe Left -> Next Page
+              if (distanceX < 0 && fromLeftEdge) handlePrevPage(); // Swipe Right -> Prev Page
+          }
       }
   };
 
@@ -252,6 +275,9 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
               const firstVerse = verses[0]; // Start of page
               const lastVerse = verses[verses.length - 1]; // Use the last verse of the page
               
+              // Automatically update khatam progress/history FIRST while last_read is still old
+              await StorageService.updateKhatamProgress(currentPage);
+
               await StorageService.setLastRead(
                   lastVerse.surah.number,
                   lastVerse.surah.englishName, // API returns englishName
@@ -300,6 +326,22 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
       setTimeout(() => setCurrentPage(prev => prev), 100);
   };
 
+  if (!isInitialized) {
+      return (
+          <MushafSetupOverlay 
+              onConfirm={() => {
+                  setMushafInitialized(true);
+                  setIsInitialized(true);
+              }}
+              onCancel={() => {
+                  if (onClose) onClose();
+                  else navigate(-1);
+              }}
+              onGoToSettings={() => navigate('/settings')}
+          />
+      );
+  }
+
   const isCurrentPageLastRead = lastReadPage === currentPage;
 
   return (
@@ -337,17 +379,19 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                 </div>
                 
                 <div className="flex items-center gap-2">
-                    {/* Update Khatam Button (Only if Active) */}
-                    {hasKhatamTarget && (
-                         <button 
-                            onClick={() => setShowKhatamConfirm(true)}
-                            disabled={isMarkingRead}
-                            className="p-2 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100 transition-colors"
-                            title="Update Progres Khatam"
-                        >
-                            <Target className="w-4 h-4" />
-                        </button>
-                    )}
+                    {/* Update Khatam Button (Always available to trigger manually) */}
+                     <button 
+                        onClick={() => setShowKhatamConfirm(true)}
+                        disabled={isMarkingRead}
+                        className={`p-2 rounded-lg transition-colors border ${
+                            hasKhatamTarget 
+                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
+                            : 'bg-stone-50 text-stone-500 border-stone-100 hover:bg-stone-100'
+                        }`}
+                        title="Update Progres Khatam"
+                    >
+                        <Target className="w-4 h-4" />
+                    </button>
 
                     {/* Mark as Read Button */}
                     <button 
@@ -395,7 +439,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
         {/* 2. MAIN CONTENT */}
         <div 
             ref={containerRef}
-            className={`flex-1 w-full relative overflow-hidden flex items-center justify-center bg-[#fffbf2] ${isDragging ? 'cursor-move' : ''}`}
+            className={`flex-1 w-full relative overflow-hidden flex items-center justify-center bg-[#fffbf2] ${isDragging ? 'cursor-move' : ''} ${isTurning ? 'pointer-events-none' : ''}`}
             onMouseDown={onPointerDown}
             onMouseMove={onPointerMove}
             onMouseUp={onPointerUp}
@@ -424,9 +468,11 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
 
              {/* BOOK CONTAINER */}
              <div 
-                className={`relative flex items-center justify-center h-full w-auto transition-opacity duration-300 ease-in-out origin-center
+                className={`mushaf-book relative flex items-center justify-center h-full w-auto transition-opacity duration-300 ease-in-out origin-center will-change-transform
                     ${isDualPage && scale === 1 ? 'shadow-2xl border-x-4 border-stone-800/5' : ''}
-                    ${isTurning ? 'opacity-0' : 'opacity-100'}
+                    ${isTurning ? 'opacity-95' : 'opacity-100'}
+                    ${isTurning && turnDirection === 'next' ? 'mushaf-flip-next' : ''}
+                    ${isTurning && turnDirection === 'prev' ? 'mushaf-flip-prev' : ''}
                 `}
                 style={{
                     transform: scale > 1 
@@ -477,6 +523,17 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                  </div>
 
              </div>
+
+             {/* Fold shadow effect while turning to mimic paper curvature */}
+             {isTurning && turnDirection && (
+                 <div
+                    className={`absolute inset-y-0 z-20 pointer-events-none ${
+                        turnDirection === 'next'
+                            ? 'right-0 w-1/2 bg-gradient-to-l from-stone-900/25 via-stone-800/10 to-transparent'
+                            : 'left-0 w-1/2 bg-gradient-to-r from-stone-900/25 via-stone-800/10 to-transparent'
+                    }`}
+                 />
+             )}
 
              {/* Pan Indicator (Visual Hint when zoomed) */}
              {scale > 1 && (

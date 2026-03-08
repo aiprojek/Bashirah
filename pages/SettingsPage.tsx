@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun, Save, Upload, HardDrive } from 'lucide-react';
+import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun, Save, Upload, HardDrive, BookOpen } from 'lucide-react';
 import { LanguageCode, APP_LANGUAGES, TranslationOption, RECITERS, Surah, MUSHAF_EDITIONS, MushafEdition, TAJWEED_EDITION } from '../types';
 import LanguageModal from '../components/LanguageModal';
 import ConfirmationModal from '../components/ConfirmationModal'; 
@@ -9,7 +9,7 @@ import * as AudioService from '../services/audioService';
 import * as MushafService from '../services/mushafService';
 import * as StorageService from '../services/storageService';
 import * as BackupService from '../services/backupService';
-import { downloadEdition, verifyEditionAvailability, getAllSurahs, showToast } from '../services/quranService';
+import { downloadEdition, verifyEditionAvailability, getAllSurahs, showToast, bulkDownloadSurahInfo } from '../services/quranService';
 import { useAudio } from '../contexts/AudioContext';
 import { useTheme } from '../contexts/ThemeContext'; 
 import { useLanguage } from '../contexts/LanguageContext';
@@ -82,12 +82,27 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       onConfirm: () => {},
   });
 
+  const [isDownloadingInfo, setIsDownloadingInfo] = useState(false);
+  const [infoProgress, setInfoProgress] = useState(0);
+  const [isInfoDownloaded, setIsInfoDownloaded] = useState(false);
+  const [pendingTasks, setPendingTasks] = useState<any[]>([]);
+  const [isResumingTaskId, setIsResumingTaskId] = useState<string | null>(null);
+
   // Backup & Restore State
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isBackupProcessing, setIsBackupProcessing] = useState(false);
 
   const requestConfirmation = (title: string, message: string, confirmText: string, variant: 'primary' | 'danger', action: () => void) => {
       setConfirmState({ isOpen: true, title, message, confirmText, variant, onConfirm: action });
+  };
+
+  const refreshPendingTasks = async () => {
+      const tasks = await DB.getAllDownloadTasks();
+      setPendingTasks(
+          tasks
+            .filter((task: any) => task.status !== 'completed')
+            .sort((a: any, b: any) => (b.updatedAt || 0) - (a.updatedAt || 0))
+      );
   };
 
   useEffect(() => {
@@ -108,9 +123,19 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     checkMushafStatus();
     const fetchInitialSettings = async () => {
         setShowDailyAyat(await StorageService.getShowAyatOfTheDay());
+        const infos = await DB.getAllSurahInfos();
+        setIsInfoDownloaded(infos.length >= 114);
+        await refreshPendingTasks();
     };
     fetchInitialSettings();
   }, [language]);
+
+  useEffect(() => {
+      const timer = window.setInterval(() => {
+          refreshPendingTasks().catch(() => {});
+      }, 3000);
+      return () => window.clearInterval(timer);
+  }, []);
 
   // ... (keep audio logic) ...
   useEffect(() => {
@@ -186,13 +211,13 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       if (isDownloadingMushaf) return;
       requestConfirmation(t('settings_mushaf_download_title'), t('settings_mushaf_download_desc'), t('btn_download'), "primary", async () => {
           setIsDownloadingMushaf(true); setMushafProgress(0); setProcessingId(mushaf.id);
-          try { await MushafService.downloadMushaf(mushaf.id, (progress) => { setMushafProgress(progress); }); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true })); } catch (e: any) { console.error(e); showToast(`Gagal mengunduh: ${e.message}`, "error"); } finally { setIsDownloadingMushaf(false); setMushafProgress(0); setProcessingId(null); }
+          try { await MushafService.downloadMushaf(mushaf.id, (progress) => { setMushafProgress(progress); }); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: true })); } catch (e: any) { console.error(e); showToast(`Gagal mengunduh: ${e.message}`, "error"); } finally { setIsDownloadingMushaf(false); setMushafProgress(0); setProcessingId(null); await refreshPendingTasks(); }
       });
   };
   
   const handleDeleteMushaf = async (mushaf: MushafEdition) => {
       requestConfirmation(t('settings_mushaf_delete_title'), t('settings_mushaf_delete_desc'), t('btn_delete'), "danger", async () => {
-          await MushafService.deleteMushafData(mushaf.id); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: false }));
+          await MushafService.deleteMushafData(mushaf.id); setMushafDownloads(prev => ({ ...prev, [mushaf.id]: false })); await refreshPendingTasks();
       });
   };
 
@@ -200,20 +225,97 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       if(isDownloadingAudio) return;
       requestConfirmation(t('settings_audio_download_title'), t('settings_audio_download_desc'), t('btn_download'), "primary", async () => {
           setIsDownloadingAudio(true); setCurrentDownloadSurah(surah.id); setAudioProgress(0);
-          try { await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({...prev, [surah.id]: true})); } catch(e: any) { console.error(e); showToast(`Gagal: ${e.message}`, "error"); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
+          try { await AudioService.downloadSurahAudio(activeReciter, surah.id, surah.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({...prev, [surah.id]: true})); } catch(e: any) { console.error(e); showToast(`Gagal: ${e.message}`, "error"); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); await refreshPendingTasks(); }
       });
   };
   
   const handleDeleteSurahAudio = async (surahId: number) => {
-       requestConfirmation(t('settings_audio_delete_title'), t('settings_audio_delete_desc'), t('btn_delete'), "danger", async () => { await AudioService.deleteSurahAudio(activeReciter.id, surahId); setAudioDownloads(prev => ({...prev, [surahId]: false})); });
+       requestConfirmation(t('settings_audio_delete_title'), t('settings_audio_delete_desc'), t('btn_delete'), "danger", async () => { await AudioService.deleteSurahAudio(activeReciter.id, surahId); setAudioDownloads(prev => ({...prev, [surahId]: false})); await refreshPendingTasks(); });
   };
   
+  const handleDownloadAllInfo = async () => {
+      requestConfirmation(t('settings_info_title'), t('settings_info_desc'), t('btn_download'), "primary", async () => {
+          setIsDownloadingInfo(true);
+          setInfoProgress(0);
+          try {
+              const success = await bulkDownloadSurahInfo((progress) => setInfoProgress(progress));
+              if (success) {
+                  setIsInfoDownloaded(true);
+                  showToast(t('success'), "success");
+              }
+          } catch (e: any) {
+              console.error(e);
+              showToast(`Gagal: ${e.message}`, "error");
+          } finally {
+              setIsDownloadingInfo(false);
+              setInfoProgress(0);
+          }
+      });
+  };
+
   const handleDownloadAllAudio = async () => { 
       requestConfirmation(t('settings_audio_download_all_title'), t('settings_audio_download_all_desc'), t('download_all'), "primary", async () => {
           setIsDownloadingAudio(true);
           try { for (const s of surahs) { if (audioDownloads[s.id]) continue; setCurrentDownloadSurah(s.id); setAudioProgress(0); await AudioService.downloadSurahAudio(activeReciter, s.id, s.total_verses, (progress) => { setAudioProgress(progress); }); setAudioDownloads(prev => ({ ...prev, [s.id]: true })); } showToast(t('success'), "success"); } catch (e: any) { console.error(e); showToast(`Unduhan terhenti: ${e.message}`, "error"); } finally { setIsDownloadingAudio(false); setCurrentDownloadSurah(null); setAudioProgress(0); }
       });
   };
+
+  const handleResumeTask = async (task: any) => {
+      if (isDownloadingAudio || isDownloadingMushaf || isResumingTaskId) return;
+      setIsResumingTaskId(task.id);
+      try {
+          if (task.type === 'mushaf') {
+              setIsDownloadingMushaf(true);
+              setProcessingId(task.targetId);
+              setMushafProgress(task.progress || 0);
+              await MushafService.downloadMushaf(task.targetId, (progress) => setMushafProgress(progress));
+              setMushafDownloads(prev => ({ ...prev, [task.targetId]: true }));
+              showToast("Unduhan mushaf dilanjutkan.", "success");
+          } else if (task.type === 'audio') {
+              const [reciterId, surahIdRaw] = (task.targetId || '').split(':');
+              const surahId = parseInt(surahIdRaw || '0');
+              const reciter = RECITERS.find(r => r.id === reciterId);
+              const surah = surahs.find(s => s.id === surahId);
+              if (!reciter || !surah) throw new Error("Data tugas audio tidak valid.");
+
+              setIsDownloadingAudio(true);
+              setCurrentDownloadSurah(surahId);
+              setAudioProgress(task.progress || 0);
+              await AudioService.downloadSurahAudio(reciter, surahId, surah.total_verses, (progress) => setAudioProgress(progress));
+              if (activeReciter.id === reciter.id) {
+                  setAudioDownloads(prev => ({ ...prev, [surahId]: true }));
+              }
+              showToast("Unduhan audio dilanjutkan.", "success");
+          }
+      } catch (e: any) {
+          showToast(`Gagal melanjutkan: ${e.message || e}`, "error");
+      } finally {
+          setIsResumingTaskId(null);
+          setIsDownloadingMushaf(false);
+          setProcessingId(null);
+          setMushafProgress(0);
+          setIsDownloadingAudio(false);
+          setCurrentDownloadSurah(null);
+          setAudioProgress(0);
+          await refreshPendingTasks();
+      }
+  };
+
+  const offlineReadiness = useMemo(() => {
+      const translationCount = downloadedIds.filter(id => availableEditions.some(e => e.identifier === id && e.type === 'translation')).length;
+      const tafsirCount = downloadedIds.filter(id => availableEditions.some(e => e.identifier === id && e.type === 'tafsir')).length;
+      const mushafCount = Object.values(mushafDownloads).filter(Boolean).length;
+      const audioCount = Object.values(audioDownloads).filter(Boolean).length;
+      return [
+          { label: 'Terjemahan', value: `${translationCount} siap offline`, ok: translationCount > 0 },
+          { label: 'Tafsir', value: `${tafsirCount} siap offline`, ok: tafsirCount > 0 },
+          { label: 'Tajweed', value: downloadedIds.includes(TAJWEED_EDITION.identifier) ? 'Siap offline' : 'Belum diunduh', ok: downloadedIds.includes(TAJWEED_EDITION.identifier) },
+          { label: 'Mushaf', value: `${mushafCount}/${MUSHAF_EDITIONS.length} jenis siap`, ok: mushafCount > 0 },
+          { label: 'Audio (Qari aktif)', value: `${audioCount}/${surahs.length || 114} surat`, ok: audioCount > 0 },
+          { label: 'Info Surah', value: isInfoDownloaded ? '114/114 siap' : 'Belum lengkap', ok: isInfoDownloaded },
+          { label: 'Word-by-word', value: 'On-demand via cache', ok: true }
+      ];
+  }, [downloadedIds, availableEditions, mushafDownloads, audioDownloads, surahs.length, isInfoDownloaded]);
 
   // --- TAJWEED HANDLERS ---
   const handleDownloadTajweed = async () => {
@@ -311,11 +413,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
                   return (
                     <div key={option.identifier} className={`p-4 rounded-xl border transition-all ${isSelected ? 'border-quran-gold bg-quran-gold/5 dark:bg-quran-gold/10' : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-quran-gold/50'}`}>
-                        <div className="flex justify-between items-start mb-2">
+                        <div className="flex flex-col sm:flex-row sm:justify-between items-start mb-2 gap-2">
                             <div>
                                 <h4 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{option.name}</h4>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">{option.englishName}</p>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex flex-wrap items-center gap-2 mt-1">
                                     <span className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wide">{option.language}</span>
                                     <span className="text-[10px] bg-stone-100 dark:bg-slate-700 text-stone-500 dark:text-gray-400 px-1.5 py-0.5 rounded flex items-center gap-1"><Download className="w-3 h-3" /> {option.approxSize || '? MB'}</span>
                                 </div>
@@ -326,7 +428,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         {isProcessing ? (
                              <div className="mt-3"><div className="flex justify-between text-xs text-gray-500 mb-1"><span>{processingStatus}</span><span>{downloadProgress}%</span></div><div className="w-full bg-stone-200 rounded-full h-1.5"><div className="bg-quran-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${downloadProgress}%` }}></div></div></div>
                         ) : (
-                            <button onClick={() => handleSelectOrDownload(option, type)} className={`w-full mt-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${isSelected ? 'bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark cursor-default' : isDownloaded ? 'border border-quran-dark dark:border-quran-gold text-quran-dark dark:text-quran-gold hover:bg-quran-dark dark:hover:bg-quran-gold hover:text-white dark:hover:text-quran-dark' : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-slate-600'}`}>
+                            <button onClick={() => handleSelectOrDownload(option, type)} className={`w-full mt-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 min-h-10 ${isSelected ? 'bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark cursor-default' : isDownloaded ? 'border border-quran-dark dark:border-quran-gold text-quran-dark dark:text-quran-gold hover:bg-quran-dark dark:hover:bg-quran-gold hover:text-white dark:hover:text-quran-dark' : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300 hover:bg-stone-200 dark:hover:bg-slate-600'}`}>
                                 {isSelected ? t('btn_active') : isDownloaded ? t('btn_use') : t('btn_download')}
                                 {!isDownloaded && !isSelected && <Download className="w-3 h-3" />}
                             </button>
@@ -344,10 +446,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-slate-900 pb-20 animate-fade-in transition-colors duration-300">
-        <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        <div className="max-w-3xl mx-auto px-3 sm:px-4 py-6 sm:py-8 space-y-4 sm:space-y-6">
             
             {/* Theme Settings */}
-            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5 flex items-center justify-between">
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3">
                 <div>
                     <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
                         {theme === 'dark' ? <Moon className="w-4 h-4 text-quran-gold" /> : <Sun className="w-4 h-4 text-quran-gold" />} 
@@ -355,22 +457,22 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     </h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{theme === 'dark' ? t('settings_theme_dark') : t('settings_theme_light')}</p>
                 </div>
-                <button onClick={toggleTheme} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${theme === 'dark' ? 'bg-quran-gold' : 'bg-gray-300'}`}>
+                <button onClick={toggleTheme} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${theme === 'dark' ? 'bg-quran-gold' : 'bg-gray-300'}`}>
                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
             </section>
 
             {/* Language Settings */}
-            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5 flex items-center justify-between">
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3">
                 <div>
                     <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><Globe className="w-4 h-4 text-quran-gold" /> {t('settings_lang')}</h2>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{getAppLangName()}</p>
                 </div>
-                <button onClick={() => setIsLangModalOpen(true)} className="px-3 py-1.5 text-xs font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg hover:bg-stone-200">{t('btn_change')}</button>
+                <button onClick={() => setIsLangModalOpen(true)} className="px-3 py-2 text-xs font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg hover:bg-stone-200 min-h-10">{t('btn_change')}</button>
             </section>
 
             {/* DATA MANAGEMENT (Backup & Restore) - NEW SECTION */}
-            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5">
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5">
                 <div className="flex items-center gap-2 mb-4">
                     <HardDrive className="w-4 h-4 text-quran-gold" />
                     <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">{t('settings_data')}</h2>
@@ -379,11 +481,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     {/* Simplified for now, could be translated later but 'settings_data' covers the title */}
                     Amankan catatan tadabbur, bookmark, dan pengaturan Anda dengan mengekspor data ke file.
                 </p>
-                <div className="flex gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button 
                         onClick={handleBackup} 
                         disabled={isBackupProcessing}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-xl text-xs font-bold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-xl text-xs font-bold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 min-h-11"
                     >
                         {isBackupProcessing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                         {t('settings_backup')}
@@ -391,7 +493,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <button 
                         onClick={handleRestoreClick}
                         disabled={isBackupProcessing}
-                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-quran-gold/10 text-quran-dark dark:text-quran-gold rounded-xl text-xs font-bold hover:bg-quran-gold/20 transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-quran-gold/10 text-quran-dark dark:text-quran-gold rounded-xl text-xs font-bold hover:bg-quran-gold/20 transition-colors disabled:opacity-50 min-h-11"
                     >
                         <Upload className="w-3 h-3" />
                         {t('settings_restore')}
@@ -406,14 +508,80 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     />
                 </div>
             </section>
+
+            {/* Pending Downloads */}
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3">
+                    <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 text-quran-gold" /> Unduhan Tertunda
+                    </h2>
+                    <button
+                        onClick={refreshPendingTasks}
+                        className="text-xs px-3 py-2 rounded-md bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300 font-bold min-h-10"
+                    >
+                        Refresh
+                    </button>
+                </div>
+                {pendingTasks.length === 0 ? (
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Tidak ada unduhan tertunda.</p>
+                ) : (
+                    <div className="space-y-2">
+                        {pendingTasks.map((task) => (
+                            <div key={task.id} className="p-3 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-900/30">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-gray-700 dark:text-gray-200 break-all">
+                                            {task.type === 'mushaf' ? `Mushaf: ${task.targetId}` : `Audio: ${task.targetId}`}
+                                        </p>
+                                        <p className="text-xs text-gray-400">
+                                            Status: {task.status} • {task.progress || 0}%
+                                        </p>
+                                    </div>
+                                    <button
+                                        disabled={!!isResumingTaskId || isDownloadingAudio || isDownloadingMushaf}
+                                        onClick={() => handleResumeTask(task)}
+                                        className="px-4 py-2 text-xs font-bold rounded-lg bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark disabled:opacity-50 min-h-10 w-full sm:w-auto"
+                                    >
+                                        {isResumingTaskId === task.id ? 'Melanjutkan...' : 'Lanjutkan'}
+                                    </button>
+                                </div>
+                                <div className="mt-2 h-1.5 rounded-full bg-stone-200 dark:bg-slate-700">
+                                    <div className="h-full rounded-full bg-quran-gold" style={{ width: `${task.progress || 0}%` }} />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            {/* Offline Readiness */}
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5">
+                <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2 mb-3">
+                    <Wifi className="w-4 h-4 text-quran-gold" /> Status Kesiapan Offline
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {offlineReadiness.map((item) => (
+                        <div key={item.label} className="p-3 rounded-xl border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-900/30">
+                            <div className="flex items-center justify-between">
+                                <p className="text-xs font-bold text-gray-700 dark:text-gray-200">{item.label}</p>
+                                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${item.ok ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-800/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-800/40 dark:text-amber-300'}`}>
+                                    {item.ok ? 'Siap' : 'Belum'}
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1">{item.value}</p>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-xs text-gray-400 mt-3">Cache audio/mushaf sekarang memakai skema versi `v2` dengan kompatibilitas migrasi data lama.</p>
+            </section>
             
             {/* UI Settings */}
-            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-5 space-y-5">
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 p-4 sm:p-5 space-y-5">
                  <div className="flex items-center justify-between">
                     <div>
                         <h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><Sparkles className="w-4 h-4 text-quran-gold" /> {t('settings_daily_notif')}</h2>
                     </div>
-                    <button onClick={() => handleToggleDailyAyat(!showDailyAyat)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showDailyAyat ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
+                    <button onClick={() => handleToggleDailyAyat(!showDailyAyat)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${showDailyAyat ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showDailyAyat ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                 </div>
@@ -421,7 +589,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <div>
                         <h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><Book className="w-4 h-4 text-quran-gold" /> {t('settings_wbw')}</h2>
                     </div>
-                    <button onClick={() => onToggleWordByWord(!showWordByWord)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showWordByWord ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
+                    <button onClick={() => onToggleWordByWord(!showWordByWord)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${showWordByWord ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showWordByWord ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
                 </div>
@@ -452,14 +620,14 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                                  >
                                      <Trash2 className="w-4 h-4" />
                                  </button>
-                                 <button onClick={() => onToggleTajweed(!showTajweed)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${showTajweed ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
+                                <button onClick={() => onToggleTajweed(!showTajweed)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${showTajweed ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
                                     <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showTajweed ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
                              </div>
                         ) : (
                              <button 
                                 onClick={handleDownloadTajweed}
-                                className="flex items-center gap-2 px-3 py-2 bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg text-xs font-bold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
+                                className="flex items-center gap-2 px-3 py-2.5 bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg text-xs font-bold hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors min-h-10"
                              >
                                  <Download className="w-3 h-3" /> {t('btn_download')} (1.5 MB)
                              </button>
@@ -470,7 +638,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
 
             {/* Mushaf Settings */}
             <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden">
-                 <div className="p-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50/50 dark:bg-slate-700/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'mushaf' ? null : 'mushaf')}>
+                 <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-slate-700 flex items-start sm:items-center justify-between gap-3 bg-stone-50/50 dark:bg-slate-700/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'mushaf' ? null : 'mushaf')}>
                     <div>
                         <h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-quran-gold" /> {t('settings_mushaf')}</h2>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{t('settings_mushaf_type')}: {MushafService.getMushafEdition(activeMushafId).name}</p>
@@ -478,7 +646,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                     <div className="flex items-center gap-2">{activeSection === 'mushaf' ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}</div>
                 </div>
                 {activeSection === 'mushaf' && (
-                    <div className="p-5 bg-stone-50/30 dark:bg-slate-900/30 space-y-4">
+                    <div className="p-4 sm:p-5 bg-stone-50/30 dark:bg-slate-900/30 space-y-4">
                         {MUSHAF_EDITIONS.map(mushaf => {
                             const isSelected = activeMushafId === mushaf.id;
                             const isDownloaded = mushafDownloads[mushaf.id];
@@ -488,7 +656,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                                     <div className="flex justify-between items-start">
                                         <div><h4 className="font-bold text-gray-800 dark:text-gray-100 text-sm flex items-center gap-2">{mushaf.name} {isSelected && <Check className="w-3 h-3 text-quran-gold" />}</h4><p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{mushaf.description}</p></div>
                                     </div>
-                                    {isProcessing ? <div className="mt-4 flex items-center gap-3"><div className="flex-1 bg-stone-200 dark:bg-slate-600 rounded-full h-1.5"><div className="bg-quran-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${mushafProgress}%` }}></div></div><span className="text-[10px] font-bold text-gray-500">{mushafProgress}%</span></div> : <div className="flex gap-2 mt-4"><button onClick={() => handleSetMushaf(mushaf.id)} disabled={isSelected} className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase ${isSelected ? 'bg-quran-gold text-white' : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300'}`}>{isSelected ? t('btn_active') : t('btn_use')}</button>{isDownloaded ? <button onClick={() => handleDeleteMushaf(mushaf)} className="px-3 py-2 border border-red-200 text-red-500 rounded-lg hover:bg-red-50"><Trash2 className="w-4 h-4" /></button> : <button onClick={() => handleDownloadMushaf(mushaf)} disabled={isDownloadingMushaf} className="px-3 py-2 border border-stone-200 dark:border-slate-600 text-stone-500 dark:text-gray-300 rounded-lg hover:bg-stone-50 dark:hover:bg-slate-700"><Download className="w-4 h-4" /></button>}</div>}
+                                    {isProcessing ? <div className="mt-4 flex items-center gap-3"><div className="flex-1 bg-stone-200 dark:bg-slate-600 rounded-full h-1.5"><div className="bg-quran-gold h-1.5 rounded-full transition-all duration-300" style={{ width: `${mushafProgress}%` }}></div></div><span className="text-xs font-bold text-gray-500">{mushafProgress}%</span></div> : <div className="flex flex-col sm:flex-row gap-2 mt-4"><button onClick={() => handleSetMushaf(mushaf.id)} disabled={isSelected} className={`flex-1 py-2.5 rounded-lg text-xs font-bold uppercase min-h-10 ${isSelected ? 'bg-quran-gold text-white' : 'bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-300'}`}>{isSelected ? t('btn_active') : t('btn_use')}</button>{isDownloaded ? <button onClick={() => handleDeleteMushaf(mushaf)} className="px-3 py-2.5 border border-red-200 text-red-500 rounded-lg hover:bg-red-50 min-h-10"><Trash2 className="w-4 h-4" /></button> : <button onClick={() => handleDownloadMushaf(mushaf)} disabled={isDownloadingMushaf} className="px-3 py-2.5 border border-stone-200 dark:border-slate-600 text-stone-500 dark:text-gray-300 rounded-lg hover:bg-stone-50 dark:hover:bg-slate-700 min-h-10"><Download className="w-4 h-4" /></button>}</div>}
                                 </div>
                             );
                         })}
@@ -496,20 +664,56 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                 )}
             </section>
             
-             {/* Audio Settings */}
+            {/* Surah Information Settings (Asbabun Nuzul) - Offline Ready */}
+            <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden">
+                 <div className="p-4 sm:p-5 flex items-start sm:items-center justify-between gap-3">
+                    <div>
+                        <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                             <BookOpen className="w-4 h-4 text-quran-gold" /> 
+                             {t('settings_info_title')}
+                        </h2>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            {isInfoDownloaded ? t('settings_info_downloaded') : t('settings_info_desc')}
+                        </p>
+                    </div>
+                    
+                    {isDownloadingInfo ? (
+                        <div className="flex flex-col items-end gap-1 w-24">
+                            <span className="text-[10px] font-bold text-quran-gold">{infoProgress}%</span>
+                            <div className="w-full bg-stone-100 dark:bg-slate-700 rounded-full h-1">
+                                <div className="bg-quran-gold h-full rounded-full transition-all duration-300" style={{ width: `${infoProgress}%` }} />
+                            </div>
+                        </div>
+                    ) : isInfoDownloaded ? (
+                        <div className="bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 p-2 rounded-full">
+                            <Check className="w-4 h-4" />
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={handleDownloadAllInfo}
+                            className="px-3 py-2.5 text-xs font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg hover:bg-stone-200 transition-colors flex items-center gap-1.5 min-h-10"
+                        >
+                            <Download className="w-3.5 h-3.5" />
+                            {t('btn_download')}
+                        </button>
+                    )}
+                 </div>
+            </section>
+
+            {/* Audio Settings */}
              <section className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden">
-                 <div className="p-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50/50 dark:bg-slate-700/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'audio' ? null : 'audio')}>
+                 <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-slate-700 flex items-start sm:items-center justify-between gap-3 bg-stone-50/50 dark:bg-slate-700/50 cursor-pointer" onClick={() => setActiveSection(activeSection === 'audio' ? null : 'audio')}>
                      <div><h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><Volume2 className="w-4 h-4 text-quran-gold" /> {t('settings_audio')}</h2><p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Qari: {activeReciter.name}</p></div>
                     <div className="flex items-center gap-2">{activeSection === 'audio' ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}</div>
                 </div>
                 {activeSection === 'audio' && (
-                    <div className="p-5 bg-stone-50/30 dark:bg-slate-900/30 space-y-6">
+                    <div className="p-4 sm:p-5 bg-stone-50/30 dark:bg-slate-900/30 space-y-6">
                         <div className="space-y-2"><label className="text-xs font-bold text-gray-500 uppercase tracking-wider">{t('settings_reciter')}</label><div className="relative"><Mic2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-quran-gold" /><select className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-stone-200 dark:border-slate-600 text-sm appearance-none bg-white dark:bg-slate-700 dark:text-white" value={activeReciter.id} onChange={(e) => setReciter(e.target.value)}>{RECITERS.map(r => (<option key={r.id} value={r.id}>{r.name}</option>))}</select></div></div>
-                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 overflow-hidden"><div className="p-4 bg-stone-100 dark:bg-slate-700 border-b border-stone-200 dark:border-slate-600 flex justify-between items-center"><span className="text-xs font-bold text-gray-600 dark:text-gray-300">{t('download_manager')}</span>
+                        <div className="bg-white dark:bg-slate-800 rounded-xl border border-stone-200 dark:border-slate-700 overflow-hidden"><div className="p-4 bg-stone-100 dark:bg-slate-700 border-b border-stone-200 dark:border-slate-600 flex flex-col sm:flex-row justify-between sm:items-center gap-2"><span className="text-xs font-bold text-gray-600 dark:text-gray-300">{t('download_manager')}</span>
                         <button 
                             onClick={handleDownloadAllAudio} 
                             disabled={isDownloadingAudio} 
-                            className="text-[10px] bg-white border border-stone-300 dark:bg-slate-600 dark:border-slate-500 text-gray-700 dark:text-gray-200 px-3 py-1.5 rounded-lg font-bold hover:bg-stone-50 dark:hover:bg-slate-500 disabled:opacity-50 transition-colors shadow-sm"
+                            className="text-xs bg-white border border-stone-300 dark:bg-slate-600 dark:border-slate-500 text-gray-700 dark:text-gray-200 px-3 py-2 rounded-lg font-bold hover:bg-stone-50 dark:hover:bg-slate-500 disabled:opacity-50 transition-colors shadow-sm min-h-10"
                         >
                             {t('download_all')}
                         </button>
@@ -529,7 +733,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                                         <div className="w-8 h-8 rounded-full bg-stone-100 dark:bg-slate-600 flex items-center justify-center text-xs font-bold text-gray-500 dark:text-gray-300 border border-stone-200 dark:border-slate-500">{surah.id}</div>
                                         <div>
                                             <p className="text-sm font-bold text-gray-800 dark:text-gray-100">{surah.transliteration}</p>
-                                            <p className="text-[10px] text-gray-400">{surah.total_verses} Ayat • {size}</p>
+                                            <p className="text-xs text-gray-400">{surah.total_verses} Ayat • {size}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 relative z-10">
@@ -554,7 +758,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
             {/* Translation & Tafsir */}
              {['translation', 'tafsir'].map((type) => (
                 <section key={type} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-stone-200 dark:border-slate-700 overflow-hidden">
-                    <div className="p-5 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50/50 dark:bg-slate-700/50">
+                    <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-slate-700 flex items-start sm:items-center justify-between gap-3 bg-stone-50/50 dark:bg-slate-700/50">
                         <div>
                             <h2 className="text-base font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2"><BookType className="w-4 h-4 text-quran-gold" /> {type === 'translation' ? t('settings_trans') : t('settings_tafsir')}</h2>
                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -565,7 +769,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                             </p>
                         </div>
                         <div className="flex items-center gap-2">
-                             <button onClick={() => type === 'translation' ? onToggleTranslation(!showTranslation) : onToggleTafsir(!showTafsir)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${(type === 'translation' ? showTranslation : showTafsir) ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
+                             <button onClick={() => type === 'translation' ? onToggleTranslation(!showTranslation) : onToggleTafsir(!showTafsir)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${(type === 'translation' ? showTranslation : showTafsir) ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
                                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${ (type === 'translation' ? showTranslation : showTafsir) ? 'translate-x-6' : 'translate-x-1'}`} />
                             </button>
                             <button onClick={() => { setActiveSection(activeSection === type ? null : type as any); setSearchQuery(''); }} className="p-1 rounded-full hover:bg-stone-200 dark:hover:bg-slate-700">
@@ -573,7 +777,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                             </button>
                         </div>
                     </div>
-                    {activeSection === type && <div className="p-5 bg-stone-50/30 dark:bg-slate-900/30">{renderEditionList(type as any)}</div>}
+                    {activeSection === type && <div className="p-4 sm:p-5 bg-stone-50/30 dark:bg-slate-900/30">{renderEditionList(type as any)}</div>}
                 </section>
             ))}
         </div>

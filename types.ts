@@ -17,6 +17,9 @@ export interface Verse {
   translation?: string;
   tafsir?: string;
   page_number?: number;
+  juz_number?: number;
+  hizb_number?: number;
+  ruku_number?: number;
   words?: Word[];
 }
 

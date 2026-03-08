@@ -64,21 +64,27 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                         
                         {/* Quick Stats */}
                         {surah && (
-                            <div className="grid grid-cols-3 gap-4 mb-6">
-                                <div className="bg-stone-50 dark:bg-slate-700 p-3 rounded-xl border border-stone-100 dark:border-slate-600 text-center">
-                                    <div className="text-gray-400 mb-1 flex justify-center"><BookOpen className="w-4 h-4" /></div>
-                                    <div className="font-bold text-quran-dark dark:text-white text-lg">{surah.total_verses}</div>
-                                    <div className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Ayat</div>
+                            <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
+                                <div className="bg-stone-50/50 dark:bg-slate-700/30 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-slate-700 flex flex-col items-center justify-center gap-1 group hover:border-quran-gold/30 transition-all duration-300">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-quran-gold mb-1">
+                                        <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.total_verses}</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Ayat</div>
                                 </div>
-                                <div className="bg-stone-50 dark:bg-slate-700 p-3 rounded-xl border border-stone-100 dark:border-slate-600 text-center">
-                                    <div className="text-gray-400 mb-1 flex justify-center"><MapPin className="w-4 h-4" /></div>
-                                    <div className="font-bold text-quran-dark dark:text-white text-lg">{surah.type}</div>
-                                    <div className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Tempat</div>
+                                <div className="bg-stone-50/50 dark:bg-slate-700/30 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-slate-700 flex flex-col items-center justify-center gap-1 group hover:border-quran-gold/30 transition-all duration-300">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-quran-gold mb-1">
+                                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.type}</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Tempat</div>
                                 </div>
-                                <div className="bg-stone-50 dark:bg-slate-700 p-3 rounded-xl border border-stone-100 dark:border-slate-600 text-center">
-                                    <div className="text-gray-400 mb-1 flex justify-center"><AlignLeft className="w-4 h-4" /></div>
-                                    <div className="font-bold text-quran-dark dark:text-white text-lg">{surah.id}</div>
-                                    <div className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Urutan</div>
+                                <div className="bg-stone-50/50 dark:bg-slate-700/30 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-slate-700 flex flex-col items-center justify-center gap-1 group hover:border-quran-gold/30 transition-all duration-300">
+                                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-quran-gold mb-1">
+                                        <AlignLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                                    </div>
+                                    <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.id}</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Urutan</div>
                                 </div>
                             </div>
                         )}

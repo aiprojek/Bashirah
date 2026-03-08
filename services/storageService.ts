@@ -10,6 +10,7 @@ const KHATAM_KEY = 'khatam_target';
 const HISTORY_KEY = 'reading_history';
 const SHOW_DAILY_AYAT_KEY = 'show_daily_ayat';
 const QUIZ_SCORES_KEY = 'quiz_scores';
+const TOTAL_KHATAM_KEY = 'total_khatam_count';
 
 // Helper to notify components of changes
 const notifyUpdate = () => {
@@ -140,28 +141,64 @@ export const saveKhatamTarget = async (target: KhatamTarget) => {
     notifyUpdate();
 };
 
+export const resetKhatamTarget = async () => {
+    const target = await getKhatamTarget();
+    if (target) {
+        target.isActive = false;
+        target.currentPage = 1; // Always reset progress when target is reset/stopped
+        await saveKhatamTarget(target);
+    }
+};
+
+export const getTotalKhatamCount = async (): Promise<number> => {
+    const count = await DB.getSetting(TOTAL_KHATAM_KEY);
+    return count || 0;
+};
+
+export const setTotalKhatamCount = async (count: number) => {
+    await DB.setSetting(TOTAL_KHATAM_KEY, count);
+    notifyUpdate();
+};
+
+export const incrementTotalKhatamCount = async () => {
+    const current = await getTotalKhatamCount();
+    await setTotalKhatamCount(current + 1);
+};
+
 // MODIFIED: This function handles logging reading progress and updating the khatam target
 export const updateKhatamProgress = async (currentPage: number) => {
     const target = await getKhatamTarget();
+    const lastRead = await getLastRead();
     
-    if (target && target.isActive) {
-        // 1. Calculate pages read since last update
-        const pagesDiff = currentPage - target.currentPage;
-        
-        // 2. Log History IF there's actual progress
-        // This ensures moving backward or staying on same page doesn't log 0 or negative
-        if (pagesDiff > 0) {
-            await logReading(pagesDiff);
-        }
+    // Choose the reference page to calculate progress: 
+    // Ideally from target if active, otherwise from last_read position
+    const lastPageReference = (target && target.isActive) 
+        ? target.currentPage 
+        : (lastRead ? lastRead.pageNumber : 0);
 
-        // 3. Update Target Page
+    // 1. Calculate pages read since last update
+    const pagesDiff = currentPage - lastPageReference;
+    
+    // 2. Log History IF there's actual forward progress
+    if (pagesDiff > 0) {
+        await logReading(pagesDiff);
+    }
+
+    // 3. Update Target Page if active
+    if (target && target.isActive) {
         target.currentPage = currentPage;
         target.lastUpdated = Date.now();
         await saveKhatamTarget(target);
     }
     
-    // 4. Check for Completion
+    // 4. Check for Completion (Global Counter)
     if (currentPage >= 604) {
+        // Increment global counter if:
+        // - There's an active target and it's the first time reaching 604
+        // - OR there's NO active target but the last recorded page was < 604 (prevent double counting)
+        if (lastPageReference < 604) {
+             await incrementTotalKhatamCount();
+        }
         window.dispatchEvent(new CustomEvent('app:khatam-complete', { detail: { target } }));
     }
 };

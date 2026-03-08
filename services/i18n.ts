@@ -26,7 +26,10 @@ type TranslationKey =
   | 'settings_tajweed_delete_title' | 'settings_tajweed_delete_desc'
   | 'settings_data_download_title' | 'settings_data_download_desc'
   | 'settings_data_unavailable' | 'settings_restore_confirm_title' | 'settings_restore_confirm_desc'
-  | 'settings_restore_success'
+  | 'settings_restore_success' | 'mushaf_setup_title' | 'mushaf_setup_desc' 
+  | 'mushaf_setup_btn_confirm' | 'mushaf_setup_btn_list' | 'mushaf_setup_warning'
+  | 'mushaf_setup_choose' | 'settings_info_title' | 'settings_info_desc' 
+  | 'settings_info_downloaded' | 'settings_info_download_all'
   // Khatam Widget
   | 'khatam_start_title' | 'khatam_start_desc' | 'khatam_label_days'
   | 'khatam_btn_start' | 'khatam_btn_create' | 'khatam_btn_update_manual'
@@ -161,6 +164,18 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     settings_restore_confirm_desc: "Proses ini akan menimpa/menggabungkan data Bookmark, Catatan, dan Jurnal Tadabbur Anda dengan data dari file backup. Lanjutkan?",
     settings_restore_success: "Data berhasil dipulihkan! Aplikasi akan dimuat ulang.",
 
+    mushaf_setup_title: "Pengaturan Awal Mushaf",
+    mushaf_setup_desc: "Mode Mushaf menampilkan Quran dalam bentuk gambar (Halaman Mushaf). Untuk penggunaan yang lancar, Anda dapat memilih jenis mushaf dan mengunduh datanya.",
+    mushaf_setup_choose: "Pilih Jenis Mushaf:",
+    mushaf_setup_warning: "Perhatian: Membuka mushaf memerlukan koneksi internet untuk mengunduh gambar (sekitar 200MB - 300MB total). Disarankan menggunakan WiFi.",
+    mushaf_setup_btn_confirm: "Saya Mengerti & Lanjutkan",
+    mushaf_setup_btn_list: "Kembali ke Mode Daftar",
+
+    settings_info_title: "Informasi Surat (Asbabun Nuzul)",
+    settings_info_desc: "Unduh semua teks informasi surat agar dapat dibaca tanpa koneksi internet.",
+    settings_info_downloaded: "Teks informasi surat sudah terunduh (Tersedia Offline).",
+    settings_info_download_all: "Unduh Semua Info",
+
     khatam_start_title: "Mulai Target Khatam",
     khatam_start_desc: "Bangun kebiasaan membaca Al-Quran setiap hari. Tetapkan target harimu dan pantau progresmu.",
     khatam_label_days: "Target (Hari)",
@@ -184,6 +199,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     khatam_cel_doa: "اللَّهُمَّ ارْحَمْنِي بِالْقُرْآنِ، وَاجْعَلْهُ لِي إِمَامًا وَنُورًا وَهُدًى وَرَحْمَةً",
     khatam_cel_btn_share: "Bagikan Keberkahan",
     khatam_cel_stats_avg: "Rata-rata Halaman/Hari",
+    khatam_total_count: "Total Khatam",
+    btn_reset_khatam: "Reset Target",
+    khatam_reset_confirm: "Reset target khatam Anda? Progres saat ini akan dihentikan.",
 
     tadabbur_title: "Jurnal Tadabbur",
     tadabbur_desc: "\"Ikatlah ilmu dengan tulisan. Renungkan ayat-Nya, dan abadikan hikmah yang menyentuh hatimu.\"",
@@ -473,6 +491,18 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     settings_restore_confirm_desc: "This process will overwrite/merge your Bookmarks, Notes, and Journal data from the backup file. Continue?",
     settings_restore_success: "Data restored successfully! App will reload.",
 
+    mushaf_setup_title: "Mushaf Setup",
+    mushaf_setup_desc: "Mushaf mode displays the Quran in image format. For a smooth experience, you can choose the mushaf type and download the data.",
+    mushaf_setup_choose: "Choose Mushaf Type:",
+    mushaf_setup_warning: "Note: Opening the mushaf requires an internet connection to download images (approx. 200MB - 300MB total). WiFi is recommended.",
+    mushaf_setup_btn_confirm: "I Understand & Continue",
+    mushaf_setup_btn_list: "Back to List Mode",
+
+    settings_info_title: "Surah Information (Asbabun Nuzul)",
+    settings_info_desc: "Download all Surah information text for reading without an internet connection.",
+    settings_info_downloaded: "Surah information text downloaded (Offline Ready).",
+    settings_info_download_all: "Download All Info",
+
     khatam_start_title: "Start Khatam Target",
     khatam_start_desc: "Build a daily Quran reading habit. Set your goal and track your progress.",
     khatam_label_days: "Target (Days)",
@@ -496,6 +526,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     khatam_cel_doa: "O Allah, have mercy on me with the Quran, and make it for me a leader, a light, a guidance and a mercy.",
     khatam_cel_btn_share: "Share the Blessing",
     khatam_cel_stats_avg: "Average Pages/Day",
+    khatam_total_count: "Total Khatam",
+    btn_reset_khatam: "Reset Target",
+    khatam_reset_confirm: "Reset your khatam target? Current progress will be stopped.",
 
     tadabbur_title: "Reflections Journal",
     tadabbur_desc: "\"Bind knowledge with writing. Reflect on His verses, and preserve the wisdom that touches your heart.\"",

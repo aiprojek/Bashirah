@@ -37,10 +37,19 @@ interface QuranDB extends DBSchema {
     value: any;
     indexes: { "by-score": number };
   };
+  surah_info: {
+    key: number; // surahId
+    value: any;
+  };
+  download_tasks: {
+    key: string; // taskId
+    value: any;
+    indexes: { "by-type": string; "by-status": string; "by-updated": number };
+  };
 }
 
 const DB_NAME = "bashirah-db";
-const DB_VERSION = 2; // Incremented for new stores
+const DB_VERSION = 4; // Incremented for download_tasks store
 
 export const getDB = async () => {
   return openDB<QuranDB>(DB_NAME, DB_VERSION, {
@@ -75,6 +84,21 @@ export const getDB = async () => {
         if (!db.objectStoreNames.contains("quiz_scores")) {
           const store = db.createObjectStore("quiz_scores", { keyPath: "id" });
           store.createIndex("by-score", "score");
+        }
+      }
+
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains("surah_info")) {
+          db.createObjectStore("surah_info");
+        }
+      }
+
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains("download_tasks")) {
+          const store = db.createObjectStore("download_tasks", { keyPath: "id" });
+          store.createIndex("by-type", "type");
+          store.createIndex("by-status", "status");
+          store.createIndex("by-updated", "updatedAt");
         }
       }
     },
@@ -277,6 +301,43 @@ export const saveQuizScore = async (score: any) => {
   const db = await getDB();
   if (!score.id) score.id = Date.now().toString();
   await db.put("quiz_scores", score);
+};
+
+// --- SURAH INFO ---
+export const saveSurahInfo = async (surahId: number, info: any) => {
+  const db = await getDB();
+  await db.put("surah_info", info, surahId);
+};
+
+export const getSurahInfo = async (surahId: number) => {
+  const db = await getDB();
+  return db.get("surah_info", surahId);
+};
+
+export const getAllSurahInfos = async () => {
+  const db = await getDB();
+  return db.getAll("surah_info");
+};
+
+// --- DOWNLOAD TASKS (RESUME SUPPORT) ---
+export const saveDownloadTask = async (task: any) => {
+  const db = await getDB();
+  await db.put("download_tasks", task);
+};
+
+export const getDownloadTask = async (taskId: string) => {
+  const db = await getDB();
+  return db.get("download_tasks", taskId);
+};
+
+export const getAllDownloadTasks = async () => {
+  const db = await getDB();
+  return db.getAll("download_tasks");
+};
+
+export const deleteDownloadTask = async (taskId: string) => {
+  const db = await getDB();
+  await db.delete("download_tasks", taskId);
 };
 
 // --- MIGRATION UTILITY ---

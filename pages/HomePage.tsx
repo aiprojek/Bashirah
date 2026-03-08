@@ -7,7 +7,7 @@ import Loading from '../components/Loading';
 import KhatamWidget from '../components/KhatamWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
 import KhatamCelebrationModal from '../components/KhatamCelebrationModal';
-import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage } from '../services/quranService';
+import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage, getPageStartLocal } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, LastReadData, KhatamTarget } from '../types';
 import { Clock, ChevronRight, Sparkles, Bookmark, FileText, Loader2 } from 'lucide-react';
@@ -112,26 +112,9 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
       navigate(`/surah/${surahId}#verse-${verseId}`);
   };
 
-  const handlePageClick = async (pageNumber: number) => {
-      if (isNavigatingPage) return;
-      setIsNavigatingPage(true);
-      try {
-          // Fetch verses on this page to find the starting point
-          // We use the ID translation or default just to get the structure
-          const verses = await getVersesByPage(pageNumber, 'id.indonesian');
-          
-          if (verses && verses.length > 0) {
-              const firstVerse = verses[0];
-              // Navigate to the surah and scroll to the specific verse
-              navigate(`/surah/${firstVerse.surah.number}#verse-${firstVerse.numberInSurah}`);
-          } else {
-              alert("Gagal memuat data halaman. Periksa koneksi internet Anda.");
-          }
-      } catch (e) {
-          console.error("Page navigation failed", e);
-      } finally {
-          setIsNavigatingPage(false);
-      }
+  const handlePageClick = (pageNumber: number) => {
+      const start = getPageStartLocal(pageNumber);
+      navigate(`/surah/${start.surahId}#verse-${start.verseId}`);
   };
 
   if (loading) return <Loading />;

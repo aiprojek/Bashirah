@@ -1,9 +1,13 @@
 import { Surah, SurahDetail, Verse, LanguageCode, TranslationOption, CURATED_EDITIONS, Word, SurahInfo } from '../types';
 import * as DB from './db';
+import { PAGE_START_MAPPING } from './pageMapping';
 
 const QURAN_LOCAL_URL = 'quran-json/quran.json';
+const QURAN_VERSE_META_LOCAL_URL = 'quran-json/verse-meta.json';
 const API_BASE_URL = 'https://api.alquran.cloud/v1';
 const QURAN_COM_API_URL = 'https://api.quran.com/api/v4';
+const NETWORK_TIMEOUT_MS = 5000;
+const DOWNLOAD_TIMEOUT_MS = 15000;
 
 // --- TOAST NOTIFICATION HELPER ---
 export const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'error') => {
@@ -82,11 +86,54 @@ export const getHizbList = () => {
     return list;
 };
 
-let globalArabicCache: Record<string, { chapter: number; verse: number; text: string }[]> | null = null;
+let globalArabicCache: Record<string, { chapter: number; verse: number; text: string; juz?: number; hizb?: number; ruku?: number }[]> | null = null;
+type LocalVerseMeta = [number, number, number, number]; // [page, juz, hizb, ruku]
+let localVerseMetaCache: Record<string, LocalVerseMeta[]> | null = null;
 const cachedSurahLists: Record<string, Surah[]> = {};
 const cachedContent: Record<string, any[]> = {};
 const cachedWordByWord: Record<string, Record<number, Word[]>> = {};
 const cachedSurahInfo: Record<number, SurahInfo> = {};
+
+const loadLocalVerseMeta = async (): Promise<Record<string, LocalVerseMeta[]> | null> => {
+    if (localVerseMetaCache) return localVerseMetaCache;
+    try {
+        const response = await fetch(QURAN_VERSE_META_LOCAL_URL);
+        if (!response.ok) return null;
+        localVerseMetaCache = await response.json();
+        return localVerseMetaCache;
+    } catch (e) {
+        console.warn("Failed to load local verse metadata", e);
+        return null;
+    }
+};
+
+const getLocalVerseMeta = (
+    cache: Record<string, LocalVerseMeta[]> | null,
+    surahId: number,
+    verseId: number
+) => {
+    const tuple = cache?.[surahId.toString()]?.[verseId - 1];
+    if (!tuple) return null;
+    return { page: tuple[0], juz: tuple[1], hizb: tuple[2], ruku: tuple[3] };
+};
+
+const fetchWithTimeout = async (url: string, init: RequestInit = {}, timeoutMs: number = NETWORK_TIMEOUT_MS) => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...init, signal: controller.signal });
+    } finally {
+        window.clearTimeout(timeoutId);
+    }
+};
+
+const fetchOnlineJson = async (url: string, init: RequestInit = {}, timeoutMs: number = NETWORK_TIMEOUT_MS) => {
+    const response = await fetchWithTimeout(url, init, timeoutMs);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status} for ${url}`);
+    }
+    return response.json();
+};
 
 const DAILY_VERSES_POOL = [
     { surah: 2, verse: 255 },
@@ -123,11 +170,30 @@ export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian
         const surahKey = target.surah.toString();
         const arabicData = globalArabicCache?.[surahKey]?.find(v => v.verse === target.verse);
 
-        // Try online first for complete data including surah details
+        // 1. Try Offline First (Tafsir/Translation might be in DB)
+        const cachedTranslation = await DB.getSurahContent(translationId, target.surah);
+        const localVerse = cachedTranslation?.find((v: any) => v.numberInSurah === target.verse);
+        
+        if (localVerse) {
+            const allSurahs = await getAllSurahs();
+            const surahInfo = allSurahs.find(s => s.id === target.surah);
+            return {
+                surah: {
+                    number: target.surah,
+                    name: surahInfo?.name || "",
+                    englishName: surahInfo?.transliteration || "",
+                    englishNameTranslation: surahInfo?.translation || ""
+                },
+                verseNo: target.verse,
+                text: arabicData ? arabicData.text : localVerse.text,
+                translation: localVerse.text
+            };
+        }
+
+        // 2. Try Online if not in local DB
         if (navigator.onLine) {
             try {
-                const transResponse = await fetch(`${API_BASE_URL}/ayah/${target.surah}:${target.verse}/${translationId}`);
-                const transJson = await transResponse.json();
+                const transJson = await fetchOnlineJson(`${API_BASE_URL}/ayah/${target.surah}:${target.verse}/${translationId}`);
                 return {
                     surah: transJson.data.surah,
                     verseNo: target.verse,
@@ -135,14 +201,30 @@ export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian
                     translation: transJson.data.text
                 };
             } catch (e) {
-                // Ignore API failure, fallback to offline minimal info if needed, but for daily ayat we usually need API for translation
+                // Ignore API failure, fallback further
             }
+        }
+
+        // 3. Absolute Fallback (Arabic only)
+        if (arabicData) {
+            const allSurahs = await getAllSurahs();
+            const surahInfo = allSurahs.find(s => s.id === target.surah);
+            return {
+                surah: {
+                    number: target.surah,
+                    name: surahInfo?.name || "",
+                    englishName: surahInfo?.transliteration || "",
+                    englishNameTranslation: surahInfo?.translation || ""
+                },
+                verseNo: target.verse,
+                text: arabicData.text,
+                translation: "Terjemahan belum diunduh untuk penggunaan offline."
+            };
         }
 
         return null;
     } catch (e) {
         console.error("Failed to load Ayat of the Day", e);
-        showToast("Gagal memuat Ayat Hari Ini. Periksa koneksi internet Anda.");
         return null;
     }
 };
@@ -153,28 +235,110 @@ export const getSurahStartPage = (surahId: number): number => {
     return SURAH_START_PAGES[surahId] || 1;
 };
 
+/**
+ * Gets the starting surah and verse for a specific page using local mapping.
+ * Avoids API calls for navigation.
+ */
+export const getPageStartLocal = (pageNumber: number): { surahId: number; verseId: number } => {
+    return PAGE_START_MAPPING[pageNumber] || { surahId: 1, verseId: 1 };
+};
+
 export const getVersesByPage = async (pageNumber: number, translationId: string = 'id.indonesian'): Promise<any[]> => {
+    // 1. Offline First
     try {
-        const arabicResponse = await fetch(`${API_BASE_URL}/page/${pageNumber}/quran-uthmani`);
-        const arabicData = await arabicResponse.json();
-        const transResponse = await fetch(`${API_BASE_URL}/page/${pageNumber}/${translationId}`);
-        const transData = await transResponse.json();
+        const start = getPageStartLocal(pageNumber);
+        const nextStart = pageNumber < 604 ? getPageStartLocal(pageNumber + 1) : null;
+        const localMeta = await loadLocalVerseMeta();
+        
+        const allSurahs = await getAllSurahs();
+
+        // Helper to get verses for a range
+        const getRange = async (sId: number, vStart: number, vEnd?: number) => {
+            const surah = allSurahs.find(s => s.id === sId);
+            if (!surah) return [];
+
+            // Get Arabic text
+            if (!globalArabicCache) {
+                const response = await fetch(QURAN_LOCAL_URL);
+                globalArabicCache = await response.json();
+            }
+            const arabicVerses = globalArabicCache?.[sId.toString()] || [];
+
+            // Get Translation
+            const translationVerses = await DB.getSurahContent(translationId, sId);
+            
+            return arabicVerses
+                .filter(v => v.verse >= vStart && (!vEnd || v.verse < vEnd))
+                .map(v => {
+                    const trans = translationVerses?.find((tv: any) => tv.numberInSurah === v.verse);
+                    const local = getLocalVerseMeta(localMeta, sId, v.verse);
+                    return {
+                        numberInSurah: v.verse,
+                        text: v.text,
+                        translation: trans ? trans.text : "Unduh terjemahan untuk offline.",
+                        surah: {
+                            number: sId,
+                            name: surah.name,
+                            englishName: surah.transliteration,
+                            englishNameTranslation: surah.translation
+                        },
+                        page_number: v.page || local?.page || pageNumber,
+                        juz_number: v.juz || local?.juz,
+                        hizb_number: v.hizb || local?.hizb,
+                        ruku_number: v.ruku || local?.ruku
+                    };
+                });
+        };
+
+        if (!nextStart || nextStart.surahId === start.surahId) {
+            // Same surah or end of Quran
+            return await getRange(start.surahId, start.verseId, nextStart?.verseId);
+        } else {
+            // Crosses surahs
+            let results: any[] = [];
+            // Part 1: Start Surah
+            results = results.concat(await getRange(start.surahId, start.verseId));
+            // Part 2: Middle Surahs (if any)
+            for (let i = start.surahId + 1; i < nextStart.surahId; i++) {
+                results = results.concat(await getRange(i, 1));
+            }
+            // Part 3: Next Surah
+            results = results.concat(await getRange(nextStart.surahId, 1, nextStart.verseId));
+            return results;
+        }
+    } catch (e) {
+        console.error("Failed to fetch page verses offline", e);
+    }
+
+    // 2. Online Fallback
+    if (!navigator.onLine) return [];
+    try {
+        const [arabicData, transData] = await Promise.all([
+            fetchOnlineJson(`${API_BASE_URL}/page/${pageNumber}/quran-uthmani`),
+            fetchOnlineJson(`${API_BASE_URL}/page/${pageNumber}/${translationId}`)
+        ]);
 
         if (arabicData.code === 200 && transData.code === 200) {
             const ayahList = arabicData.data.ayahs;
             const transList = transData.data.ayahs;
+
             return ayahList.map((ayah: any, index: number) => ({
-                ...ayah,
-                translation: transList[index] ? transList[index].text : '',
-                surah: ayah.surah
+                number: ayah.number,
+                numberInSurah: ayah.numberInSurah,
+                text: ayah.text,
+                translation: transList[index]?.text || '',
+                surah: transData.data.surahs ? transData.data.surahs[ayah.surah.number] : ayah.surah,
+                page_number: ayah.page,
+                juz_number: ayah.juz,
+                hizb_number: Math.ceil(ayah.hizbQuarter / 4),
+                ruku_number: ayah.ruku
             }));
         }
-        return [];
     } catch (e) {
-        console.error("Failed to fetch page verses", e);
-        showToast("Gagal memuat halaman Mushaf. Periksa koneksi internet Anda.");
-        return [];
+        console.warn("Online fallback failed for page verses", e);
     }
+
+    return [];
 };
 
 export const getAvailableEditions = async (): Promise<TranslationOption[]> => {
@@ -184,10 +348,10 @@ export const getAvailableEditions = async (): Promise<TranslationOption[]> => {
 export const verifyEditionAvailability = async (editionId: string): Promise<boolean> => {
     try {
         if (!navigator.onLine) return false;
-        const response = await fetch(`${API_BASE_URL}/surah/1/${editionId}`, { 
+        const response = await fetchWithTimeout(`${API_BASE_URL}/surah/1/${editionId}`, { 
             method: 'GET', // Revert to GET for production/SW compatibility
             cache: 'no-cache' 
-        });
+        }, NETWORK_TIMEOUT_MS);
         return response.ok;
     } catch (e) {
         console.error("Availability check failed", e);
@@ -215,14 +379,25 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
 };
 
 export const getSurahInfo = async (surahId: number): Promise<SurahInfo | null> => {
+    // 1. Check Memory Cache
     if (cachedSurahInfo[surahId]) return cachedSurahInfo[surahId];
+
+    // 2. Check Persistent Cache (IndexedDB)
+    const dbInfo = await DB.getSurahInfo(surahId);
+    if (dbInfo) {
+        cachedSurahInfo[surahId] = dbInfo;
+        return dbInfo;
+    }
+
     try {
         if (!navigator.onLine) return null; // Simple offline check
-        const response = await fetch(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=id`);
-        const data = await response.json();
+        const data = await fetchOnlineJson(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=id`);
         if (data && data.chapter_info) {
-            cachedSurahInfo[surahId] = data.chapter_info;
-            return data.chapter_info;
+            const info = data.chapter_info as SurahInfo;
+            // Save to both caches
+            cachedSurahInfo[surahId] = info;
+            await DB.saveSurahInfo(surahId, info);
+            return info;
         }
     } catch (e) {
         console.error("Failed to fetch Surah Info", e);
@@ -231,34 +406,41 @@ export const getSurahInfo = async (surahId: number): Promise<SurahInfo | null> =
     return null;
 };
 
-// IMPROVED SEARCH: HYBRID (Online -> Offline)
+/**
+ * Downloads all Surah descriptions for offline use.
+ * This satisfies the user's request for "offline-ready" Asbabun Nuzul.
+ */
+export const bulkDownloadSurahInfo = async (onProgress?: (progress: number) => void): Promise<boolean> => {
+    try {
+        const TOTAL = 114;
+        let count = 0;
+
+        for (let id = 1; id <= TOTAL; id++) {
+            // Already cached? Skip fetch but count it
+            const existing = await DB.getSurahInfo(id);
+            if (!existing) {
+                await getSurahInfo(id);
+                // Respect API limits if needed, but for 114 calls it's usually fine
+            }
+            count++;
+            if (onProgress) onProgress(Math.round((count / TOTAL) * 100));
+        }
+        return true;
+    } catch (e) {
+        console.error("Bulk download failed", e);
+        return false;
+    }
+};
+
+// IMPROVED SEARCH: HYBRID (Offline -> Online fallback)
 export const searchGlobalVerses = async (query: string, translationId: string = 'id.indonesian'): Promise<{ surah: Surah, verseId: number, text: string, translation: string }[]> => {
     if (!query || query.length < 3) return [];
+    const allSurahs = await getAllSurahs();
 
-    // 1. Try Online API
-    if (navigator.onLine) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/search/${query}/all/${translationId}`);
-            const data = await response.json();
-            if (data.code === 200 && data.data && data.data.matches) {
-                return data.data.matches.map((match: any) => ({
-                    surah: match.surah,
-                    verseId: match.numberInSurah,
-                    text: match.text,
-                    translation: match.text
-                }));
-            }
-        } catch (e) {
-            console.warn("Online search failed, trying offline...", e);
-        }
-    }
-
-    // 2. Offline Fallback (Search in IndexedDB)
+    // 1. Offline First (Search in IndexedDB)
     try {
         const offlineResults = await DB.searchOfflineContent(query, translationId);
         if (offlineResults.length > 0) {
-            const allSurahs = await getAllSurahs();
-
             return offlineResults.map(res => {
                 let fullSurah = res.surah;
                 if (typeof res.surah === 'object' && res.surah.number) {
@@ -283,7 +465,46 @@ export const searchGlobalVerses = async (query: string, translationId: string = 
         }
     } catch (e) {
         console.error("Offline search failed", e);
-        showToast("Pencarian offline bermasalah. Coba lagi nanti.", "error");
+    }
+
+    // 2. Offline Arabic Fallback (No translation download required)
+    try {
+        const arabicMatches = await findOccurrences(query, 'text');
+        if (arabicMatches.length > 0) {
+            return arabicMatches.map((match) => {
+                const surah = allSurahs.find(s => s.id === match.surahId);
+                return {
+                    surah: {
+                        number: match.surahId,
+                        name: surah?.name || '',
+                        englishName: surah?.transliteration || '',
+                        englishNameTranslation: surah?.translation || ''
+                    } as any,
+                    verseId: match.verseId,
+                    text: match.text,
+                    translation: match.text
+                };
+            });
+        }
+    } catch (e) {
+        console.error("Offline Arabic fallback failed", e);
+    }
+
+    // 3. Online Fallback
+    if (navigator.onLine) {
+        try {
+            const data = await fetchOnlineJson(`${API_BASE_URL}/search/${query}/all/${translationId}`);
+            if (data.code === 200 && data.data && data.data.matches) {
+                return data.data.matches.map((match: any) => ({
+                    surah: match.surah,
+                    verseId: match.numberInSurah,
+                    text: match.text,
+                    translation: match.text
+                }));
+            }
+        } catch (e) {
+            console.warn("Online search fallback failed", e);
+        }
     }
 
     return [];
@@ -303,8 +524,7 @@ const fetchContentForSurah = async (editionId: string, surahId: number): Promise
 
     try {
         if (!navigator.onLine) return [];
-        const response = await fetch(`${API_BASE_URL}/surah/${surahId}/${editionId}`);
-        const data = await response.json();
+        const data = await fetchOnlineJson(`${API_BASE_URL}/surah/${surahId}/${editionId}`);
         if (data.code === 200 && data.data && data.data.ayahs) {
             const verses = data.data.ayahs;
             cachedContent[cacheKey] = verses;
@@ -323,8 +543,7 @@ const fetchWordByWordForSurah = async (surahId: number): Promise<Record<number, 
 
     try {
         if (!navigator.onLine) return {};
-        const response = await fetch(`${QURAN_COM_API_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,root,lemma&word_translation_language=id&per_page=300`);
-        const data = await response.json();
+        const data = await fetchOnlineJson(`${QURAN_COM_API_URL}/verses/by_chapter/${surahId}?language=id&words=true&word_fields=text_uthmani,root,lemma&word_translation_language=id&per_page=300`);
         if (data && data.verses) {
             const wordsMap: Record<number, Word[]> = {};
             data.verses.forEach((v: any) => {
@@ -388,13 +607,18 @@ const processDetail = async (
     }
 
     const [metaVerses, tafsirVerses, wordByWordMap] = await Promise.all(promises);
+    const localMeta = await loadLocalVerseMeta();
 
     const verses: Verse[] = arabicVerses.map((v, index) => {
         const verseId = v.verse || v.numberInSurah;
         const text = v.text;
 
         const metaVerse = metaVerses[index];
-        const pageNumber = v.page || (metaVerse ? metaVerse.page : undefined);
+        const local = getLocalVerseMeta(localMeta, id, verseId);
+        const pageNumber = v.page || metaVerse?.page || local?.page;
+        const hizbNumber = metaVerse?.hizbQuarter
+            ? Math.ceil(metaVerse.hizbQuarter / 4)
+            : (metaVerse?.hizb || v.hizb || local?.hizb);
 
         const translationText = (translationIdentifier && metaVerse) ? metaVerse.text : undefined;
 
@@ -404,6 +628,9 @@ const processDetail = async (
             translation: translationText,
             tafsir: tafsirVerses[index] ? tafsirVerses[index].text : undefined,
             page_number: pageNumber,
+            juz_number: metaVerse?.juz || v.juz || local?.juz,
+            hizb_number: hizbNumber,
+            ruku_number: metaVerse?.ruku || v.ruku || local?.ruku,
             words: wordByWordMap[verseId] || undefined
         };
     });
@@ -481,7 +708,7 @@ export const downloadEdition = async (editionId: string, onProgress?: (msg: stri
         }
 
         if (onProgress) onProgress("Mengunduh data...", 30);
-        const response = await fetch(`${API_BASE_URL}/quran/${editionId}`);
+        const response = await fetchWithTimeout(`${API_BASE_URL}/quran/${editionId}`, {}, DOWNLOAD_TIMEOUT_MS);
         
         if (!response.ok) {
             throw new Error(`Server merespon dengan status: ${response.status}. Gagal mengunduh.`);

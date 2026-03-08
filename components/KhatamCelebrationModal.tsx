@@ -20,12 +20,19 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
     const [name, setName] = useState(target?.userName || '');
     const [isSharing, setIsSharing] = useState(false);
     const [stats, setStats] = useState<any>(null);
+    const [canvasImage, setCanvasImage] = useState<string | null>(null);
+    const [totalKhatam, setTotalKhatam] = useState(0);
     const cardRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (isOpen) {
             loadAnalytics();
             if (target?.userName) setName(target.userName);
+            const loadStats = async () => {
+                const count = await StorageService.getTotalKhatamCount();
+                setTotalKhatam(count);
+            };
+            loadStats();
         }
     }, [isOpen, target]);
 
@@ -124,7 +131,7 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
                     <div className="bg-stone-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-stone-200 dark:border-slate-700">
                         <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">{t('khatam_cel_name_label')}</label>
                         <div className="relative">
-                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
                             <input 
                                 type="text"
                                 placeholder="Masukkan Nama Anda..."
@@ -197,6 +204,13 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
                                         <div className="bg-white/5 border border-white/10 rounded-xl p-2 sm:p-3 backdrop-blur-sm">
                                             <p className="text-[9px] sm:text-[10px] uppercase opacity-60 mb-1">{t('khatam_days_active')}</p>
                                             <p className="text-base sm:text-lg font-bold text-quran-gold">{stats?.totalDaysActive || 0} <span className="text-[10px] sm:text-xs font-normal">hari</span></p>
+                                        </div>
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-2 sm:p-3 backdrop-blur-sm col-span-2">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Trophy className="w-4 h-4 text-quran-gold" />
+                                                <p className="text-[9px] sm:text-[10px] uppercase opacity-60">{t('khatam_total_count')}</p>
+                                            </div>
+                                            <p className="text-base sm:text-lg font-bold text-quran-gold">{totalKhatam} <span className="text-[10px] sm:text-xs font-normal">kali</span></p>
                                         </div>
                                     </div>
                                 </div>

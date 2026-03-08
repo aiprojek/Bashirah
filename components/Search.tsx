@@ -91,9 +91,9 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                         <Wifi className="w-3 h-3" />
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Pencarian Online Aktif</p>
+                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Pencarian Offline Dasar Aktif</p>
                         <p className="text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed mt-0.5">
-                            Data terjemahan belum diunduh. Pencarian mungkin lebih lambat.
+                            Data terjemahan belum diunduh. Pencarian offline tetap bisa untuk teks Arab, namun hasil terjemahan lebih lengkap jika data diunduh.
                         </p>
                         <button 
                             onMouseDown={(e) => { e.preventDefault(); handleGoToSettings(); }} // onMouseDown prevents blur issue
@@ -117,7 +117,7 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                     <div className="p-6 text-center text-gray-400 text-sm">
                         <p className="italic mb-2">Tidak ditemukan ayat dengan kata kunci "{value}".</p>
                         {!isOfflineReady && (
-                            <p className="text-xs text-gray-400">Pastikan koneksi internet lancar atau unduh data di Pengaturan.</p>
+                            <p className="text-xs text-gray-400">Coba kata kunci Arab atau unduh data terjemahan di Pengaturan.</p>
                         )}
                     </div>
                 )}

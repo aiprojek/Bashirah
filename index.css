@@ -147,6 +147,50 @@
   }
 }
 
+/* --- MUSHAF PAGE FLIP --- */
+.mushaf-book {
+  transform-style: preserve-3d;
+  perspective: 1200px;
+}
+
+@keyframes mushafFlipNext {
+  0% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: rotateY(-12deg) translateX(6px) scale(0.995);
+    filter: brightness(0.95);
+  }
+  100% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes mushafFlipPrev {
+  0% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    filter: brightness(1);
+  }
+  35% {
+    transform: rotateY(12deg) translateX(-6px) scale(0.995);
+    filter: brightness(0.95);
+  }
+  100% {
+    transform: rotateY(0deg) translateX(0) scale(1);
+    filter: brightness(1);
+  }
+}
+
+.mushaf-flip-next {
+  animation: mushafFlipNext 560ms cubic-bezier(0.2, 0.7, 0.25, 1);
+}
+
+.mushaf-flip-prev {
+  animation: mushafFlipPrev 560ms cubic-bezier(0.2, 0.7, 0.25, 1);
+}
+
 /* Custom scrollbar hide */
 .custom-scrollbar-hide::-webkit-scrollbar {
   display: none;

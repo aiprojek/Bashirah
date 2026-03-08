@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Panel - Right side */}
       <div 
-        className={`fixed top-0 right-0 bottom-0 z-[70] w-80 max-w-[85vw] bg-[#fcfbf7] dark:bg-slate-900 shadow-2xl border-l border-[#d4af37]/20 dark:border-slate-700 transform transition-transform duration-300 ease-out ${
+        className={`fixed top-0 right-0 bottom-0 z-[70] w-[22rem] max-w-[92vw] bg-[#fcfbf7] dark:bg-slate-900 shadow-2xl border-l border-[#d4af37]/20 dark:border-slate-700 transform transition-transform duration-300 ease-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >

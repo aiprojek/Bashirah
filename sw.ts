@@ -47,7 +47,7 @@ registerRoute(
 registerRoute(
   ({ url }) => url.origin === 'https://android.quran.com',
   new CacheFirst({
-    cacheName: 'quran-mushaf-images-v1', // Must match the cache name in mushafService.ts
+    cacheName: 'quran-mushaf-images-v2', // Must match the cache name in mushafService.ts
     plugins: [
       new CacheableResponsePlugin({
         statuses: [0, 200],

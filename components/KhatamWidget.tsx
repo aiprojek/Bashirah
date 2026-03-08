@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Target, BookOpen, Calendar, Edit2, CheckCircle2, ChevronRight, Plus, Info, X, TrendingUp, Sparkles, Flame } from 'lucide-react';
+import ConfirmationModal from './ConfirmationModal';
 import * as StorageService from '../services/storageService';
 import { KhatamTarget, ReadingLog } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -12,6 +13,7 @@ const KhatamWidget: React.FC = () => {
     const [target, setTarget] = useState<KhatamTarget | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [showHint, setShowHint] = useState(false);
+    const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
     
     // Form State
     const [daysInput, setDaysInput] = useState(30);
@@ -24,15 +26,18 @@ const KhatamWidget: React.FC = () => {
         estimatedDaysLeft: number;
         streak: number;
     } | null>(null);
+    const [totalKhatam, setTotalKhatam] = useState(0);
 
     const loadData = async () => {
         const saved = await StorageService.getKhatamTarget();
         const hist = await StorageService.getReadingHistory();
         const anal = await StorageService.calculateKhatamAnalytics();
+        const total = await StorageService.getTotalKhatamCount();
         
         setTarget(saved);
         setHistory(hist);
         setAnalytics(anal);
+        setTotalKhatam(total);
         
         if (saved) {
             setCurrentPageInput(saved.currentPage);
@@ -60,6 +65,16 @@ const KhatamWidget: React.FC = () => {
         await StorageService.saveKhatamTarget(newTarget);
         setTarget(newTarget);
         setIsEditing(false);
+    };
+
+    const handleReset = async () => {
+        setIsResetConfirmOpen(true);
+    };
+
+    const confirmReset = async () => {
+        await StorageService.resetKhatamTarget();
+        setCurrentPageInput(1);
+        loadData();
     };
 
     const calculateStats = () => {
@@ -92,6 +107,13 @@ const KhatamWidget: React.FC = () => {
                      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm">
                          {t('khatam_start_desc')}
                      </p>
+                     
+                     <div className="mt-4 flex flex-wrap items-center gap-3 justify-center sm:justify-start">
+                        <div className="flex items-center gap-2 bg-stone-100 dark:bg-slate-700 px-3 py-1.5 rounded-full border border-stone-200 dark:border-slate-600">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                            <span className="text-xs font-bold text-gray-600 dark:text-gray-300">{t('khatam_total_count')}: {totalKhatam}</span>
+                        </div>
+                     </div>
                  </div>
 
                  {isEditing ? (
@@ -139,7 +161,7 @@ const KhatamWidget: React.FC = () => {
     return (
         <div className="bg-gradient-to-br from-quran-dark to-[#142924] rounded-2xl p-4 sm:p-6 shadow-xl mb-8 text-white relative overflow-hidden transition-all duration-500">
              {/* Decor */}
-             <div className="absolute top-0 right-0 opacity-10">
+             <div className="absolute top-0 right-0 opacity-10 pointer-events-none">
                  <BookOpen className="w-48 h-48 -mr-10 -mt-10" />
              </div>
 
@@ -187,6 +209,10 @@ const KhatamWidget: React.FC = () => {
                                 <span className="text-[10px] sm:text-xs opacity-60 flex items-center gap-1">
                                     <Calendar className="w-3 h-3" /> {stats.daysLeft} {t('khatam_remaining_days')}
                                 </span>
+                                 <span className="bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase text-emerald-400 flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3" />
+                                    {totalKhatam} {t('khatam_total_count')}
+                                </span>
                             </div>
                             <h3 className="text-xl sm:text-2xl font-bold font-serif leading-tight">
                                 <span className="text-quran-gold">{t('khatam_daily_target')}: {stats.dailyTarget} {t('tab_page')}</span>
@@ -203,6 +229,16 @@ const KhatamWidget: React.FC = () => {
                                 </div>
                             </div>
                         )}
+                        
+                        {/* Reset Button */}
+                        <button 
+                            onClick={handleReset}
+                            className="bg-white/10 hover:bg-red-500/20 text-[10px] font-bold px-3 py-1.5 rounded-lg border border-white/10 text-white/60 hover:text-white transition-all flex items-center gap-1.5"
+                            title={t('btn_reset_khatam')}
+                        >
+                            <X className="w-3 h-3" />
+                            {t('btn_reset_khatam')}
+                        </button>
                     </div>
 
                     {/* Analytics Row */}
@@ -240,9 +276,27 @@ const KhatamWidget: React.FC = () => {
                             ></div>
                         </div>
                         <div className="flex justify-end">
-                             <p className="text-[10px] opacity-60 mt-1">{stats.pagesLeft} {t('khatam_remaining_pages')}</p>
+                         <p className="text-[10px] opacity-60 mt-1">{stats.pagesLeft} {t('khatam_remaining_pages')}</p>
                         </div>
                     </div>
+
+                    {/* Completion Message */}
+                    {target.currentPage >= 604 && (
+                        <div className="mt-6 bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 animate-bounce-subtle">
+                            <div className="flex items-start gap-4">
+                                <div className="p-2 bg-emerald-500/20 rounded-lg">
+                                    <Sparkles className="w-5 h-5 text-emerald-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-emerald-400">MasyaAllah! Anda Telah Khatam</h4>
+                                    <p className="text-xs text-emerald-200/70 mt-1">
+                                        Pencapaian ini telah tercatat dalam riwayat Anda. 
+                                        Klik "Reset" atau buat target baru untuk perjalanan selanjutnya.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Modern Activity Chart */}
                     <div className="mt-6 sm:mt-10 pt-4 sm:pt-6 border-t border-white/5">
@@ -327,8 +381,18 @@ const KhatamWidget: React.FC = () => {
                              </button>
                          </div>
                     </div>
-                </div>
-             )}
+                 </div>
+              )}
+
+              <ConfirmationModal 
+                 isOpen={isResetConfirmOpen}
+                 onClose={() => setIsResetConfirmOpen(false)}
+                 onConfirm={confirmReset}
+                 title={t('btn_reset_khatam')}
+                 message={t('khatam_reset_confirm')}
+                 confirmText={t('btn_reset_khatam')}
+                 variant="danger"
+              />
         </div>
     );
 };
