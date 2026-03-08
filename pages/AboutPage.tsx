@@ -89,7 +89,7 @@ const AboutPage: React.FC = () => {
                         <p className="text-sm font-serif italic text-gray-500 dark:text-gray-400 mb-4">{t('app_subtitle')}</p>
 
                         <div className="bg-stone-50 dark:bg-slate-700 px-3 py-1 rounded-full text-[10px] text-gray-500 dark:text-gray-300 font-mono mb-6 border border-stone-200 dark:border-slate-600">
-                            {t('version')} 20260219
+                            {t('version')} 20260309
                         </div>
 
                         <p className="text-gray-600 dark:text-gray-300 max-w-lg mx-auto leading-relaxed mb-10 font-serif italic text-center text-sm md:text-base">
