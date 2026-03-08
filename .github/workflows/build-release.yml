@@ -16,6 +16,7 @@ jobs:
       prerelease: ${{ steps.release_meta.outputs.prerelease }}
       android_version_code: ${{ steps.release_meta.outputs.android_version_code }}
       android_version_name: ${{ steps.release_meta.outputs.android_version_name }}
+      electron_app_version: ${{ steps.release_meta.outputs.electron_app_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,18 +25,22 @@ jobs:
       - name: Generate Release Version
         id: release_meta
         run: |
-          release_date="$(date -u +'%Y.%m.%d')"
-          release_tag="v$(date -u +'%Y%m%d').${GITHUB_RUN_NUMBER}"
+          release_date_compact="$(date -u +'%Y%m%d')"
+          release_date_display="$(date -u +'%Y.%m.%d')"
+          release_tag="v${release_date_compact}.${GITHUB_RUN_NUMBER}"
           release_name="Bashirah ${release_tag}"
           prerelease="true"
-          android_version_code="${GITHUB_RUN_NUMBER}"
-          android_version_name="${release_date}.${GITHUB_RUN_NUMBER}"
+          build_seq=$((GITHUB_RUN_NUMBER % 100))
+          android_version_code=$((10#${release_date_compact} * 100 + build_seq))
+          android_version_name="${release_date_display}.${GITHUB_RUN_NUMBER}"
+          electron_app_version="${release_date_compact}.${GITHUB_RUN_NUMBER}.0"
 
           echo "release_tag=${release_tag}" >> "$GITHUB_OUTPUT"
           echo "release_name=${release_name}" >> "$GITHUB_OUTPUT"
           echo "prerelease=${prerelease}" >> "$GITHUB_OUTPUT"
           echo "android_version_code=${android_version_code}" >> "$GITHUB_OUTPUT"
           echo "android_version_name=${android_version_name}" >> "$GITHUB_OUTPUT"
+          echo "electron_app_version=${electron_app_version}" >> "$GITHUB_OUTPUT"
 
       - name: Create and Push Release Tag
         run: |
@@ -74,6 +79,9 @@ jobs:
 
       - name: Install NPM Dependencies
         run: npm ci
+
+      - name: Set Electron App Version
+        run: npm version --no-git-tag-version "${{ needs.prepare-release.outputs.electron_app_version }}"
 
       - name: Build Electron App
         run: npm run electron:build
