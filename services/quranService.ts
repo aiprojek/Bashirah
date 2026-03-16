@@ -243,7 +243,18 @@ export const getPageStartLocal = (pageNumber: number): { surahId: number; verseI
     return PAGE_START_MAPPING[pageNumber] || { surahId: 1, verseId: 1 };
 };
 
-export const getVersesByPage = async (pageNumber: number, translationId: string = 'id.indonesian'): Promise<any[]> => {
+export const getPageForVerse = async (surahId: number, verseId: number): Promise<number> => {
+    try {
+        const localMeta = await loadLocalVerseMeta();
+        const meta = getLocalVerseMeta(localMeta, surahId, verseId);
+        if (meta?.page) return meta.page;
+    } catch (e) {
+        console.warn('Failed to resolve page from local metadata', e);
+    }
+    return getSurahStartPage(surahId);
+};
+
+export const getVersesByPage = async (pageNumber: number, translationId: string = 'id.indonesian', useTajweed: boolean = false): Promise<any[]> => {
     // 1. Offline First
     try {
         const start = getPageStartLocal(pageNumber);
@@ -257,23 +268,33 @@ export const getVersesByPage = async (pageNumber: number, translationId: string 
             const surah = allSurahs.find(s => s.id === sId);
             if (!surah) return [];
 
-            // Get Arabic text
-            if (!globalArabicCache) {
-                const response = await fetch(QURAN_LOCAL_URL);
-                globalArabicCache = await response.json();
+            // Get Arabic text (tajweed if enabled and available)
+            let arabicVerses: any[] = [];
+            if (useTajweed) {
+                arabicVerses = await fetchContentForSurah('quran-tajweed', sId);
             }
-            const arabicVerses = globalArabicCache?.[sId.toString()] || [];
+            if (!arabicVerses || arabicVerses.length === 0) {
+                if (!globalArabicCache) {
+                    const response = await fetch(QURAN_LOCAL_URL);
+                    globalArabicCache = await response.json();
+                }
+                arabicVerses = globalArabicCache?.[sId.toString()] || [];
+            }
 
             // Get Translation
             const translationVerses = await DB.getSurahContent(translationId, sId);
             
             return arabicVerses
-                .filter(v => v.verse >= vStart && (!vEnd || v.verse < vEnd))
+                .filter(v => {
+                    const verseNum = v.verse || v.numberInSurah || v.number;
+                    return verseNum >= vStart && (!vEnd || verseNum < vEnd);
+                })
                 .map(v => {
-                    const trans = translationVerses?.find((tv: any) => tv.numberInSurah === v.verse);
-                    const local = getLocalVerseMeta(localMeta, sId, v.verse);
+                    const verseNum = v.verse || v.numberInSurah || v.number;
+                    const trans = translationVerses?.find((tv: any) => tv.numberInSurah === verseNum);
+                    const local = getLocalVerseMeta(localMeta, sId, verseNum);
                     return {
-                        numberInSurah: v.verse,
+                        numberInSurah: verseNum,
                         text: v.text,
                         translation: trans ? trans.text : "Unduh terjemahan untuk offline.",
                         surah: {

@@ -5,12 +5,18 @@ import { VitePWA } from 'vite-plugin-pwa';
 import electron from 'vite-plugin-electron';
 import renderer from 'vite-plugin-electron-renderer';
 import path from 'node:path';
+import fs from 'node:fs';
+
+const packageJson = JSON.parse(fs.readFileSync(new URL('./package.json', import.meta.url), 'utf-8'));
+const buildDate = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+const appVersion = process.env.VITE_APP_VERSION || buildDate || packageJson.version || 'dev';
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: './',
   // Tauri expects a fixed port, fail if that port is not available
   server: {
+    host: '127.0.0.1',
     port: 1420,
     strictPort: true,
   },
@@ -106,4 +112,7 @@ export default defineConfig({
       }
     })
   ],
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(appVersion),
+  }
 });

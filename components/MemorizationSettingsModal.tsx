@@ -68,8 +68,8 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                         <span className="font-bold text-gray-800 dark:text-white block">Aktifkan Mode Hafalan</span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">Sembunyikan/samarkan ayat untuk menguji hafalan.</span>
                     </div>
-                    <div className={`w-12 h-6 rounded-full relative transition-colors ${isActive ? 'bg-quran-gold' : 'bg-gray-300 dark:bg-gray-500'}`}>
-                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isActive ? 'left-7' : 'left-1'}`}></div>
+                    <div className={`w-12 h-6 rounded-full relative transition-colors overflow-hidden flex-shrink-0 ${isActive ? 'bg-quran-gold' : 'bg-gray-300 dark:bg-gray-500'}`}>
+                        <div className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isActive ? 'translate-x-6' : 'translate-x-0'}`}></div>
                     </div>
                 </div>
 

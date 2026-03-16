@@ -12,8 +12,9 @@ import FontSettingsModal from '../components/FontSettingsModal';
 import ShareVerseModal from '../components/ShareVerseModal';
 import MemorizationSettingsModal from '../components/MemorizationSettingsModal';
 import MushafView from '../components/MushafView';
+import MushafTextView from '../components/MushafTextView';
 import ConfirmationModal from '../components/ConfirmationModal';
-import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast } from '../services/quranService';
+import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
 import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass } from 'lucide-react';
@@ -47,7 +48,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [surah, setSurah] = useState<SurahDetail | null>(null);
   const [allSurahs, setAllSurahs] = useState<Surah[]>([]); 
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'list' | 'mushaf'>('list'); 
+  const [viewMode, setViewMode] = useState<'list' | 'mushaf' | 'mushaf-text'>('list'); 
+  const [mushafTextStartPage, setMushafTextStartPage] = useState<number | null>(null);
   
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
@@ -121,6 +123,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
     fetchDetail();
   }, [id, language, translationId, tafsirId, showTranslation, showTafsir, showWordByWord, showTajweed]);
 
+  useEffect(() => {
+    setMushafTextStartPage(null);
+  }, [id]);
+
   // Scroll Handling for Virtualized List
   useEffect(() => {
       if (!loading && surah && viewMode === 'list') {
@@ -146,6 +152,13 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const nextSurah = useMemo(() => (!surah || !allSurahs.length) ? null : allSurahs.find(s => s.id === surah.id + 1), [surah, allSurahs]);
   const handleNavigateSurah = (targetId: number) => navigate(`/surah/${targetId}`);
   const handleQuickJump = (surahId: number, verseId: number) => { navigate(`/surah/${surahId}#verse-${verseId}`); };
+  const handleQuickJumpMushafText = async (surahId: number, verseId: number) => {
+      const page = await getPageForVerse(surahId, verseId);
+      setMushafTextStartPage(page);
+      if (surahId !== surah?.id) {
+          navigate(`/surah/${surahId}#verse-${verseId}`);
+      }
+  };
   const handleListTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
       if (viewMode !== 'list') return;
       const t = e.touches[0];
@@ -250,18 +263,44 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       const startPage = getSurahStartPage(surah.id);
       return (
           <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
-              <div className="bg-white dark:bg-slate-800 pt-4 pb-2 sm:p-2 border-b border-stone-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between sm:items-center gap-2 px-4 z-20 shadow-sm shrink-0">
-                   <div className="flex gap-1">
-                        {prevSurah && (<button onClick={() => handleNavigateSurah(prevSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronLeft className="w-5 h-5" /></button>)}
-                         {nextSurah && (<button onClick={() => handleNavigateSurah(nextSurah.id)} className="p-2 hover:bg-stone-100 dark:hover:bg-slate-700 rounded-lg text-gray-500 dark:text-gray-300"><ChevronRight className="w-5 h-5" /></button>)}
-                   </div>
-                   <div className="flex gap-2 self-end sm:self-auto">
-                        <button onClick={() => setShowQuickJump(true)} className="p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors"><Compass className="w-5 h-5" /></button>
-                       <button onClick={() => setViewMode('list')} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors whitespace-nowrap min-h-10"><ScrollText className="w-4 h-4" /> <span className="hidden sm:inline">Mode List</span></button>
-                   </div>
+              <div className="flex-1 relative overflow-hidden">
+                <MushafView
+                  startPage={startPage}
+                  translationId={translationId || 'id.indonesian'}
+                  onClose={() => setViewMode('list')}
+                  onSwitchToText={() => setViewMode('mushaf-text')}
+                  onOpenQuickJump={() => setShowQuickJump(true)}
+                />
               </div>
-              <div className="flex-1 relative overflow-hidden"><MushafView startPage={startPage} translationId={translationId || 'id.indonesian'} /></div>
                <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJump} />
+          </div>
+      );
+  }
+
+  if (viewMode === 'mushaf-text') {
+      const startPage = mushafTextStartPage || getSurahStartPage(surah.id);
+      return (
+          <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
+              <MushafTextView
+                startPage={startPage}
+                translationId={translationId || 'id.indonesian'}
+                showTranslation={showTranslation}
+                showTajweed={showTajweed}
+                tafsirId={tafsirId}
+                onClose={() => setViewMode('list')}
+                onSwitchToImage={() => setViewMode('mushaf')}
+                onOpenQuickJump={() => setShowQuickJump(true)}
+                onOpenFontSettings={() => setShowFontSettings(true)}
+                onOpenMemorization={() => setShowMemModal(true)}
+                isMemMode={isMemMode}
+                memLevel={memLevel}
+                memLevelLabel={getMemLevelLabel(memLevel)}
+                arabicFontSize={arabicFontSize}
+                hideTranslation={hideTranslation}
+              />
+              <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJumpMushafText} />
+              <FontSettingsModal isOpen={showFontSettings} onClose={() => setShowFontSettings(false)} arabicFontSize={arabicFontSize} onArabicFontSizeChange={setArabicFontSize} translationFontSize={translationFontSize} onTranslationFontSizeChange={setTranslationFontSize} />
+              <MemorizationSettingsModal isOpen={showMemModal} onClose={() => setShowMemModal(false)} level={memLevel} onLevelChange={setMemLevel} isActive={isMemMode} onToggleActive={setIsMemMode} />
           </div>
       );
   }
@@ -291,8 +330,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                         <Compass className="w-4 h-4" />
                     </button>
                 </div>
-                <button onClick={() => setViewMode('mushaf')} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-stone-200 dark:border-slate-700 text-sm font-bold text-quran-dark dark:text-gray-100 hover:border-quran-gold dark:hover:border-quran-gold transition-colors flex-shrink-0 w-full sm:w-auto min-h-10">
-                    <BookOpen className="w-4 h-4 text-quran-gold" /> Mode Mushaf
+                <button onClick={() => setViewMode('mushaf-text')} className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-stone-200 dark:border-slate-700 text-sm font-bold text-quran-dark dark:text-gray-100 hover:border-quran-gold dark:hover:border-quran-gold transition-colors flex-shrink-0 w-full sm:w-auto min-h-10">
+                    <BookOpen className="w-4 h-4 text-quran-gold" /> Mushaf Teks
                 </button>
            </div>
         </div>

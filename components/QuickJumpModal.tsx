@@ -20,12 +20,14 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
 }) => {
     const [selectedSurahId, setSelectedSurahId] = useState<number>(currentSurahId);
     const [selectedVerseId, setSelectedVerseId] = useState<number>(1);
+    const [verseInput, setVerseInput] = useState<string>('1');
 
     // Update internal state when modal opens with new current surah
     useEffect(() => {
         if (isOpen) {
             setSelectedSurahId(currentSurahId);
             setSelectedVerseId(1);
+            setVerseInput('1');
         }
     }, [isOpen, currentSurahId]);
 
@@ -38,10 +40,16 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
         const newId = parseInt(e.target.value);
         setSelectedSurahId(newId);
         setSelectedVerseId(1); // Reset verse to 1 when surah changes
+        setVerseInput('1');
     };
 
     const handleGo = () => {
-        onNavigate(selectedSurahId, selectedVerseId);
+        const max = selectedSurah?.total_verses || 286;
+        const parsed = parseInt(verseInput, 10);
+        const nextVerse = Math.min(Math.max(1, Number.isFinite(parsed) ? parsed : selectedVerseId), max);
+        setSelectedVerseId(nextVerse);
+        setVerseInput(String(nextVerse));
+        onNavigate(selectedSurahId, nextVerse);
         onClose();
     };
 
@@ -101,8 +109,22 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                             type="number" 
                             min={1} 
                             max={selectedSurah?.total_verses || 286}
-                            value={selectedVerseId}
-                            onChange={(e) => setSelectedVerseId(Math.min(Math.max(1, parseInt(e.target.value) || 1), selectedSurah?.total_verses || 286))}
+                            value={verseInput}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setVerseInput(value);
+                                const parsed = parseInt(value, 10);
+                                if (Number.isFinite(parsed)) {
+                                    setSelectedVerseId(Math.min(Math.max(1, parsed), selectedSurah?.total_verses || 286));
+                                }
+                            }}
+                            onBlur={() => {
+                                const max = selectedSurah?.total_verses || 286;
+                                const parsed = parseInt(verseInput, 10);
+                                const nextVerse = Math.min(Math.max(1, Number.isFinite(parsed) ? parsed : 1), max);
+                                setSelectedVerseId(nextVerse);
+                                setVerseInput(String(nextVerse));
+                            }}
                             className="w-full px-4 py-3 bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold outline-none text-gray-700 dark:text-white font-bold"
                         />
                          <input 
@@ -110,7 +132,11 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                             min={1}
                             max={selectedSurah?.total_verses || 286}
                             value={selectedVerseId}
-                            onChange={(e) => setSelectedVerseId(parseInt(e.target.value))}
+                            onChange={(e) => {
+                                const next = parseInt(e.target.value);
+                                setSelectedVerseId(next);
+                                setVerseInput(String(next));
+                            }}
                             className="w-full h-2 bg-stone-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer accent-quran-gold"
                         />
                     </div>

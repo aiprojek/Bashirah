@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, X, Loader2, BookOpen, RefreshCw, Minimize2, Maximize2, ZoomIn, ZoomOut, Move, Bookmark, Check, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X, Loader2, BookOpen, RefreshCw, Minimize2, Maximize2, ZoomIn, ZoomOut, Move, Bookmark, Check, Target, MoreVertical, ScrollText, Compass } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getVersesByPage, showToast } from '../services/quranService';
 import { getPageUrl, isMushafInitialized, setMushafInitialized } from '../services/mushafService';
@@ -12,13 +12,15 @@ import MushafSetupOverlay from './MushafSetupOverlay';
 interface MushafViewProps {
   startPage: number;
   onClose?: () => void;
+  onSwitchToText?: () => void;
+  onOpenQuickJump?: () => void;
   translationId: string;
 }
 
 type TurnDirection = 'next' | 'prev' | null;
 const EDGE_SWIPE_ZONE_PX = 32;
 
-const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translationId }) => {
+const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToText, onOpenQuickJump, translationId }) => {
   const navigate = useNavigate();
   const [isInitialized, setIsInitialized] = useState(isMushafInitialized());
   const [currentPage, setCurrentPage] = useState(startPage);
@@ -61,6 +63,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   // --- TRANSITION STATE ---
   const [isTurning, setIsTurning] = useState(false);
   const [turnDirection, setTurnDirection] = useState<TurnDirection>(null);
+  const [showOptionsMenu, setShowOptionsMenu] = useState(false);
 
   // Double Tap Detection
   const lastTapRef = useRef<number>(0);
@@ -132,35 +135,37 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
     loadImages();
   }, [currentPage, isDualPage, rightPageNum, leftPageNum]);
 
-  // --- PAGE TURN LOGIC (BOOK FLIP) ---
+  // --- PAGE TURN LOGIC (SLIDE) ---
   const changePageWithAnimation = (newPage: number, direction: Exclude<TurnDirection, null>) => {
       if (newPage < 1 || newPage > 604) return;
       if (isTurning) return;
 
       setIsTurning(true);
       setTurnDirection(direction);
-      
+
+      const swapDelay = 220;
+      const endDelay = 520;
       setTimeout(() => {
           setCurrentPage(newPage);
-      }, 170);
+      }, swapDelay);
 
       setTimeout(() => {
           setIsTurning(false);
           setTurnDirection(null);
-      }, 560); 
+      }, endDelay); 
   };
 
   const handleNextPage = () => {
     const increment = isDualPage ? 2 : 1;
     if (currentPage < 604) {
-        changePageWithAnimation(Math.min(currentPage + increment, 604), 'next');
+        changePageWithAnimation(Math.min(currentPage + increment, 604), 'prev');
     }
   };
 
   const handlePrevPage = () => {
     const decrement = isDualPage ? 2 : 1;
     if (currentPage > 1) {
-        changePageWithAnimation(Math.max(currentPage - decrement, 1), 'prev');
+        changePageWithAnimation(Math.max(currentPage - decrement, 1), 'next');
     }
   };
 
@@ -343,6 +348,11 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
   }
 
   const isCurrentPageLastRead = lastReadPage === currentPage;
+  const handleGoList = () => {
+      if (onClose) onClose();
+      else navigate(-1);
+      setShowOptionsMenu(false);
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#f0eadd] relative select-none">
@@ -379,6 +389,51 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                 </div>
                 
                 <div className="flex items-center gap-2">
+                    {/* Mobile Options */}
+                    <div className="relative sm:hidden">
+                        <button
+                            onClick={() => setShowOptionsMenu(prev => !prev)}
+                            className="p-2 rounded-lg bg-stone-100 text-gray-600 hover:bg-stone-200"
+                            title="Opsi"
+                        >
+                            <MoreVertical className="w-4 h-4" />
+                        </button>
+                        {showOptionsMenu && (
+                            <div className="absolute right-0 mt-2 w-56 bg-white border border-stone-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                                <button
+                                    onClick={() => { handlePrevPage(); setShowOptionsMenu(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
+                                >
+                                    <ChevronLeft className="w-4 h-4" /> Halaman Sebelumnya
+                                </button>
+                                <button
+                                    onClick={() => { handleNextPage(); setShowOptionsMenu(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
+                                >
+                                    <ChevronRight className="w-4 h-4" /> Halaman Berikutnya
+                                </button>
+                                <div className="h-px bg-stone-100" />
+                                <button
+                                    onClick={handleGoList}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
+                                >
+                                    <ScrollText className="w-4 h-4" /> Mode List
+                                </button>
+                                <button
+                                    onClick={() => { onSwitchToText?.(); setShowOptionsMenu(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
+                                >
+                                    <BookOpen className="w-4 h-4" /> Mushaf Teks
+                                </button>
+                                <button
+                                    onClick={() => { onOpenQuickJump?.(); setShowOptionsMenu(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
+                                >
+                                    <Compass className="w-4 h-4" /> Pindah Cepat
+                                </button>
+                            </div>
+                        )}
+                    </div>
                     {/* Update Khatam Button (Always available to trigger manually) */}
                      <button 
                         onClick={() => setShowKhatamConfirm(true)}
@@ -426,11 +481,26 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                     >
                         <Maximize2 className="w-4 h-4" />
                     </button>
-                    <button 
-                        onClick={handleOpenTranslation}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-quran-gold/10 text-quran-dark rounded-lg text-xs font-bold hover:bg-quran-gold/20"
+                    <button
+                        onClick={() => onOpenQuickJump?.()}
+                        className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-quran-gold/10 text-quran-dark rounded-lg text-xs font-bold hover:bg-quran-gold/20"
+                        title="Pindah Cepat"
                     >
-                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">Terjemahan</span>
+                        <Compass className="w-3 h-3" /> <span className="hidden sm:inline">Pindah Cepat</span>
+                    </button>
+                    <button
+                        onClick={handleGoList}
+                        className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
+                        title="Mode List"
+                    >
+                        <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">Mode List</span>
+                    </button>
+                    <button
+                        onClick={() => onSwitchToText?.()}
+                        className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
+                        title="Mushaf Teks"
+                    >
+                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">Mushaf Teks</span>
                     </button>
                 </div>
             </div>
@@ -457,6 +527,28 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                  >
                      <Minimize2 className="w-5 h-5" />
                  </button>
+             )}
+
+             {/* Fullscreen Side Navigation */}
+             {isFullscreen && (
+                 <>
+                     <button
+                         onClick={(e) => { e.stopPropagation(); handlePrevPage(); }}
+                         disabled={currentPage <= 1 || isTurning}
+                         className="absolute left-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors disabled:opacity-30"
+                         title="Halaman Sebelumnya"
+                     >
+                         <ChevronLeft className="w-6 h-6" />
+                     </button>
+                     <button
+                         onClick={(e) => { e.stopPropagation(); handleNextPage(); }}
+                         disabled={currentPage >= 604 || isTurning}
+                         className="absolute right-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors disabled:opacity-30"
+                         title="Halaman Berikutnya"
+                     >
+                         <ChevronRight className="w-6 h-6" />
+                     </button>
+                 </>
              )}
 
              {/* Loading Indicator */}
@@ -507,7 +599,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
                             id="mushaf-img-1"
                             src={currentImageUrl} 
                             alt={`Page ${rightPageNum}`}
-                            className={`h-full w-auto object-contain ${!isDualPage && scale === 1 ? 'drop-shadow-xl' : ''}`}
+                            className={`h-full w-auto object-contain transition-opacity duration-300 ease-out ${loadingImage ? 'opacity-0' : 'opacity-100'} ${!isDualPage && scale === 1 ? 'drop-shadow-xl' : ''}`}
                             onLoad={() => setLoadingImage(false)}
                             onError={() => { setLoadingImage(false); setError(true); }}
                             draggable={false}
@@ -524,13 +616,13 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, translation
 
              </div>
 
-             {/* Fold shadow effect while turning to mimic paper curvature */}
+             {/* Slide shadow overlay */}
              {isTurning && turnDirection && (
                  <div
-                    className={`absolute inset-y-0 z-20 pointer-events-none ${
+                    className={`absolute inset-y-0 z-20 pointer-events-none mushaf-slide-shadow ${
                         turnDirection === 'next'
-                            ? 'right-0 w-1/2 bg-gradient-to-l from-stone-900/25 via-stone-800/10 to-transparent'
-                            : 'left-0 w-1/2 bg-gradient-to-r from-stone-900/25 via-stone-800/10 to-transparent'
+                            ? 'mushaf-slide-shadow-next'
+                            : 'mushaf-slide-shadow-prev'
                     }`}
                  />
              )}

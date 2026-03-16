@@ -230,12 +230,16 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      }
                      
                      if (isVisible) {
-                         return <span key={idx} className="ml-1.5"><TajweedText text={word} /> </span>;
+                         return (
+                           <span key={idx} className="ml-1.5">
+                             <TajweedText text={word} />{' '}
+                           </span>
+                         );
                      }
                      
                      return (
                         <span key={idx} className="inline-block bg-stone-200/50 dark:bg-slate-600/50 rounded-md text-transparent select-none ml-1.5 min-w-[30px] h-4 align-middle opacity-50">
-                             ....
+                             ....{' '}
                         </span>
                      );
                  })}
@@ -255,12 +259,16 @@ const VerseItem: React.FC<VerseItemProps> = ({
                      const shouldHide = pseudoRandom < 4; // 40% chance to hide
                      
                      if (!shouldHide) {
-                         return <span key={idx} className="ml-1.5"><TajweedText text={word} /> </span>;
+                         return (
+                           <span key={idx} className="ml-1.5">
+                             <TajweedText text={word} />{' '}
+                           </span>
+                         );
                      }
                      
-                     return (
+                         return (
                         <span key={idx} className="inline-block bg-stone-200/50 dark:bg-slate-600/50 rounded-md text-transparent select-none ml-1.5 min-w-[20px] h-4 align-middle opacity-50">
-                             ...
+                             ...{' '}
                         </span>
                      );
                  })}
