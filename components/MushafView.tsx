@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, ChevronRight, X, Loader2, BookOpen, RefreshCw, Minimize2, Maximize2, ZoomIn, ZoomOut, Move, Bookmark, Check, Target, MoreVertical, ScrollText, Compass } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 import { getVersesByPage, showToast } from '../services/quranService';
 import { getPageUrl, isMushafInitialized, setMushafInitialized } from '../services/mushafService';
 import * as StorageService from '../services/storageService';
@@ -12,7 +13,7 @@ import MushafSetupOverlay from './MushafSetupOverlay';
 interface MushafViewProps {
   startPage: number;
   onClose?: () => void;
-  onSwitchToText?: () => void;
+  onSwitchToText?: (page: number) => void;
   onOpenQuickJump?: () => void;
   translationId: string;
 }
@@ -22,6 +23,7 @@ const EDGE_SWIPE_ZONE_PX = 32;
 
 const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToText, onOpenQuickJump, translationId }) => {
   const navigate = useNavigate();
+  const { language } = useLanguage();
   const [isInitialized, setIsInitialized] = useState(isMushafInitialized());
   const [currentPage, setCurrentPage] = useState(startPage);
   const [loadingImage, setLoadingImage] = useState(true);
@@ -260,7 +262,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
       setShowTranslationSheet(true);
       setLoadingTranslation(true);
       try {
-          const verses = await getVersesByPage(currentPage, translationId);
+          const verses = await getVersesByPage(currentPage, translationId, false, language);
           setTranslationContent(verses);
       } catch (e) {
           console.error(e);
@@ -274,7 +276,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
       setIsMarkingRead(true);
       try {
           // Fetch verses for this page to get the Surah ID and Verse ID of the LAST verse on page
-          const verses = await getVersesByPage(currentPage, translationId);
+          const verses = await getVersesByPage(currentPage, translationId, false, language);
           
           if (verses && verses.length > 0) {
               const firstVerse = verses[0]; // Start of page
@@ -302,7 +304,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
   const performKhatamUpdate = async () => {
       setIsMarkingRead(true);
       try {
-           const verses = await getVersesByPage(currentPage, translationId);
+           const verses = await getVersesByPage(currentPage, translationId, false, language);
            let message = `Target Khatam diperbarui ke halaman ${currentPage}.`;
            
            if (verses && verses.length > 0) {
@@ -420,7 +422,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
                                     <ScrollText className="w-4 h-4" /> Mode List
                                 </button>
                                 <button
-                                    onClick={() => { onSwitchToText?.(); setShowOptionsMenu(false); }}
+                                    onClick={() => { onSwitchToText?.(currentPage); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
                                     <BookOpen className="w-4 h-4" /> Mushaf Teks
@@ -496,7 +498,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
                         <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">Mode List</span>
                     </button>
                     <button
-                        onClick={() => onSwitchToText?.()}
+                        onClick={() => onSwitchToText?.(currentPage)}
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
                         title="Mushaf Teks"
                     >

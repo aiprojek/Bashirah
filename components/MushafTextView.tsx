@@ -1,13 +1,16 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Bookmark, Check, Target, ScrollText, Image as ImageIcon, Loader2, Info, Copy, Volume2, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
-import { getAllSurahs, getSurahInfo, getVersesByPage, showToast } from '../services/quranService';
+import { ChevronLeft, ChevronRight, Bookmark, Check, Target, ScrollText, Image as ImageIcon, Loader2, Copy, Volume2, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
+import { getAllSurahs, getSurahTotalVersesLocal, getVersesByPage, showToast } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import * as DB from '../services/db';
-import SurahInfoModal from './SurahInfoModal';
 import ShareVerseModal from './ShareVerseModal';
-import { Surah, SurahInfo } from '../types';
 import TajweedText from './TajweedText';
 import { useAudio } from '../contexts/AudioContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { ArabicFontId, getArabicFontStack } from '../constants/quranFonts';
+import { getQcfSurahHeaderGlyph } from '../constants/qcfGlyphs';
+import { Word } from '../types';
+import WordDetailModal from './WordDetailModal';
 
 interface MushafTextViewProps {
   startPage: number;
@@ -24,6 +27,7 @@ interface MushafTextViewProps {
   memLevelLabel?: string;
   memLevel?: 'normal' | 'first-last' | 'ghost' | 'random';
   arabicFontSize?: number;
+  arabicFontFamily?: ArabicFontId;
   hideTranslation?: boolean;
 }
 
@@ -32,6 +36,10 @@ type PageVerse = {
   text: string;
   translation?: string;
   page_number?: number;
+  juz_number?: number;
+  hizb_number?: number;
+  ruku_number?: number;
+  words?: Word[];
   surah: {
     number: number;
     name: string;
@@ -55,8 +63,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   memLevelLabel,
   memLevel = 'normal',
   arabicFontSize = 30,
+  arabicFontFamily = 'uthmani-hafs',
   hideTranslation = false
 }) => {
+  const { language } = useLanguage();
   const [currentPage, setCurrentPage] = useState(startPage);
   const [verses, setVerses] = useState<PageVerse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,12 +76,9 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [lastReadPage, setLastReadPage] = useState<number | null>(null);
   const [hasKhatamTarget, setHasKhatamTarget] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
-  const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
-  const [surahBasic, setSurahBasic] = useState<Surah | null>(null);
-  const [loadingInfo, setLoadingInfo] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [selectedVerse, setSelectedVerse] = useState<PageVerse | null>(null);
+  const [selectedWord, setSelectedWord] = useState<{ word: Word; verseId: number; surahId: number } | null>(null);
   const [showVerseModal, setShowVerseModal] = useState(false);
   const [shareVerseData, setShareVerseData] = useState<PageVerse | null>(null);
   const [plainVerseTextMap, setPlainVerseTextMap] = useState<Record<string, string>>({});
@@ -80,11 +87,16 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [isLoadingTafsir, setIsLoadingTafsir] = useState(false);
   const [revealedVerses, setRevealedVerses] = useState<Record<string, boolean>>({});
   const { playVerse, setRepeatSettings, isPlaying, currentSurah, currentVerse } = useAudio();
-  const [pagePlaybackActive, setPagePlaybackActive] = useState(false);
-  const [pagePlaybackSurah, setPagePlaybackSurah] = useState<number | null>(null);
-  const [pagePlaybackStart, setPagePlaybackStart] = useState<number | null>(null);
+  const [pagePlaybackQueue, setPagePlaybackQueue] = useState<Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> | null>(null);
+  const [pagePlaybackIndex, setPagePlaybackIndex] = useState(0);
   const [autoPlayNextPage, setAutoPlayNextPage] = useState(false);
   const lastPlayingRef = useRef(false);
+  const rangeEndReachedRef = useRef(false);
+  const responsiveTranslationFontSize = `clamp(13px, 2.8vw, 16px)`;
+  const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
+  const showCustomVerseOrnament = arabicFontFamily === 'indopak';
+  const verseOrnamentClassName = showCustomVerseOrnament ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline';
+  const isAudioPlayerVisible = !!currentSurah && !!currentVerse;
 
   useEffect(() => {
     setCurrentPage(startPage);
@@ -95,6 +107,13 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   }, [showTajweed]);
 
   useEffect(() => {
+    document.body.dataset.mushafTextView = 'true';
+    return () => {
+      delete document.body.dataset.mushafTextView;
+    };
+  }, []);
+
+  useEffect(() => {
     setRevealedVerses({});
   }, [isMemMode, memLevel, currentPage]);
 
@@ -102,7 +121,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     const loadPage = async () => {
       setLoading(true);
       try {
-        const data = await getVersesByPage(currentPage, translationId, isTajweedOn);
+        const data = await getVersesByPage(currentPage, translationId, isTajweedOn, language);
         setVerses(data || []);
       } catch (e) {
         console.error('Failed to load mushaf text page', e);
@@ -112,7 +131,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       }
     };
     loadPage();
-  }, [currentPage, translationId, isTajweedOn]);
+  }, [currentPage, translationId, isTajweedOn, language]);
 
   useEffect(() => {
     const checkLastRead = async () => {
@@ -178,33 +197,15 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const isCurrentPageLastRead = lastReadPage === currentPage;
 
   const groupedVerses = useMemo(() => {
-    let lastSurahId: number | null = null;
-    return verses.map(v => {
-      const isNewSurah = lastSurahId !== v.surah.number;
-      lastSurahId = v.surah.number;
-      return { verse: v, isNewSurah };
+    return verses.map((v, index) => {
+      const prevVerse = index > 0 ? verses[index - 1] : null;
+      const isNewSurah = v.numberInSurah === 1;
+      const isNewJuz = !!v.juz_number && (!prevVerse || prevVerse.juz_number !== v.juz_number);
+      const isNewHizb = !!v.hizb_number && (!prevVerse || prevVerse.hizb_number !== v.hizb_number);
+      const isNewRuku = !!v.ruku_number && (!prevVerse || prevVerse.ruku_number !== v.ruku_number);
+      return { verse: v, isNewSurah, isNewJuz, isNewHizb, isNewRuku };
     });
   }, [verses]);
-
-  const primarySurah = useMemo(() => {
-    return verses[0]?.surah || null;
-  }, [verses]);
-
-  const handleOpenInfo = async () => {
-    if (!primarySurah) return;
-    setShowInfoModal(true);
-    if (!surahInfo || surahBasic?.id !== primarySurah.number) {
-      setLoadingInfo(true);
-      try {
-        const all = await getAllSurahs('id');
-        setSurahBasic(all.find(s => s.id === primarySurah.number) || null);
-        const info = await getSurahInfo(primarySurah.number);
-        setSurahInfo(info);
-      } finally {
-        setLoadingInfo(false);
-      }
-    }
-  };
 
   const getPageRangeLabel = async () => {
     if (verses.length === 0) return `Halaman ${currentPage}`;
@@ -255,7 +256,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (plainVerseTextMap[key]) return;
     setIsLoadingPlainVerse(true);
     try {
-      const plainPageVerses = await getVersesByPage(currentPage, translationId, false);
+      const plainPageVerses = await getVersesByPage(currentPage, translationId, false, language);
       const nextMap: Record<string, string> = {};
       plainPageVerses.forEach(v => {
         nextMap[`${v.surah.number}:${v.numberInSurah}`] = v.text;
@@ -276,17 +277,37 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const renderMushafVerse = (verse: PageVerse) => {
     const key = getVerseKey(verse);
     const isRevealed = !!revealedVerses[key];
-    const words = verse.text.trim().split(/\s+/);
+    const rawText = verse.text || '';
+    const words = rawText.trim().split(/\s+/).filter(Boolean);
+    const interactiveWords = verse.words?.filter(word => word.char_type_name !== 'end') || [];
     const renderWord = (word: string, idx: number) => (
       <span key={`${key}-w-${idx}`} className="ml-1.5">
         {isTajweedOn ? <TajweedText text={word} /> : word}{' '}
       </span>
     );
+    const renderInteractiveWordByWord = () => (
+      <>
+        {interactiveWords.map((word, idx) => (
+          <button
+            key={`${key}-iw-${word.position || idx}`}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedWord({ word, verseId: verse.numberInSurah, surahId: verse.surah.number });
+            }}
+            className="inline rounded-md px-0.5 text-quran-dark transition-colors hover:bg-quran-gold/10 hover:text-quran-dark/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
+            title={word.translation?.text || word.transliteration?.text || 'Lihat detail kata'}
+          >
+            {word.text_uthmani}
+          </button>
+        ))}
+      </>
+    );
 
     if (!isMemMode) {
       return (
         <>
-          {isTajweedOn ? <TajweedText text={verse.text} /> : verse.text}
+          {isTajweedOn ? <TajweedText text={rawText} /> : interactiveWords.length > 0 ? renderInteractiveWordByWord() : rawText}
         </>
       );
     }
@@ -294,7 +315,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (isRevealed) {
       return (
         <span className="cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={verse.text} /> : verse.text}
+          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
         </span>
       );
     }
@@ -302,7 +323,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (memLevel === 'normal') {
       return (
         <span className="blur-md opacity-40 select-none cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={verse.text} /> : verse.text}
+          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
         </span>
       );
     }
@@ -310,7 +331,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (memLevel === 'ghost') {
       return (
         <span className="opacity-10 select-none cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={verse.text} /> : verse.text}
+          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
         </span>
       );
     }
@@ -350,7 +371,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
     return (
       <span className="cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-        {isTajweedOn ? <TajweedText text={verse.text} /> : verse.text}
+        {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
       </span>
     );
   };
@@ -398,55 +419,123 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
   const handlePlayPage = async () => {
     if (verses.length === 0) return;
-    const first = verses[0];
-    const last = verses[verses.length - 1];
-    const sameSurah = verses.every(v => v.surah.number === first.surah.number);
-    if (!sameSurah) {
-      showToast('Murottal per halaman hanya untuk satu surat.', 'warning');
+    const all = await getAllSurahs('id');
+    const segments: Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> = [];
+    const fallbackSurahName = (surahId: number) =>
+      verses.find(v => v.surah.number === surahId)?.surah.englishName || `Surat ${surahId}`;
+    const resolveTotalVerses = async (surahId: number) => {
+      const meta = all.find(s => s.id === surahId);
+      if (meta?.total_verses) return meta.total_verses;
+      const localTotal = await getSurahTotalVersesLocal(surahId);
+      return localTotal || 0;
+    };
+    let currentSegmentSurah = verses[0].surah.number;
+    let segmentStart = verses[0].numberInSurah;
+    let lastSurah = currentSegmentSurah;
+    let lastVerse = verses[0].numberInSurah;
+
+    for (let idx = 0; idx < verses.length; idx++) {
+      const v = verses[idx];
+      if (v.surah.number !== currentSegmentSurah) {
+        const totalVerses = await resolveTotalVerses(currentSegmentSurah);
+        segments.push({
+          surahId: currentSegmentSurah,
+          start: segmentStart,
+          end: lastVerse,
+          totalVerses: totalVerses || lastVerse,
+          transliteration: all.find(s => s.id === currentSegmentSurah)?.transliteration || fallbackSurahName(currentSegmentSurah)
+        });
+        currentSegmentSurah = v.surah.number;
+        segmentStart = v.numberInSurah;
+      }
+      lastSurah = v.surah.number;
+      lastVerse = v.numberInSurah;
+
+      if (idx === verses.length - 1) {
+        const totalVerses = await resolveTotalVerses(lastSurah);
+        segments.push({
+          surahId: lastSurah,
+          start: segmentStart,
+          end: lastVerse,
+          totalVerses: totalVerses || lastVerse,
+          transliteration: all.find(s => s.id === lastSurah)?.transliteration || fallbackSurahName(lastSurah)
+        });
+      }
+    }
+
+    if (segments.length === 0) {
+      const firstVerse = verses[0];
+      if (!firstVerse) return;
+      const total = (await getSurahTotalVersesLocal(firstVerse.surah.number)) || Math.max(1, firstVerse.numberInSurah || 1);
+      const start = Math.max(1, firstVerse.numberInSurah || 1);
+      setRepeatSettings({ mode: 'none', rangeStart: start, rangeEnd: start, count: 1 });
+      playVerse(firstVerse.surah.number, start, total, firstVerse.surah.englishName || `Surat ${firstVerse.surah.number}`);
       setAutoPlayNextPage(false);
       return;
     }
-    let surahMeta = surahBasic;
-    if (!surahMeta || surahMeta.id !== first.surah.number) {
-      const all = await getAllSurahs('id');
-      surahMeta = all.find(s => s.id === first.surah.number) || null;
-      setSurahBasic(surahMeta);
-    }
-    if (!surahMeta) {
-      showToast('Gagal memuat info surat.', 'error');
-      setAutoPlayNextPage(false);
-      return;
-    }
+
+    const firstSegment = segments[0];
+    const safeStart = Math.max(1, firstSegment.start || 1);
+    const safeEnd = Math.max(safeStart, firstSegment.end || safeStart);
+    rangeEndReachedRef.current = false;
     setRepeatSettings({
       mode: 'range',
-      rangeStart: first.numberInSurah,
-      rangeEnd: last.numberInSurah,
+      rangeStart: safeStart,
+      rangeEnd: safeEnd,
       count: 1
     });
-    playVerse(first.surah.number, first.numberInSurah, surahMeta.total_verses, surahMeta.transliteration);
-    setPagePlaybackActive(true);
-    setPagePlaybackSurah(first.surah.number);
-    setPagePlaybackStart(first.numberInSurah);
+    playVerse(firstSegment.surahId, safeStart, firstSegment.totalVerses || safeEnd, firstSegment.transliteration);
+    setPagePlaybackQueue(segments);
+    setPagePlaybackIndex(0);
     setShowActionsMenu(false);
   };
 
   useEffect(() => {
-    if (!pagePlaybackActive) {
+    if (!pagePlaybackQueue) return;
+    const currentSegment = pagePlaybackQueue[pagePlaybackIndex];
+    if (!currentSegment) return;
+    if (
+      isPlaying &&
+      currentSurah === currentSegment.surahId &&
+      currentVerse === currentSegment.end
+    ) {
+      rangeEndReachedRef.current = true;
+    }
+  }, [isPlaying, currentSurah, currentVerse, pagePlaybackQueue, pagePlaybackIndex]);
+
+  useEffect(() => {
+    const justStopped = lastPlayingRef.current && !isPlaying;
+    if (!justStopped || !pagePlaybackQueue) {
       lastPlayingRef.current = isPlaying;
       return;
     }
-    const justStopped = lastPlayingRef.current && !isPlaying;
-    const isSameSurah = pagePlaybackSurah !== null && currentSurah === pagePlaybackSurah;
-    const isAtRangeStart = pagePlaybackStart !== null && currentVerse === pagePlaybackStart;
-    if (justStopped && isSameSurah && isAtRangeStart) {
+    if (!rangeEndReachedRef.current) {
+      lastPlayingRef.current = isPlaying;
+      return;
+    }
+    rangeEndReachedRef.current = false;
+    const nextIndex = pagePlaybackIndex + 1;
+    if (nextIndex < pagePlaybackQueue.length) {
+      const next = pagePlaybackQueue[nextIndex];
+      rangeEndReachedRef.current = false;
+      setRepeatSettings({
+        mode: 'range',
+        rangeStart: next.start,
+        rangeEnd: next.end,
+        count: 1
+      });
+      playVerse(next.surahId, next.start, next.totalVerses, next.transliteration);
+      setPagePlaybackIndex(nextIndex);
+    } else {
       if (currentPage < 604) {
         setAutoPlayNextPage(true);
         handleNextPage();
       }
-      setPagePlaybackActive(false);
+      setPagePlaybackQueue(null);
+      setPagePlaybackIndex(0);
     }
     lastPlayingRef.current = isPlaying;
-  }, [isPlaying, currentSurah, currentVerse, pagePlaybackActive, pagePlaybackSurah, pagePlaybackStart, currentPage]);
+  }, [isPlaying, pagePlaybackQueue, pagePlaybackIndex, currentPage, playVerse, setRepeatSettings]);
 
   useEffect(() => {
     if (!autoPlayNextPage) return;
@@ -457,7 +546,82 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     setAutoPlayNextPage(false);
   }, [autoPlayNextPage, verses, currentPage]);
 
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (window.innerWidth < 768) return;
+      const target = event.target as HTMLElement | null;
+      const tagName = target?.tagName?.toLowerCase();
+      const isTypingTarget = !!target && (
+        target.isContentEditable ||
+        tagName === 'input' ||
+        tagName === 'textarea' ||
+        tagName === 'select' ||
+        tagName === 'button'
+      );
+      if (isTypingTarget) return;
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        handlePrevPage();
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        handleNextPage();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [currentPage]);
+
   const toArabicNumerals = (n: number) => n.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
+  const renderVerseOrnament = (verse: PageVerse) => (
+    <button
+      type="button"
+      className={verseOrnamentClassName}
+      onClick={(e) => { e.stopPropagation(); handleOpenVerseActions(verse); }}
+      aria-label={`Aksi ayat ${verse.surah.englishName} ${verse.numberInSurah}`}
+    >
+      <span className="verse-ornament-number">{toArabicNumerals(verse.numberInSurah)}</span>
+    </button>
+  );
+  const renderPageMarkers = (verse: PageVerse, isNewJuz: boolean, isNewHizb: boolean, isNewRuku: boolean) => {
+    if (!isNewJuz && !isNewHizb && !isNewRuku) return null;
+
+    const markerItems = [
+      isNewJuz && verse.juz_number ? { label: `Juz ${verse.juz_number}`, tone: 'juz' as const } : null,
+      isNewHizb && verse.hizb_number ? { label: `Hizb ${verse.hizb_number}`, tone: 'hizb' as const } : null,
+      isNewRuku && verse.ruku_number ? { label: `Ruku ${verse.ruku_number}`, tone: 'ruku' as const } : null
+    ].filter(Boolean) as Array<{ label: string; tone: 'juz' | 'hizb' | 'ruku' }>;
+
+    return (
+      <div className="block w-full my-6" style={{ textAlign: 'center', textAlignLast: 'center' }}>
+        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 sm:gap-4" dir="ltr">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-200/90 to-stone-300/80" />
+          <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] leading-none whitespace-nowrap">
+            {markerItems.map((item, index) => (
+              <React.Fragment key={`${item.label}-${index}`}>
+                <span
+                  className={
+                    item.tone === 'juz'
+                      ? 'text-quran-dark'
+                      : item.tone === 'hizb'
+                      ? 'text-stone-600'
+                      : 'text-stone-500'
+                  }
+                >
+                  {item.label}
+                </span>
+                {index < markerItems.length - 1 && (
+                  <span className="inline-block h-1 w-1 rounded-full bg-stone-300/80" aria-hidden="true" />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-stone-200/90 to-stone-300/80" />
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#f9f6ef]">
@@ -525,13 +689,6 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             title="Murottal Per Halaman"
           >
             <Volume2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleOpenInfo}
-            className="p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
-            title="Asbabun Nuzul"
-          >
-            <Info className="w-4 h-4" />
           </button>
           <button
             onClick={() => setIsTajweedOn(prev => !prev)}
@@ -630,7 +787,11 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6">
+      <div
+        className={`flex-1 overflow-y-auto px-4 sm:px-6 py-6 transition-[padding] duration-300 ${
+          isAudioPlayerVisible ? 'pb-36 sm:pb-40' : 'pb-6'
+        }`}
+      >
         {loading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="w-8 h-8 text-quran-gold animate-spin" />
@@ -643,54 +804,67 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               key={slideKey}
               className={`bg-white/80 rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-sm ${slideDirection === 'next' ? 'mushaf-text-slide-next' : 'mushaf-text-slide-prev'}`}
             >
-            {primarySurah && (
-              <div className="mb-6">
-                <div className="flex items-center justify-center">
-                  <span className="text-2xl sm:text-4xl font-bold font-arabic text-quran-dark text-center">
-                    {primarySurah.name}
-                  </span>
-                </div>
-                <div className="mt-2 flex items-center justify-center gap-2 text-sm text-gray-600">
-                  <span className="font-semibold tracking-wide">
-                    {primarySurah.englishName}
-                  </span>
-                </div>
-                <div className="mt-4 flex items-center justify-center gap-3">
-                  <span className="h-px w-16 bg-quran-gold/60" />
-                  <span className="w-2.5 h-2.5 rotate-45 bg-quran-gold/70" />
-                  <span className="h-px w-16 bg-quran-gold/60" />
-                </div>
-              </div>
-            )}
             <div
               dir="rtl"
               className="font-arabic leading-[2.6] text-quran-dark"
-              style={{ textAlign: 'justify', textAlignLast: 'right', fontSize: `${arabicFontSize}px` }}
+              style={{ textAlign: 'justify', textAlignLast: 'right', fontSize: `clamp(22px, 3.6vw, ${arabicFontSize}px)`, fontFamily: arabicFontFamilyStyle }}
             >
-              {groupedVerses.map(({ verse, isNewSurah }, idx) => {
+              {groupedVerses.map(({ verse, isNewSurah, isNewJuz, isNewHizb, isNewRuku }, idx) => {
                 const isActiveVerse = currentSurah === verse.surah.number && currentVerse === verse.numberInSurah;
                 const shouldMask =
                   isMemMode &&
                   ['ghost', 'first-last', 'random'].includes(memLevel);
+                const surahHeaderGlyph = isNewSurah ? getQcfSurahHeaderGlyph(verse.surah.number) : null;
+                const showFallbackArabicSurahName = !surahHeaderGlyph;
                 return (
                 <React.Fragment key={`${verse.surah.number}-${verse.numberInSurah}-${idx}`}>
+                  {renderPageMarkers(verse, isNewJuz, isNewHizb, isNewRuku)}
+                  {isNewSurah && (
+                    <div className="block w-full my-7 text-center" style={{ textAlign: 'center', textAlignLast: 'center' }}>
+                      {idx !== 0 && (
+                        <div className="mb-6 flex items-center justify-center gap-3">
+                          <span className="h-px w-8 bg-quran-dark/20" />
+                          <span className="w-2 h-2 rotate-45 bg-quran-gold/70" />
+                          <span className="h-px w-28 bg-quran-gold/40" />
+                          <span className="w-2 h-2 rotate-45 bg-quran-gold/70" />
+                          <span className="h-px w-8 bg-quran-dark/20" />
+                        </div>
+                      )}
+                        <div className="w-full text-center">
+                        {surahHeaderGlyph && (
+                          <div
+                            className="relative mx-auto mb-2 h-[92px] w-[90%] sm:h-[118px] sm:w-[88%] md:h-[128px] md:w-[80%] lg:h-[138px]"
+                            style={{ fontFamily: '"QCF Surah Header", serif' }}
+                            dir="ltr"
+                            aria-hidden="true"
+                          >
+                            <span
+                              className="absolute left-1/2 top-1/2 block w-max -translate-x-1/2 -translate-y-1/2 text-center text-[88px] sm:text-[116px] md:text-[126px] lg:text-[136px] leading-none"
+                              style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
+                            >
+                              {surahHeaderGlyph}
+                            </span>
+                          </div>
+                        )}
+                        {showFallbackArabicSurahName && (
+                          <div className="text-2xl sm:text-4xl font-bold font-arabic font-surah-name text-quran-dark text-center group-hover:text-quran-dark/80 transition-colors" style={{ fontFamily: 'var(--quran-surah-name-font)' }}>
+                            {verse.surah.name}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   {isNewSurah && verse.surah.number !== 1 && verse.numberInSurah === 1 && (
                     <div className="block w-full my-5">
-                      <div className="block w-full text-2xl sm:text-3xl text-quran-dark font-arabic mushaf-center">
+                      <div className="block w-full text-quran-dark font-arabic mushaf-center" style={{ fontSize: `clamp(22px, 3.2vw, ${Math.max(24, arabicFontSize - 2)}px)`, fontFamily: arabicFontFamilyStyle }}>
                         بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                       </div>
                     </div>
                   )}
                   <span className={isActiveVerse ? 'bg-quran-gold/20 rounded px-1' : ''}>
                     {renderMushafVerse(verse)}
-                    <button
-                      type="button"
-                      className="verse-ornament"
-                      onClick={(e) => { e.stopPropagation(); handleOpenVerseActions(verse); }}
-                      aria-label={`Aksi ayat ${verse.surah.englishName} ${verse.numberInSurah}`}
-                    >
-                      {toArabicNumerals(verse.numberInSurah)}
-                    </button>
+                    {' '}
+                    {renderVerseOrnament(verse)}
                   </span>
                   <span> </span>
                 </React.Fragment>
@@ -700,7 +874,11 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             {showTranslation && !(isMemMode && hideTranslation) && (
               <div className="mt-6 space-y-3">
                 {groupedVerses.map(({ verse }, idx) => (
-                  <div key={`tr-${verse.surah.number}-${verse.numberInSurah}-${idx}`} className="text-sm text-gray-600 leading-relaxed">
+                  <div
+                    key={`tr-${verse.surah.number}-${verse.numberInSurah}-${idx}`}
+                    className="text-gray-600 leading-relaxed"
+                    style={{ fontSize: responsiveTranslationFontSize }}
+                  >
                     <span className="font-semibold text-gray-700">
                       {verse.surah.englishName} {verse.numberInSurah}
                     </span>
@@ -714,18 +892,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
         )}
       </div>
 
-      {primarySurah && (
-        <SurahInfoModal
-          isOpen={showInfoModal}
-          onClose={() => setShowInfoModal(false)}
-          info={surahInfo}
-          surah={surahBasic}
-          isLoading={loadingInfo}
-        />
-      )}
-
       {showVerseModal && selectedVerse && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 px-4">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/40 px-4">
           <div className="bg-white rounded-2xl w-full max-w-md shadow-xl border border-stone-200 overflow-hidden">
             <div className="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
               <div className="text-sm font-bold text-gray-700">
@@ -739,7 +907,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               </button>
             </div>
             <div className="px-4 py-4 space-y-3">
-              <div className="text-right font-arabic text-2xl leading-[2.4] text-quran-dark">
+              <div className="text-right font-arabic text-2xl leading-[2.4] text-quran-dark" style={{ fontFamily: arabicFontFamilyStyle }}>
                 {(() => {
                   const key = getVerseKey(selectedVerse);
                   const plainText = isTajweedOn ? plainVerseTextMap[key] : undefined;
@@ -797,6 +965,16 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           verseNumber={shareVerseData.numberInSurah}
           arabicText={shareVerseData.text}
           translationText={shareVerseData.translation || ''}
+        />
+      )}
+
+      {selectedWord && (
+        <WordDetailModal
+          word={selectedWord.word}
+          surahId={selectedWord.surahId}
+          verseId={selectedWord.verseId}
+          isOpen={!!selectedWord}
+          onClose={() => setSelectedWord(null)}
         />
       )}
 

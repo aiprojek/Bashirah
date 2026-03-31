@@ -13,7 +13,7 @@ module.exports = {
       fontFamily: {
         sans: ['"Plus Jakarta Sans"', "sans-serif"],
         serif: ['"Lora"', "serif"],
-        arabic: ['"Amiri"', "serif"],
+        arabic: ['"Uthmanic Hafs"', "serif"],
       },
       colors: {
         quran: {

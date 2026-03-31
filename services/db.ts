@@ -1,5 +1,5 @@
 import { openDB, DBSchema } from "idb";
-import { TranslationOption, TadabburData } from "../types";
+import { TranslationOption, TadabburData, WordMorphology, SurahInfo, AyahMorphology } from "../types";
 
 interface QuranDB extends DBSchema {
   downloads: {
@@ -39,7 +39,15 @@ interface QuranDB extends DBSchema {
   };
   surah_info: {
     key: number; // surahId
-    value: any;
+    value: SurahInfo;
+  };
+  word_morphology: {
+    key: string; // surahId_verseId_wordPosition
+    value: WordMorphology;
+  };
+  ayah_morphology: {
+    key: string; // surahId_verseId
+    value: AyahMorphology;
   };
   download_tasks: {
     key: string; // taskId
@@ -49,7 +57,7 @@ interface QuranDB extends DBSchema {
 }
 
 const DB_NAME = "bashirah-db";
-const DB_VERSION = 4; // Incremented for download_tasks store
+const DB_VERSION = 6;
 
 export const getDB = async () => {
   return openDB<QuranDB>(DB_NAME, DB_VERSION, {
@@ -99,6 +107,18 @@ export const getDB = async () => {
           store.createIndex("by-type", "type");
           store.createIndex("by-status", "status");
           store.createIndex("by-updated", "updatedAt");
+        }
+      }
+
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains("word_morphology")) {
+          db.createObjectStore("word_morphology", { keyPath: "id" });
+        }
+      }
+
+      if (oldVersion < 6) {
+        if (!db.objectStoreNames.contains("ayah_morphology")) {
+          db.createObjectStore("ayah_morphology", { keyPath: "id" });
         }
       }
     },
@@ -304,19 +324,80 @@ export const saveQuizScore = async (score: any) => {
 };
 
 // --- SURAH INFO ---
-export const saveSurahInfo = async (surahId: number, info: any) => {
+const getSurahInfoKey = (surahId: number, language: string = "id") => `${surahId}:${language}`;
+
+export const saveSurahInfo = async (surahId: number, info: any, language: string = "id") => {
   const db = await getDB();
-  await db.put("surah_info", info, surahId);
+  const normalized = { ...info, language: info?.language || language };
+  await db.put("surah_info", normalized, getSurahInfoKey(surahId, normalized.language));
 };
 
-export const getSurahInfo = async (surahId: number) => {
+export const getSurahInfo = async (surahId: number, language: string = "id") => {
   const db = await getDB();
-  return db.get("surah_info", surahId);
+  const localized = await db.get("surah_info", getSurahInfoKey(surahId, language));
+  if (localized) return localized;
+
+  // Backward compatibility for old cache entries that were saved without language keying.
+  if (language === "id") {
+    return db.get("surah_info", surahId as any);
+  }
+
+  return undefined;
 };
 
 export const getAllSurahInfos = async () => {
   const db = await getDB();
   return db.getAll("surah_info");
+};
+
+// --- WORD MORPHOLOGY ---
+export const saveWordMorphology = async (entry: WordMorphology) => {
+  const db = await getDB();
+  const id = `${entry.surahId}_${entry.verseId}_${entry.wordPosition}`;
+  await db.put("word_morphology", { ...entry, id } as WordMorphology & { id: string });
+};
+
+export const bulkSaveWordMorphology = async (entries: WordMorphology[]) => {
+  const db = await getDB();
+  const tx = db.transaction("word_morphology", "readwrite");
+  const store = tx.objectStore("word_morphology");
+  for (const entry of entries) {
+    const id = `${entry.surahId}_${entry.verseId}_${entry.wordPosition}`;
+    await store.put({ ...entry, id });
+  }
+  await tx.done;
+};
+
+export const getWordMorphology = async (surahId: number, verseId: number, wordPosition: number) => {
+  const db = await getDB();
+  return db.get("word_morphology", `${surahId}_${verseId}_${wordPosition}`) as Promise<(WordMorphology & { id?: string }) | undefined>;
+};
+
+export const countWordMorphologyEntries = async () => {
+  const db = await getDB();
+  return db.count("word_morphology");
+};
+
+// --- AYAH MORPHOLOGY ---
+export const bulkSaveAyahMorphology = async (entries: AyahMorphology[]) => {
+  const db = await getDB();
+  const tx = db.transaction("ayah_morphology", "readwrite");
+  const store = tx.objectStore("ayah_morphology");
+  for (const entry of entries) {
+    const id = `${entry.surahId}_${entry.verseId}`;
+    await store.put({ ...entry, id });
+  }
+  await tx.done;
+};
+
+export const getAyahMorphology = async (surahId: number, verseId: number) => {
+  const db = await getDB();
+  return db.get("ayah_morphology", `${surahId}_${verseId}`) as Promise<(AyahMorphology & { id?: string }) | undefined>;
+};
+
+export const countAyahMorphologyEntries = async () => {
+  const db = await getDB();
+  return db.count("ayah_morphology");
 };
 
 // --- DOWNLOAD TASKS (RESUME SUPPORT) ---

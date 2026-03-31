@@ -45,6 +45,35 @@ export interface SurahInfo {
     text: string;
     source: string;
     short_text?: string;
+    summary?: string;
+    revelation_background?: string;
+    main_themes?: string[];
+    key_topics?: string[];
+    language?: string;
+}
+
+export interface WordMorphology {
+  surahId: number;
+  verseId: number;
+  wordPosition: number;
+  token?: string;
+  partOfSpeech?: string;
+  grammar?: string;
+  morphology?: string;
+  root?: string;
+  lemma?: string;
+  stem?: string;
+  description?: string;
+  source?: string;
+}
+
+export interface AyahMorphology {
+  surahId: number;
+  verseId: number;
+  rootText?: string;
+  lemmaText?: string;
+  stemText?: string;
+  source?: string;
 }
 
 export interface TranslationOption {

@@ -2,6 +2,7 @@
 import { BookmarkData, LastReadData, NoteData, KhatamTarget, ReadingLog, QuizScore } from "../types";
 import { getSurahStartPage } from "./quranService"; // Import mapping helper
 import * as DB from './db';
+import { ArabicFontId, DEFAULT_ARABIC_FONT_ID, getArabicFontStack } from "../constants/quranFonts";
 
 const LAST_READ_KEY = 'last_read';
 const BOOKMARKS_KEY = 'bookmarks';
@@ -11,6 +12,10 @@ const HISTORY_KEY = 'reading_history';
 const SHOW_DAILY_AYAT_KEY = 'show_daily_ayat';
 const QUIZ_SCORES_KEY = 'quiz_scores';
 const TOTAL_KHATAM_KEY = 'total_khatam_count';
+const DEFAULT_MUSHAF_MODE_KEY = 'default_mushaf_mode';
+const ARABIC_FONT_SIZE_KEY = 'arabic_font_size';
+const TRANSLATION_FONT_SIZE_KEY = 'translation_font_size';
+const ARABIC_FONT_FAMILY_KEY = 'arabic_font_family';
 
 // Helper to notify components of changes
 const notifyUpdate = () => {
@@ -26,6 +31,52 @@ export const getShowAyatOfTheDay = async (): Promise<boolean> => {
 export const setShowAyatOfTheDay = async (show: boolean) => {
     await DB.setSetting(SHOW_DAILY_AYAT_KEY, show);
     notifyUpdate();
+};
+
+export const getDefaultMushafMode = async (): Promise<'text' | 'image'> => {
+    const data = await DB.getSetting(DEFAULT_MUSHAF_MODE_KEY);
+    return data === 'image' ? 'image' : 'text';
+};
+
+export const setDefaultMushafMode = async (mode: 'text' | 'image') => {
+    await DB.setSetting(DEFAULT_MUSHAF_MODE_KEY, mode);
+    notifyUpdate();
+};
+
+export const getArabicFontSize = async (): Promise<number> => {
+    const data = await DB.getSetting(ARABIC_FONT_SIZE_KEY);
+    return typeof data === 'number' && data >= 20 && data <= 60 ? data : 30;
+};
+
+export const setArabicFontSize = async (size: number) => {
+    await DB.setSetting(ARABIC_FONT_SIZE_KEY, size);
+    notifyUpdate();
+};
+
+export const getTranslationFontSize = async (): Promise<number> => {
+    const data = await DB.getSetting(TRANSLATION_FONT_SIZE_KEY);
+    return typeof data === 'number' && data >= 12 && data <= 24 ? data : 16;
+};
+
+export const setTranslationFontSize = async (size: number) => {
+    await DB.setSetting(TRANSLATION_FONT_SIZE_KEY, size);
+    notifyUpdate();
+};
+
+export const getArabicFontFamily = async (): Promise<ArabicFontId> => {
+    const data = await DB.getSetting(ARABIC_FONT_FAMILY_KEY);
+    return data === 'indopak' || data === 'nastaleeq' || data === 'me-quran' || data === 'uthmani-hafs' ? data : DEFAULT_ARABIC_FONT_ID;
+};
+
+export const setArabicFontFamily = async (fontId: ArabicFontId) => {
+    await DB.setSetting(ARABIC_FONT_FAMILY_KEY, fontId);
+    applyArabicFontFamily(fontId);
+    notifyUpdate();
+};
+
+export const applyArabicFontFamily = (fontId: ArabicFontId) => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--quran-arabic-font', getArabicFontStack(fontId));
 };
 
 // --- LAST READ & TRACKING ---

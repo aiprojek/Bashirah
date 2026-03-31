@@ -89,10 +89,12 @@ export const getHizbList = () => {
 let globalArabicCache: Record<string, { chapter: number; verse: number; text: string; juz?: number; hizb?: number; ruku?: number }[]> | null = null;
 type LocalVerseMeta = [number, number, number, number]; // [page, juz, hizb, ruku]
 let localVerseMetaCache: Record<string, LocalVerseMeta[]> | null = null;
+type PageIndexEntry = { surahId: number; verseId: number };
+let pageIndexCache: Record<number, PageIndexEntry[]> | null = null;
 const cachedSurahLists: Record<string, Surah[]> = {};
 const cachedContent: Record<string, any[]> = {};
 const cachedWordByWord: Record<string, Record<number, Word[]>> = {};
-const cachedSurahInfo: Record<number, SurahInfo> = {};
+const cachedSurahInfo: Record<string, SurahInfo> = {};
 
 const loadLocalVerseMeta = async (): Promise<Record<string, LocalVerseMeta[]> | null> => {
     if (localVerseMetaCache) return localVerseMetaCache;
@@ -105,6 +107,24 @@ const loadLocalVerseMeta = async (): Promise<Record<string, LocalVerseMeta[]> | 
         console.warn("Failed to load local verse metadata", e);
         return null;
     }
+};
+
+const buildPageIndex = (meta: Record<string, LocalVerseMeta[]> | null) => {
+    if (!meta) return null;
+    if (pageIndexCache) return pageIndexCache;
+    const index: Record<number, PageIndexEntry[]> = {};
+    const surahIds = Object.keys(meta).map(Number).sort((a, b) => a - b);
+    surahIds.forEach(surahId => {
+        const verses = meta[surahId.toString()] || [];
+        verses.forEach((tuple, idx) => {
+            const page = tuple?.[0];
+            if (!page) return;
+            if (!index[page]) index[page] = [];
+            index[page].push({ surahId, verseId: idx + 1 });
+        });
+    });
+    pageIndexCache = index;
+    return index;
 };
 
 const getLocalVerseMeta = (
@@ -254,17 +274,31 @@ export const getPageForVerse = async (surahId: number, verseId: number): Promise
     return getSurahStartPage(surahId);
 };
 
-export const getVersesByPage = async (pageNumber: number, translationId: string = 'id.indonesian', useTajweed: boolean = false): Promise<any[]> => {
+export const getSurahTotalVersesLocal = async (surahId: number): Promise<number | null> => {
+    try {
+        const localMeta = await loadLocalVerseMeta();
+        const list = localMeta?.[surahId.toString()];
+        if (list && list.length) return list.length;
+    } catch (e) {
+        console.warn('Failed to resolve total verses from local metadata', e);
+    }
+    return null;
+};
+
+export const getVersesByPage = async (
+    pageNumber: number,
+    translationId: string = 'id.indonesian',
+    useTajweed: boolean = false,
+    language: LanguageCode = 'id'
+): Promise<any[]> => {
     // 1. Offline First
     try {
-        const start = getPageStartLocal(pageNumber);
-        const nextStart = pageNumber < 604 ? getPageStartLocal(pageNumber + 1) : null;
         const localMeta = await loadLocalVerseMeta();
-        
-        const allSurahs = await getAllSurahs();
+        const pageIndex = buildPageIndex(localMeta);
+        const allSurahs = await getAllSurahs(language);
 
         // Helper to get verses for a range
-        const getRange = async (sId: number, vStart: number, vEnd?: number) => {
+        const getRange = async (sId: number, vStart: number, vEndExclusive?: number) => {
             const surah = allSurahs.find(s => s.id === sId);
             if (!surah) return [];
 
@@ -283,11 +317,12 @@ export const getVersesByPage = async (pageNumber: number, translationId: string 
 
             // Get Translation
             const translationVerses = await DB.getSurahContent(translationId, sId);
+            const wordByWordMap = await fetchWordByWordForSurah(sId);
             
             return arabicVerses
                 .filter(v => {
                     const verseNum = v.verse || v.numberInSurah || v.number;
-                    return verseNum >= vStart && (!vEnd || verseNum < vEnd);
+                    return verseNum >= vStart && (!vEndExclusive || verseNum < vEndExclusive);
                 })
                 .map(v => {
                     const verseNum = v.verse || v.numberInSurah || v.number;
@@ -306,27 +341,48 @@ export const getVersesByPage = async (pageNumber: number, translationId: string 
                         page_number: v.page || local?.page || pageNumber,
                         juz_number: v.juz || local?.juz,
                         hizb_number: v.hizb || local?.hizb,
-                        ruku_number: v.ruku || local?.ruku
+                        ruku_number: v.ruku || local?.ruku,
+                        words: wordByWordMap[verseNum] || buildFallbackWordsForVerse(v.text, verseNum)
                     };
                 });
         };
 
-        if (!nextStart || nextStart.surahId === start.surahId) {
-            // Same surah or end of Quran
-            return await getRange(start.surahId, start.verseId, nextStart?.verseId);
-        } else {
-            // Crosses surahs
+        const pageEntries = pageIndex?.[pageNumber];
+        if (pageEntries && pageEntries.length) {
+            const segments: Array<{ surahId: number; start: number; end: number }> = [];
+            let currentSurah = pageEntries[0].surahId;
+            let startVerse = pageEntries[0].verseId;
+            let lastVerse = pageEntries[0].verseId;
+            pageEntries.slice(1).forEach(entry => {
+                const isNewSegment = entry.surahId !== currentSurah || entry.verseId !== lastVerse + 1;
+                if (isNewSegment) {
+                    segments.push({ surahId: currentSurah, start: startVerse, end: lastVerse });
+                    currentSurah = entry.surahId;
+                    startVerse = entry.verseId;
+                }
+                lastVerse = entry.verseId;
+            });
+            segments.push({ surahId: currentSurah, start: startVerse, end: lastVerse });
+
             let results: any[] = [];
-            // Part 1: Start Surah
-            results = results.concat(await getRange(start.surahId, start.verseId));
-            // Part 2: Middle Surahs (if any)
-            for (let i = start.surahId + 1; i < nextStart.surahId; i++) {
-                results = results.concat(await getRange(i, 1));
+            for (const seg of segments) {
+                results = results.concat(await getRange(seg.surahId, seg.start, seg.end + 1));
             }
-            // Part 3: Next Surah
-            results = results.concat(await getRange(nextStart.surahId, 1, nextStart.verseId));
             return results;
         }
+
+        const start = getPageStartLocal(pageNumber);
+        const nextStart = pageNumber < 604 ? getPageStartLocal(pageNumber + 1) : null;
+        if (!nextStart || nextStart.surahId === start.surahId) {
+            return await getRange(start.surahId, start.verseId, nextStart?.verseId);
+        }
+        let results: any[] = [];
+        results = results.concat(await getRange(start.surahId, start.verseId));
+        for (let i = start.surahId + 1; i < nextStart.surahId; i++) {
+            results = results.concat(await getRange(i, 1));
+        }
+        results = results.concat(await getRange(nextStart.surahId, 1, nextStart.verseId));
+        return results;
     } catch (e) {
         console.error("Failed to fetch page verses offline", e);
     }
@@ -342,17 +398,19 @@ export const getVersesByPage = async (pageNumber: number, translationId: string 
         if (arabicData.code === 200 && transData.code === 200) {
             const ayahList = arabicData.data.ayahs;
             const transList = transData.data.ayahs;
+            const allSurahs = await getAllSurahs(language);
 
             return ayahList.map((ayah: any, index: number) => ({
                 number: ayah.number,
                 numberInSurah: ayah.numberInSurah,
                 text: ayah.text,
                 translation: transList[index]?.text || '',
-                surah: transData.data.surahs ? transData.data.surahs[ayah.surah.number] : ayah.surah,
+                surah: allSurahs.find((surah) => surah.id === ayah.surah.number) || ayah.surah,
                 page_number: ayah.page,
                 juz_number: ayah.juz,
                 hizb_number: Math.ceil(ayah.hizbQuarter / 4),
-                ruku_number: ayah.ruku
+                ruku_number: ayah.ruku,
+                words: buildFallbackWordsForVerse(ayah.text, ayah.numberInSurah)
             }));
         }
     } catch (e) {
@@ -399,25 +457,27 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
     }
 };
 
-export const getSurahInfo = async (surahId: number): Promise<SurahInfo | null> => {
+export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id'): Promise<SurahInfo | null> => {
+    const cacheKey = `${surahId}:${language}`;
     // 1. Check Memory Cache
-    if (cachedSurahInfo[surahId]) return cachedSurahInfo[surahId];
+    if (cachedSurahInfo[cacheKey]) return cachedSurahInfo[cacheKey];
 
     // 2. Check Persistent Cache (IndexedDB)
-    const dbInfo = await DB.getSurahInfo(surahId);
+    const dbInfo = await DB.getSurahInfo(surahId, language);
     if (dbInfo) {
-        cachedSurahInfo[surahId] = dbInfo;
+        cachedSurahInfo[cacheKey] = dbInfo;
         return dbInfo;
     }
 
     try {
         if (!navigator.onLine) return null; // Simple offline check
-        const data = await fetchOnlineJson(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=id`);
+        const fallbackLang = language === 'en' ? 'en' : 'id';
+        const data = await fetchOnlineJson(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=${fallbackLang}`);
         if (data && data.chapter_info) {
-            const info = data.chapter_info as SurahInfo;
+            const info = { ...(data.chapter_info as SurahInfo), language: fallbackLang };
             // Save to both caches
-            cachedSurahInfo[surahId] = info;
-            await DB.saveSurahInfo(surahId, info);
+            cachedSurahInfo[cacheKey] = info;
+            await DB.saveSurahInfo(surahId, info, fallbackLang);
             return info;
         }
     } catch (e) {
@@ -431,16 +491,16 @@ export const getSurahInfo = async (surahId: number): Promise<SurahInfo | null> =
  * Downloads all Surah descriptions for offline use.
  * This satisfies the user's request for "offline-ready" Asbabun Nuzul.
  */
-export const bulkDownloadSurahInfo = async (onProgress?: (progress: number) => void): Promise<boolean> => {
+export const bulkDownloadSurahInfo = async (onProgress?: (progress: number) => void, language: LanguageCode = 'id'): Promise<boolean> => {
     try {
         const TOTAL = 114;
         let count = 0;
 
         for (let id = 1; id <= TOTAL; id++) {
             // Already cached? Skip fetch but count it
-            const existing = await DB.getSurahInfo(id);
+            const existing = await DB.getSurahInfo(id, language);
             if (!existing) {
-                await getSurahInfo(id);
+                await getSurahInfo(id, language);
                 // Respect API limits if needed, but for 114 calls it's usually fine
             }
             count++;
@@ -581,6 +641,16 @@ const fetchWordByWordForSurah = async (surahId: number): Promise<Record<number, 
     return {};
 }
 
+const buildFallbackWordsForVerse = (verseText: string, verseId: number): Word[] => {
+    const tokens = (verseText || '').trim().split(/\s+/).filter(Boolean);
+    return tokens.map((token, index) => ({
+        id: (verseId * 1000) + index + 1,
+        position: index + 1,
+        text_uthmani: token,
+        char_type_name: 'word'
+    }));
+};
+
 const processDetail = async (
     id: number,
     meta: Surah,
@@ -652,7 +722,7 @@ const processDetail = async (
             juz_number: metaVerse?.juz || v.juz || local?.juz,
             hizb_number: hizbNumber,
             ruku_number: metaVerse?.ruku || v.ruku || local?.ruku,
-            words: wordByWordMap[verseId] || undefined
+            words: wordByWordMap[verseId] || buildFallbackWordsForVerse(text, verseId)
         };
     });
 

@@ -5,21 +5,31 @@ interface WordItemProps {
   word: Word;
   verseNumber: number;
   onClick: (word: Word) => void;
+  showVerseOrnament?: boolean;
+  verseOrnamentVariant?: 'plain' | 'capsule';
 }
 
-const WordItem: React.FC<WordItemProps> = ({ word, verseNumber, onClick }) => {
+const WordItem: React.FC<WordItemProps> = ({
+  word,
+  verseNumber,
+  onClick,
+  showVerseOrnament = true,
+  verseOrnamentVariant = 'plain'
+}) => {
   const isEnd = word.char_type_name === 'end';
   
   // Helper for Arabic Numerals
   const toArabicNumerals = (n: number) => {
     return n.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
   };
+  const ornamentNumber = <span className="verse-ornament-number">{toArabicNumerals(verseNumber)}</span>;
 
   if (isEnd) {
+      if (!showVerseOrnament) return null;
       return (
         <div className="flex items-center justify-center self-center mb-4 mx-1">
-            <span className="verse-ornament">
-                {toArabicNumerals(verseNumber)}
+            <span className={verseOrnamentVariant === 'capsule' ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline'}>
+                {ornamentNumber}
             </span>
         </div>
       );

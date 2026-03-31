@@ -108,6 +108,7 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        globIgnores: ['qul/**/*.json', 'qul/**/*.db'],
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       }
     })

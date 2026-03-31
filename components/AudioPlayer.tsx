@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useAudio } from '../contexts/AudioContext';
-import { Play, Pause, SkipForward, SkipBack, X, Mic2, Loader2, ChevronUp, Repeat, Settings2, Infinity as InfinityIcon } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, X, Mic2, Loader2, ChevronUp, ChevronDown, Repeat, Settings2, Infinity as InfinityIcon } from 'lucide-react';
 import { RECITERS } from '../types';
 
 const AudioPlayer: React.FC = () => {
@@ -39,6 +39,11 @@ const AudioPlayer: React.FC = () => {
       }
   };
 
+  const closeExpandedPanel = () => {
+      setIsExpanded(false);
+      setShowSettings(null);
+  };
+
   // --- RENDER REPEAT CONTROLS ---
   const renderRepeatControls = () => (
       <div className="p-4 space-y-4 text-gray-800 dark:text-gray-100">
@@ -47,7 +52,7 @@ const AudioPlayer: React.FC = () => {
                    <Repeat className="w-4 h-4 text-quran-gold" />
                    Muraja'ah (Pengulangan)
                </span>
-               <button onClick={() => { setIsExpanded(false); setShowSettings(null); }}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
+               <button onClick={closeExpandedPanel}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
           </div>
 
           {/* Mode Selector */}
@@ -146,7 +151,7 @@ const AudioPlayer: React.FC = () => {
                         <Mic2 className="w-4 h-4 text-quran-gold" />
                         Pilih Qari
                     </span>
-                    <button onClick={() => { setIsExpanded(false); setShowSettings(null); }}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
+                    <button onClick={closeExpandedPanel}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
             </div>
             
             <div className="space-y-1 max-h-40 overflow-y-auto custom-scrollbar">
@@ -169,11 +174,63 @@ const AudioPlayer: React.FC = () => {
   );
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] p-4 pointer-events-none">
+    <div className="audio-player-shell fixed bottom-0 left-0 right-0 z-[100] p-4 pointer-events-none">
         <div className="max-w-xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-stone-200 dark:border-slate-700 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] rounded-2xl overflow-hidden pointer-events-auto transition-all duration-300">
             
-            {/* Main Bar */}
-            <div className="flex items-center justify-between p-4 gap-3">
+            {/* Mobile Main Bar */}
+            <div className="sm:hidden p-3">
+                <div className="flex items-center gap-3">
+                    <button
+                        className="w-10 h-10 bg-quran-dark rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-quran-gold transition-colors flex-shrink-0 relative group"
+                        onClick={() => toggleSettings('reciter')}
+                    >
+                        {isLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <div className="relative">
+                                <Mic2 className="w-5 h-5" />
+                                <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-800 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Settings2 className="w-2 h-2 text-quran-dark dark:text-quran-gold" />
+                                </div>
+                            </div>
+                        )}
+                    </button>
+
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <p className="text-[11px] text-quran-gold font-bold uppercase tracking-wider truncate">
+                                {activeReciter.name}
+                            </p>
+                            {repeatSettings.mode !== 'none' && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-quran-gold/10 text-quran-dark px-2 py-0.5 text-[9px] font-bold">
+                                    <Repeat className="w-2.5 h-2.5" />
+                                    Loop
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-sm font-bold text-quran-dark dark:text-gray-100 truncate">
+                            Surat {surahName} : Ayat {currentVerse}
+                        </p>
+                    </div>
+
+                    <button
+                        onClick={isPlaying ? pause : resume}
+                        className="w-11 h-11 bg-quran-dark rounded-full flex items-center justify-center text-white hover:bg-quran-dark/90 transition-all shadow-lg shadow-quran-dark/30 flex-shrink-0"
+                    >
+                        {isPlaying ? <Pause className="w-5 h-5 fill-current" /> : <Play className="w-5 h-5 fill-current ml-0.5" />}
+                    </button>
+
+                    <button
+                        onClick={() => setIsExpanded(prev => !prev)}
+                        className="w-10 h-10 rounded-full border border-stone-200 dark:border-slate-700 text-stone-400 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-gold transition-colors flex items-center justify-center flex-shrink-0"
+                    >
+                        {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Desktop Main Bar */}
+            <div className="hidden sm:flex items-center justify-between p-4 gap-3">
                 
                 {/* 1. Reciter Info & Button */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -248,7 +305,43 @@ const AudioPlayer: React.FC = () => {
             </div>
 
             {/* Expanded Settings Area */}
-            <div className={`bg-stone-50 dark:bg-slate-800 border-t border-stone-100 dark:border-slate-700 transition-all duration-300 overflow-hidden ${isExpanded ? (showSettings === 'repeat' && repeatSettings.mode !== 'none' ? 'max-h-80' : 'max-h-60') : 'max-h-0'}`}>
+            <div className={`bg-stone-50 dark:bg-slate-800 border-t border-stone-100 dark:border-slate-700 transition-all duration-300 overflow-hidden ${isExpanded ? (showSettings === 'repeat' && repeatSettings.mode !== 'none' ? 'max-h-[28rem]' : 'max-h-72') : 'max-h-0'}`}>
+                <div className="sm:hidden p-3 border-b border-stone-100 dark:border-slate-700">
+                    <div className="grid grid-cols-4 gap-2">
+                        <button
+                            onClick={prevVerse}
+                            className="flex flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold text-gray-600 dark:text-gray-300"
+                        >
+                            <SkipBack className="w-4 h-4 fill-current" />
+                            <span>Sebelum</span>
+                        </button>
+                        <button
+                            onClick={nextVerse}
+                            className="flex flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold text-gray-600 dark:text-gray-300"
+                        >
+                            <SkipForward className="w-4 h-4 fill-current" />
+                            <span>Sesudah</span>
+                        </button>
+                        <button
+                            onClick={() => toggleSettings('repeat')}
+                            className={`flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2 text-xs font-bold ${
+                                showSettings === 'repeat'
+                                    ? 'border-quran-gold bg-quran-gold/10 text-quran-dark'
+                                    : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-gray-600 dark:text-gray-300'
+                            }`}
+                        >
+                            <Repeat className="w-4 h-4" />
+                            <span>Repeat</span>
+                        </button>
+                        <button
+                            onClick={stop}
+                            className="flex flex-col items-center justify-center gap-1 rounded-xl border border-red-100 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-2 py-2 text-xs font-bold text-red-500"
+                        >
+                            <X className="w-4 h-4" />
+                            <span>Tutup</span>
+                        </button>
+                    </div>
+                </div>
                 {showSettings === 'reciter' && renderReciterList()}
                 {showSettings === 'repeat' && renderRepeatControls()}
             </div>

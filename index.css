@@ -34,9 +34,16 @@
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+:root {
+  --quran-arabic-font: "Uthmanic Hafs", serif;
+  --quran-surah-name-font: var(--quran-arabic-font);
+  --quran-surah-header-font: var(--quran-arabic-font);
+  --quran-juz-font: var(--quran-arabic-font);
+}
+
 /* --- ARABIC TEXT RENDERING FIXES --- */
 .font-arabic {
-  font-family: "Amiri", serif;
+  font-family: var(--quran-arabic-font);
   /* Force ligatures to ensure connected letters (Fix for Tajweed spans) */
   font-variant-ligatures: common-ligatures contextual;
   -webkit-font-variant-ligatures: common-ligatures contextual;
@@ -76,25 +83,29 @@
   align-items: center;
   justify-content: center;
 
-  /* Relative sizing for perfect circularity at any scale */
-  min-width: 1.9em !important;
-  height: 1.7em !important;
-  padding: 0 0.35em !important;
+  /* Keep a stable capsule shape that still fits 3 digits */
+  min-width: 2.1em !important;
+  height: 1.75em !important;
+  padding: 0 0.42em !important;
   flex: 0 0 auto !important;
 
-  border: 3.5px solid #d4af37 !important; /* Thick high-contrast border */
+  border: 2.5px solid rgba(212, 175, 55, 0.95) !important;
   border-radius: 9999px !important;
 
   color: #d4af37 !important;
-  background: rgba(212, 175, 55, 0.1);
+  background:
+    radial-gradient(circle at center, rgba(255, 252, 243, 0.98) 0%, rgba(248, 240, 216, 0.92) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.55),
+    0 1px 2px rgba(90, 68, 19, 0.08);
 
-  font-family: "Amiri", serif !important;
-  font-size: 0.65em !important; /* Number is slightly smaller than the pill */
-  font-weight: 900 !important;
+  font-family: "Quran Common", var(--quran-arabic-font) !important;
+  font-size: 0.64em !important;
+  font-weight: 700 !important;
 
   /* Spacing for RTL context */
-  margin-left: 0.4em !important;
-  margin-right: 0.8em !important;
+  margin-left: 0.35em !important;
+  margin-right: 0.7em !important;
 
   vertical-align: middle;
   user-select: none;
@@ -102,10 +113,64 @@
   box-sizing: border-box !important;
   overflow: visible !important;
   white-space: nowrap !important;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.verse-ornament--indopak {
+  font-family: "Quran Common", "Uthmanic Hafs", serif !important;
+  font-size: 0.72em !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+}
+
+.verse-ornament-inline {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.45em !important;
+  margin-left: 0.28em !important;
+  margin-right: 0.58em !important;
+  color: rgba(122, 95, 32, 0.9) !important;
+  font-family: "Quran Common", "Uthmanic Hafs", serif !important;
+  font-size: 0.68em !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  vertical-align: middle;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  white-space: nowrap !important;
+}
+
+.dark .verse-ornament-inline {
+  color: rgba(227, 206, 150, 0.95) !important;
+}
+
+.verse-ornament-number {
+  display: inline-block !important;
+  font-family: "Uthmanic Hafs", "Quran Common", serif !important;
+  font-size: 1em !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  transform: translateY(0.02em);
+}
+
+button.verse-ornament:hover,
+button.verse-ornament:focus-visible {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.6),
+    0 3px 10px rgba(90, 68, 19, 0.12);
+  border-color: rgba(186, 138, 28, 0.95) !important;
 }
 .dark .verse-ornament {
-  border-color: #d4af37 !important;
-  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.9) !important;
+  background:
+    radial-gradient(circle at center, rgba(54, 45, 22, 0.96) 0%, rgba(38, 33, 20, 0.96) 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.08),
+    0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 /* Force centered RTL blocks inside justified mushaf text */
@@ -113,6 +178,20 @@
   text-align: center !important;
   text-align-last: center !important;
   direction: rtl;
+}
+
+.font-surah-name {
+  font-family: var(--quran-surah-name-font);
+  letter-spacing: 0.01em;
+  text-rendering: optimizeLegibility;
+}
+
+.font-surah-header {
+  font-family: var(--quran-surah-header-font);
+}
+
+.font-juz-marker {
+  font-family: var(--quran-juz-font);
 }
 /* --- ANIMATIONS --- */
 @keyframes bounce-subtle {
@@ -271,16 +350,66 @@
 }
 
 @font-face {
-  font-family: "Amiri";
-  src: url("/fonts/Amiri-Regular.ttf") format("truetype");
+  font-family: "Uthmanic Hafs";
+  src: url("/qul/fonts/UthmanicHafs_V22.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Amiri";
-  src: url("/fonts/Amiri-Bold.ttf") format("truetype");
-  font-weight: 700;
+  font-family: "AlQuran IndoPak";
+  src: url("/qul/fonts/font.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
+}
+@font-face {
+  font-family: "KFGQPC Nastaleeq";
+  src: url("/qul/fonts/KFGQPCNastaleeq-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "ME Quran";
+  src: url("/qul/fonts/me_quran_volt_newmet.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "QCF Surah Header";
+  src: url("/qul/fonts/QCF_SurahHeader_COLOR-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Surah Names";
+  src: url("/qul/fonts/surah_names.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Quran Common";
+  src: url("/qul/fonts/quran-common.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.audio-player-shell {
+  bottom: 0;
+  transition: bottom 300ms ease;
+}
+
+body[data-mushaf-text-view="true"] .audio-player-shell {
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
+}
+
+@media (min-width: 640px) {
+  body[data-mushaf-text-view="true"] .audio-player-shell {
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 68px);
+  }
 }

@@ -55,7 +55,7 @@ type TranslationKey =
   | 'about_tab_about' | 'about_tab_features' | 'about_tab_guide' | 'about_tab_contact'
   | 'about_desc' | 'about_license_title' | 'about_license_text' | 'about_data_source' | 'about_created_by'
   | 'about_contact_title' | 'about_contact_desc' | 'about_btn_email' | 'about_or_manual'
-  | 'about_coffee' | 'about_download_app' | 'about_source_title' | 'about_source_quran' | 'about_source_api' 
+  | 'about_coffee' | 'about_download_app' | 'about_source_title' | 'about_source_quran' | 'about_source_api' | 'about_source_qul'
   | 'about_form_subject' | 'about_form_message'
   | 'about_form_placeholder_subject' | 'about_form_placeholder_message'
   // Features List
@@ -243,7 +243,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_tab_features: "Fitur",
     about_tab_guide: "Panduan",
     about_tab_contact: "Pesan",
-    about_desc: "\"Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan jiwa dan fitur yang memudahkan tadabbur.\"",
+    about_desc: "\"Membawa cahaya Al-Quran ke dalam genggaman, dengan desain yang menenangkan dan fitur yang memudahkan tadabbur.\"",
     about_license_title: "Lisensi Open Source",
     about_license_text: "Aplikasi ini adalah perangkat lunak bebas yang dilisensikan di bawah",
     about_data_source: "Sumber Data",
@@ -257,6 +257,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_source_title: "Sumber Data",
     about_source_quran: "Data Al-Quran berasal dari",
     about_source_api: "API Ayat, Terjemahan & Audio dari",
+    about_source_qul: "Data tambahan offline, morphology, dan info surat dari",
     about_form_subject: "Subjek",
     about_form_message: "Pesan",
     about_form_placeholder_subject: "Contoh: Saran Fitur Baru",
@@ -584,6 +585,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     about_source_title: "Data Sources",
     about_source_quran: "Quran data comes from",
     about_source_api: "Verses API, Translation & Audio from",
+    about_source_qul: "Offline enrichment, morphology, and surah info come from",
     about_form_subject: "Subject",
     about_form_message: "Message",
     about_form_placeholder_subject: "Example: New Feature Suggestion",

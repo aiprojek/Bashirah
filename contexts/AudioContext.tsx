@@ -283,29 +283,33 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 
   const playVerse = async (surahId: number, verseId: number, totalVerses: number, sName: string) => {
+      const safeVerse = Math.max(1, Math.floor(verseId) || 1);
+      const safeTotal = Math.max(safeVerse, Math.floor(totalVerses) || safeVerse);
       // Toggle if same verse
-      if (currentSurah === surahId && currentVerse === verseId) {
+      if (currentSurah === surahId && currentVerse === safeVerse) {
           setIsPlaying(!isPlaying);
           return;
       }
 
-      const downloaded = await isSurahDownloaded(activeReciter.id, surahId, totalVerses);
+      const downloaded = await isSurahDownloaded(activeReciter.id, surahId, safeTotal);
       
       if (downloaded) {
-          setCurrentTotalVerses(totalVerses);
+          setCurrentTotalVerses(safeTotal);
           setSurahName(sName);
           setCurrentSurah(surahId);
-          setCurrentVerse(verseId);
+          setCurrentVerse(safeVerse);
           setCurrentLoopCount(1); 
           setIsPlaying(true);
       } else {
-          setDownloadPrompt({ surahId, verseId, totalVerses, surahName: sName });
+          setDownloadPrompt({ surahId, verseId: safeVerse, totalVerses: safeTotal, surahName: sName });
       }
   };
 
   const resolveDownloadPrompt = async (action: 'stream' | 'download' | 'cancel') => {
       if (!downloadPrompt) return;
       const { surahId, verseId, totalVerses, surahName } = downloadPrompt;
+      const safeVerse = Math.max(1, Math.floor(verseId) || 1);
+      const safeTotal = Math.max(safeVerse, Math.floor(totalVerses) || safeVerse);
 
       if (action === 'cancel') {
           setDownloadPrompt(null);
@@ -313,37 +317,33 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
 
       if (action === 'stream') {
-          setCurrentTotalVerses(totalVerses);
+          setCurrentTotalVerses(safeTotal);
           setSurahName(surahName);
           setCurrentSurah(surahId);
-          setCurrentVerse(verseId);
+          setCurrentVerse(safeVerse);
           setCurrentLoopCount(1);
           setIsPlaying(true);
           setDownloadPrompt(null);
       } else if (action === 'download') {
+          // Start playback immediately, keep downloading in background
+          setCurrentTotalVerses(safeTotal);
+          setSurahName(surahName);
+          setCurrentSurah(surahId);
+          setCurrentVerse(safeVerse);
+          setCurrentLoopCount(1);
+          setIsPlaying(true);
+          setDownloadPrompt(null);
           setIsDownloading(true);
           setDownloadProgress(0);
           try {
-              await downloadSurahAudio(activeReciter, surahId, totalVerses, (progress) => {
+              await downloadSurahAudio(activeReciter, surahId, safeTotal, (progress) => {
                   setDownloadProgress(progress);
               });
-              setCurrentTotalVerses(totalVerses);
-              setSurahName(surahName);
-              setCurrentSurah(surahId);
-              setCurrentVerse(verseId);
-              setCurrentLoopCount(1);
-              setIsPlaying(true);
           } catch (error) {
               console.error("Download failed", error);
               showToast("Gagal mengunduh. Memutar secara streaming...", "warning");
-              setCurrentTotalVerses(totalVerses);
-              setSurahName(surahName);
-              setCurrentSurah(surahId);
-              setCurrentVerse(verseId);
-              setIsPlaying(true);
           } finally {
               setIsDownloading(false);
-              setDownloadPrompt(null);
               setDownloadProgress(0);
           }
       }

@@ -94,6 +94,47 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                             {/* Injecting HTML safely - Data comes from trusted API but standard procedure is sanitize in prod */}
                             <div dangerouslySetInnerHTML={{ __html: info.text }} />
                         </div>
+
+                        {(info.summary || info.revelation_background || (info.main_themes && info.main_themes.length > 0) || (info.key_topics && info.key_topics.length > 0)) && (
+                            <div className="space-y-5 rounded-2xl border border-stone-100 dark:border-slate-700 bg-stone-50/60 dark:bg-slate-700/20 p-5">
+                                {info.summary && (
+                                    <div>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Ringkasan</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{info.summary}</p>
+                                    </div>
+                                )}
+                                {info.revelation_background && (
+                                    <div>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Latar Turun Surat</h4>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{info.revelation_background}</p>
+                                    </div>
+                                )}
+                                {info.main_themes && info.main_themes.length > 0 && (
+                                    <div>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Tema Utama</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {info.main_themes.map((theme, idx) => (
+                                                <span key={`${theme}-${idx}`} className="rounded-full bg-white dark:bg-slate-700 border border-stone-200 dark:border-slate-600 px-3 py-1 text-xs font-semibold text-gray-600 dark:text-gray-200">
+                                                    {theme}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {info.key_topics && info.key_topics.length > 0 && (
+                                    <div>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Topik Kunci</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {info.key_topics.map((topic, idx) => (
+                                                <span key={`${topic}-${idx}`} className="rounded-full bg-quran-gold/10 border border-quran-gold/20 px-3 py-1 text-xs font-semibold text-quran-dark dark:text-quran-gold">
+                                                    {topic}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         
                         <div className="mt-8 pt-4 border-t border-stone-100 dark:border-slate-700 text-[10px] text-gray-400 italic">
                             Sumber: {info.source}

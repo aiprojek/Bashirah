@@ -172,6 +172,7 @@ Dapatkan versi terbaru untuk perangkat Anda (Android APK, Windows, macOS, Linux)
 
 - **Teks Al-Quran & Metadata**: [Github Risan](https://github.com/risan/quran-json).
 - **Audio Murottal, Gambar Mushaf, Audio, Tajwid**: [Al-Quran Cloud](https://alquran.cloud/api).
+- **Info surat offline, morphology, dan pengayaan data Quran**: [Quranic Universal Library (QUL)](https://qul.tarteel.ai/).
 
 ---
 

@@ -5,6 +5,7 @@ import { BookOpen, Bookmark, CheckCircle, MoreVertical, FileText, PlayCircle, Vo
 import WordItem from './WordItem';
 import TajweedText, { getActiveTajweedGroups } from './TajweedText';
 import * as StorageService from '../services/storageService'; // Import direct for check
+import { ArabicFontId, getArabicFontStack } from '../constants/quranFonts';
 
 interface VerseItemProps {
   verse: Verse;
@@ -43,6 +44,7 @@ interface VerseItemProps {
   // New Font Size Props
   arabicFontSize?: number;
   translationFontSize?: number;
+  arabicFontFamily?: ArabicFontId;
   
   // Tajweed Mode
   isTajweedMode?: boolean;
@@ -69,6 +71,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
     onPlayAudio,
     arabicFontSize = 30, // Default sizes
     translationFontSize = 16,
+    arabicFontFamily = 'uthmani-hafs',
     isTajweedMode = false
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -78,6 +81,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
   const [copied, setCopied] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
+  const responsiveArabicFontSize = `clamp(22px, 4.4vw, ${arabicFontSize}px)`;
+  const responsiveTranslationFontSize = `clamp(13px, 2.7vw, ${translationFontSize}px)`;
+  const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
+  const showCustomVerseOrnament = arabicFontFamily === 'indopak';
+  const verseOrnamentClassName = showCustomVerseOrnament ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline';
 
   useEffect(() => {
       // Check if khatam target exists to conditionally show the button
@@ -120,6 +128,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
   const toArabicNumerals = (n: number) => {
     return n.toString().replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[parseInt(d)]);
   };
+  const renderVerseOrnament = () => (
+    <span className={verseOrnamentClassName} title={`Ayat ${verse.id}`}>
+      <span className="verse-ornament-number">{toArabicNumerals(verse.id)}</span>
+    </span>
+  );
 
   // Calculate active tajweed groups for this specific verse
   const activeTajweedGroups = useMemo(() => {
@@ -137,12 +150,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
              <p 
                 lang="ar"
                 className={`font-arabic leading-[2.5] text-quran-dark dark:text-white ${isAudioPlaying ? 'font-medium' : ''}`}
-                style={{ fontSize: `${arabicFontSize}px` }}
+                style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
              >
                 <TajweedText text={verse.text} />
-                <span className="verse-ornament" title={`Ayat ${verse.id}`}>
-                     {toArabicNumerals(verse.id)}
-                </span>
+                {' '}
+                {renderVerseOrnament()}
              </p>
            );
       }
@@ -153,12 +165,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
              <p 
                 lang="ar"
                 className="font-arabic leading-[2.5] text-quran-dark dark:text-white animate-fade-in relative"
-                style={{ fontSize: `${arabicFontSize}px` }}
+                style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
              >
                 <TajweedText text={verse.text} />
-                <span className="verse-ornament" title={`Ayat ${verse.id}`}>
-                     {toArabicNumerals(verse.id)}
-                </span>
+                {' '}
+                {renderVerseOrnament()}
                 {/* Close Button to hide again */}
                 <button 
                     onClick={(e) => { e.stopPropagation(); setRevealArabic(false); }}
@@ -185,7 +196,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                  <p 
                     lang="ar"
                     className={`font-arabic leading-[2.5] blur-md select-none opacity-40 transition-all duration-300 text-quran-dark dark:text-white`}
-                    style={{ fontSize: `${arabicFontSize}px` }}
+                    style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
                  >
                     {/* Even in blur, we use TajweedText so structure is maintained */}
                     <TajweedText text={verse.text} />
@@ -202,12 +213,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
                  <p 
                     lang="ar"
                     className={`font-arabic leading-[2.5] text-quran-dark dark:text-white opacity-10 hover:opacity-30 transition-opacity duration-300 select-none filter-none`}
-                    style={{ fontSize: `${arabicFontSize}px` }}
+                    style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
                  >
                     <TajweedText text={verse.text} />
-                    <span className="verse-ornament">
-                         {toArabicNumerals(verse.id)}
-                    </span>
+                    {' '}
+                    {renderVerseOrnament()}
                  </p>
              </div>
           );
@@ -219,7 +229,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       // Level: First & Last (Awal & Akhir)
       if (level === 'first-last') {
           return (
-             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
+             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: responsiveArabicFontSize }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
                      // Logic: Show first 2 and last 2. 
                      let isVisible = false;
@@ -243,9 +253,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         </span>
                      );
                  })}
-                 <span className="verse-ornament">
-                     {toArabicNumerals(verse.id)}
-                 </span>
+                 {' '}
+                 {renderVerseOrnament()}
              </div>
           );
       }
@@ -253,7 +262,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       // Level: Random (Acak)
       if (level === 'random') {
            return (
-             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: `${arabicFontSize}px` }} onClick={() => setRevealArabic(true)} dir="rtl">
+             <div className="font-arabic leading-[2.5] text-quran-dark dark:text-white cursor-pointer" style={{ fontSize: responsiveArabicFontSize }} onClick={() => setRevealArabic(true)} dir="rtl">
                  {words.map((word, idx) => {
                      const pseudoRandom = (verse.id + idx * 7) % 10; 
                      const shouldHide = pseudoRandom < 4; // 40% chance to hide
@@ -272,9 +281,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         </span>
                      );
                  })}
-                 <span className="verse-ornament">
-                     {toArabicNumerals(verse.id)}
-                 </span>
+                 {' '}
+                 {renderVerseOrnament()}
              </div>
           );
       }
@@ -428,6 +436,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         word={word} 
                         verseNumber={verse.id}
                         onClick={onWordClick}
+                        showVerseOrnament={showCustomVerseOrnament}
+                        verseOrnamentVariant={showCustomVerseOrnament ? 'capsule' : 'plain'}
                     />
                 ))}
              </div>
@@ -468,7 +478,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
             <p 
                 className={`text-gray-700 dark:text-gray-300 leading-relaxed font-serif italic transition-all duration-300 ${isAudioPlaying ? 'text-quran-dark dark:text-white font-medium' : ''} ${isTranslationBlurred ? 'blur-sm select-none opacity-50' : ''}`}
-                style={{ fontSize: `${translationFontSize}px` }}
+                style={{ fontSize: responsiveTranslationFontSize }}
                 onClick={() => isTranslationBlurred ? setRevealTranslation(true) : revealTranslation ? setRevealTranslation(false) : null}
             >
                 {verseTranslation}

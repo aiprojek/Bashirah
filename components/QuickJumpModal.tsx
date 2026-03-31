@@ -56,7 +56,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
+        <div className="fixed inset-0 z-[130] flex items-center justify-center px-4 animate-fade-in">
             <div 
                 className="absolute inset-0 bg-quran-dark/80 dark:bg-black/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}

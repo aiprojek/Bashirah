@@ -101,34 +101,76 @@ const AboutPage: React.FC = () => {
                                 href="https://github.com/aiprojek/Bashirah/releases"
                                 target="_blank"
                                 rel="noreferrer"
-                                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm active:scale-95 transform duration-200"
+                                className="w-full flex items-center gap-3 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-600 to-emerald-500 px-4 py-3 sm:px-6 sm:py-3.5 text-white shadow-sm transition-all duration-200 hover:from-emerald-700 hover:to-emerald-600 active:scale-[0.99]"
                             >
-                                <Download className="w-5 h-5" /> {t('about_download_app')}
+                                <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-white/16 ring-1 ring-white/20">
+                                    <Download className="w-5 h-5" />
+                                </span>
+                                <span className="min-w-0 flex-1 text-left">
+                                    <span className="hidden sm:block text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-50/85">
+                                        GitHub Releases
+                                    </span>
+                                    <span className="block text-sm sm:text-base font-bold leading-snug">
+                                        {t('about_download_app')}
+                                    </span>
+                                </span>
+                                <span className="hidden sm:inline-flex text-xs font-semibold text-emerald-50/85">
+                                    APK, Desktop
+                                </span>
                             </a>
                             <a 
                                 href="https://lynk.id/aiprojek/s/bvBJvdA" 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-[#FFDD00] text-black rounded-xl font-bold hover:bg-[#FFEA00] transition-colors shadow-sm active:scale-95 transform duration-200"
+                                className="w-full flex items-center gap-3 rounded-2xl border border-[#FFDD00]/60 bg-gradient-to-r from-[#FFDD00] to-[#FFE766] px-4 py-3 sm:px-6 sm:py-3.5 text-black shadow-sm transition-all duration-200 hover:from-[#FFD400] hover:to-[#FFE04C] active:scale-[0.99]"
                             >
-                                <Coffee className="w-5 h-5" /> {t('about_coffee')}
+                                <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-black/8 ring-1 ring-black/10">
+                                    <Coffee className="w-5 h-5" />
+                                </span>
+                                <span className="min-w-0 flex-1 text-left">
+                                    <span className="hidden sm:block text-[11px] font-semibold uppercase tracking-[0.18em] text-black/55">
+                                        Support Bashirah
+                                    </span>
+                                    <span className="block text-sm sm:text-base font-bold leading-snug">
+                                        {t('about_coffee')}
+                                    </span>
+                                </span>
+                                <span className="hidden sm:inline-flex text-xs font-semibold text-black/55">
+                                    Lynk.id
+                                </span>
                             </a>
-                            <div className="flex gap-3">
+                            <div className="grid grid-cols-2 gap-3">
                                 <a 
                                     href="https://github.com/aiprojek/Bashirah" 
                                     target="_blank" 
                                     rel="noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-gray-900 dark:bg-black text-white rounded-xl font-bold hover:bg-gray-800 transition-colors shadow-sm text-sm"
+                                    className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-900 px-3 py-3 text-sm font-bold text-gray-700 dark:text-gray-100 shadow-sm transition-all duration-200 hover:border-gray-900/20 dark:hover:border-gray-400/30 hover:bg-stone-50 dark:hover:bg-slate-800 sm:flex-row sm:justify-start sm:gap-2.5 sm:px-4"
                                 >
-                                    <Github className="w-4 h-4" /> Github
+                                    <span className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gray-900 text-white dark:bg-black ring-1 ring-black/10">
+                                        <Github className="w-4 h-4" />
+                                    </span>
+                                    <span className="min-w-0 text-center sm:text-left">
+                                        <span className="block text-sm leading-tight">Github</span>
+                                        <span className="mt-0.5 hidden sm:block text-left text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                                            Source code
+                                        </span>
+                                    </span>
                                 </a>
                                 <a 
                                     href="https://t.me/aiprojek_community/32" 
                                     target="_blank" 
                                     rel="noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3.5 bg-[#0088cc] text-white rounded-xl font-bold hover:bg-[#0099dd] transition-colors shadow-sm text-sm"
+                                    className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-sky-200 dark:border-sky-900/60 bg-white dark:bg-slate-900 px-3 py-3 text-sm font-bold text-gray-700 dark:text-gray-100 shadow-sm transition-all duration-200 hover:border-sky-300 dark:hover:border-sky-700 hover:bg-sky-50/40 dark:hover:bg-slate-800 sm:flex-row sm:justify-start sm:gap-2.5 sm:px-4"
                                 >
-                                    <Send className="w-4 h-4" /> Telegram
+                                    <span className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-[#0088cc] text-white ring-1 ring-[#0088cc]/20">
+                                        <Send className="w-4 h-4" />
+                                    </span>
+                                    <span className="min-w-0 text-center sm:text-left">
+                                        <span className="block text-sm leading-tight">Telegram</span>
+                                        <span className="mt-0.5 hidden sm:block text-left text-[11px] font-semibold text-gray-400 dark:text-gray-500">
+                                            Community
+                                        </span>
+                                    </span>
                                 </a>
                             </div>
                         </div>
@@ -181,6 +223,17 @@ const AboutPage: React.FC = () => {
                                             className="text-quran-dark dark:text-quran-gold hover:underline font-medium"
                                         >
                                             Al Quran Cloud
+                                        </a>
+                                    </p>
+                                    <p>
+                                        {t('about_source_qul')} <br/>
+                                        <a
+                                            href="https://qul.tarteel.ai/"
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="text-quran-dark dark:text-quran-gold hover:underline font-medium"
+                                        >
+                                            Quranic Universal Library (QUL)
                                         </a>
                                     </p>
                                 </div>

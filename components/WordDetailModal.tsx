@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Word } from '../types';
-import { X, Search, Loader2, ArrowRight } from 'lucide-react';
+import { AyahMorphology, Word, WordMorphology } from '../types';
+import { X, Search, Loader2, ArrowRight, Languages } from 'lucide-react';
 import { findOccurrences } from '../services/quranService';
+import { getAyahMorphologyDetails, getWordMorphologyDetails } from '../services/qulService';
 import { useNavigate } from 'react-router-dom';
 
 interface WordDetailModalProps {
   word: Word;
+  surahId: number;
+  verseId: number;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const WordDetailModal: React.FC<WordDetailModalProps> = ({ word, isOpen, onClose }) => {
+const WordDetailModal: React.FC<WordDetailModalProps> = ({ word, surahId, verseId, isOpen, onClose }) => {
   const [occurrences, setOccurrences] = useState<{surahId: number, verseId: number, text: string}[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [morphology, setMorphology] = useState<WordMorphology | null>(null);
+  const [ayahMorphology, setAyahMorphology] = useState<AyahMorphology | null>(null);
+  const [morphologyLoading, setMorphologyLoading] = useState(false);
   
   const navigate = useNavigate();
 
@@ -22,7 +28,29 @@ const WordDetailModal: React.FC<WordDetailModalProps> = ({ word, isOpen, onClose
     setOccurrences([]);
     setHasSearched(false);
     setLoading(false);
+    setMorphology(null);
+    setAyahMorphology(null);
+    setMorphologyLoading(false);
   }, [isOpen, word]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const loadMorphology = async () => {
+      if (!word.position) return;
+      setMorphologyLoading(true);
+      try {
+        const [result, ayahResult] = await Promise.all([
+          getWordMorphologyDetails(surahId, verseId, word.position),
+          getAyahMorphologyDetails(surahId, verseId),
+        ]);
+        setMorphology(result || null);
+        setAyahMorphology(ayahResult || null);
+      } finally {
+        setMorphologyLoading(false);
+      }
+    };
+    loadMorphology();
+  }, [isOpen, word.position, surahId, verseId]);
 
   if (!isOpen) return null;
 
@@ -58,7 +86,7 @@ const WordDetailModal: React.FC<WordDetailModalProps> = ({ word, isOpen, onClose
   };
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-center justify-center px-4 animate-fade-in">
+    <div className="fixed inset-0 z-[130] flex items-center justify-center px-4 animate-fade-in">
         {/* Backdrop */}
         <div 
             className="absolute inset-0 bg-quran-dark/70 backdrop-blur-sm transition-opacity"
@@ -98,6 +126,84 @@ const WordDetailModal: React.FC<WordDetailModalProps> = ({ word, isOpen, onClose
                 
                 {/* Search / Concordance Section */}
                 <div className="space-y-4">
+                    <div className="rounded-xl border border-stone-200 bg-stone-50 p-4">
+                        <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-quran-gold">
+                            <Languages className="w-4 h-4" />
+                            <span>Grammar & Morphology</span>
+                        </div>
+
+                        {morphologyLoading ? (
+                            <div className="flex items-center gap-2 text-sm text-gray-400">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                <span>Memuat data grammar...</span>
+                            </div>
+                        ) : morphology || ayahMorphology ? (
+                            <div className="space-y-3 text-sm">
+                                {(morphology.partOfSpeech || morphology.grammar) ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                            <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Part of Speech</div>
+                                            <div className="mt-1 font-semibold text-gray-700">{morphology.partOfSpeech || '-'}</div>
+                                        </div>
+                                        <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                            <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Grammar</div>
+                                            <div className="mt-1 font-semibold text-gray-700">{morphology.grammar || morphology.morphology || '-'}</div>
+                                        </div>
+                                    </div>
+                                ) : null}
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                        <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Akar Kata</div>
+                                        <div className="mt-1 font-semibold text-gray-700">{morphology?.root || word.root || '-'}</div>
+                                    </div>
+                                    <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                        <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Lemma</div>
+                                        <div className="mt-1 font-semibold text-gray-700">{morphology?.lemma || word.lemma || '-'}</div>
+                                    </div>
+                                    <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                        <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Stem</div>
+                                        <div className="mt-1 font-semibold text-gray-700">{morphology?.stem || '-'}</div>
+                                    </div>
+                                </div>
+                                {morphology?.description && (
+                                    <div className="rounded-lg bg-white border border-stone-200 p-3 text-gray-600 leading-relaxed">
+                                        {morphology.description}
+                                    </div>
+                                )}
+                                {ayahMorphology && (ayahMorphology.rootText || ayahMorphology.lemmaText || ayahMorphology.stemText) && (
+                                    <div className="space-y-3 rounded-xl border border-stone-200 bg-stone-50 p-3">
+                                        <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Morfologi Ayat Ini</div>
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {ayahMorphology.rootText && (
+                                                <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                                    <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Akar Kata Ayat</div>
+                                                    <div className="mt-1 font-arabic text-lg text-gray-700 leading-loose" dir="rtl">{ayahMorphology.rootText}</div>
+                                                </div>
+                                            )}
+                                            {ayahMorphology.lemmaText && (
+                                                <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                                    <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Lemma Ayat</div>
+                                                    <div className="mt-1 font-arabic text-lg text-gray-700 leading-loose" dir="rtl">{ayahMorphology.lemmaText}</div>
+                                                </div>
+                                            )}
+                                            {ayahMorphology.stemText && (
+                                                <div className="rounded-lg bg-white border border-stone-200 p-3">
+                                                    <div className="text-[10px] uppercase font-bold tracking-widest text-gray-400">Stem Ayat</div>
+                                                    <div className="mt-1 font-arabic text-lg text-gray-700 leading-loose" dir="rtl">{ayahMorphology.stemText}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="text-sm text-gray-500 leading-relaxed">
+                                Data grammar offline belum tersedia untuk kata ini. Bashirah sudah siap menampilkannya setelah pack QUL morphology ditambahkan.
+                            </div>
+                        )}
+                    </div>
+
                     {!hasSearched ? (
                          <div className="py-8 text-center bg-stone-50 rounded-xl border border-stone-100">
                              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border border-stone-100 text-quran-gold">
