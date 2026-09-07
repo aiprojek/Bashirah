@@ -95,7 +95,7 @@ const AppContent: React.FC = () => {
     <div className="min-h-screen flex flex-col bg-pattern-overlay h-screen overflow-hidden dark:bg-slate-900 dark:text-gray-100 transition-colors duration-300">
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
       <Header onOpenSidebar={() => setIsSidebarOpen(true)} />
-      <main className="flex-grow overflow-auto h-full">
+      <main className="flex-grow overflow-auto h-full no-scrollbar">
         <AppRoutes
           translationEdition={translationEdition}
           setTranslationEdition={setTranslationEdition}
