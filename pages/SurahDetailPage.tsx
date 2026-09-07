@@ -14,6 +14,7 @@ import MemorizationSettingsModal from '../components/MemorizationSettingsModal';
 import MushafView from '../components/MushafView';
 import MushafTextView from '../components/MushafTextView';
 import ConfirmationModal from '../components/ConfirmationModal';
+import * as DB from '../services/db';
 import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
@@ -84,7 +85,14 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [pendingKhatamVerse, setPendingKhatamVerse] = useState<{id: number, page: number} | null>(null);
   const [mobileNavVisible, setMobileNavVisible] = useState(true);
   const [showMobileHeaderMenu, setShowMobileHeaderMenu] = useState(false);
-  const { currentSurah: audioSurah, currentVerse: audioVerse, playVerse, stop } = useAudio();
+  const { 
+    currentSurah: audioSurah, 
+    currentVerse: audioVerse, 
+    playVerse, 
+    stop, 
+    repeatSettings, 
+    setRepeatSettings 
+  } = useAudio();
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const listSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -143,12 +151,12 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           );
           if (isTypingTarget) return;
 
-          if (event.key === 'ArrowLeft' && prevSurah) {
-              event.preventDefault();
-              handleNavigateSurah(prevSurah.id);
-          } else if (event.key === 'ArrowRight' && nextSurah) {
+          if (event.key === 'ArrowLeft' && nextSurah) {
               event.preventDefault();
               handleNavigateSurah(nextSurah.id);
+          } else if (event.key === 'ArrowRight' && prevSurah) {
+              event.preventDefault();
+              handleNavigateSurah(prevSurah.id);
           }
       };
 
@@ -222,8 +230,17 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         const activeTranslation = showTranslation ? translationId : undefined;
         const activeTafsir = showTafsir ? tafsirId : undefined;
         
-        // Pass useTajweed param
-        const data = await getSurahDetail(parseInt(id), language, activeTranslation, activeTafsir, showWordByWord, showTajweed);
+        // Pass useTajweed, showTranslation, showTafsir params
+        const data = await getSurahDetail(
+            parseInt(id), 
+            language, 
+            activeTranslation, 
+            activeTafsir, 
+            showWordByWord, 
+            showTajweed, 
+            showTranslation, 
+            showTafsir
+        );
         setSurah(data);
       } catch (e) {
         console.error(e);
@@ -300,9 +317,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
       // Horizontal-first swipe gesture for quick surah navigation.
       if (Math.abs(deltaX) > 70 && Math.abs(deltaX) > deltaY * 1.25) {
-          // Edge swipe only: from right edge for next, from left edge for previous.
-          if (deltaX > 0 && fromRightEdge && nextSurah) handleNavigateSurah(nextSurah.id); // Swipe left -> next surah
-          if (deltaX < 0 && fromLeftEdge && prevSurah) handleNavigateSurah(prevSurah.id); // Swipe right -> previous surah
+          // RTL: Swipe Left -> Next (higher ID), Swipe Right -> Prev (lower ID)
+          if (deltaX > 0 && fromRightEdge && nextSurah) handleNavigateSurah(nextSurah.id);
+          if (deltaX < 0 && fromLeftEdge && prevSurah) handleNavigateSurah(prevSurah.id);
       }
   };
   const handleToggleBookmark = async (verseId: number) => {
@@ -356,23 +373,31 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       else setVersesWithNotes(prev => [...prev, editingVerseId]); 
   };
   const handleShareVerse = (verse: Verse, surahName: string) => setShareData({ surahName, verse });
-  const handleOpenInfo = async () => {
+  
+  const handleOpenInfo = async (forceDownload: boolean = false) => {
       if (!surah) return;
       setShowInfoModal(true);
-      if (!surahInfo) {
-          setLoadingInfo(true);
-          const info = await getSurahInfo(surah.id, language);
-          setSurahInfo(info);
+      
+      setLoadingInfo(true);
+      const packMeta = await DB.getSetting(`qul_surah_info_pack_meta_${language}`);
+      if (!packMeta && !forceDownload) {
+          setSurahInfo(null);
           setLoadingInfo(false);
+          return;
       }
+
+      const info = await getSurahInfo(surah.id, language, forceDownload);
+      setSurahInfo(info);
+      setLoadingInfo(false);
   };
+
   const getMemLevelLabel = (lvl: MemorizationLevel) => {
       switch(lvl) {
-          case 'normal': return 'Normal (Blur)';
-          case 'first-last': return 'Awal & Akhir';
-          case 'ghost': return 'Samar (Ghost)';
-          case 'random': return 'Acak (Random)';
-          default: return 'Normal';
+          case 'normal': return 'Blur';
+          case 'first-last': return 'Awal-Akhir';
+          case 'ghost': return 'Samar';
+          case 'random': return 'Acak';
+          default: return 'Hafalan';
       }
   };
 
@@ -416,6 +441,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                   <MushafView
                     startPage={startPage}
                     translationId={translationId || 'id.indonesian'}
+                    showTranslation={showTranslation}
+                    language={language}
                     onClose={closeMushafMode}
                     onSwitchToText={(page) => openMushafMode('mushaf-text', page)}
                     onOpenQuickJump={() => setShowQuickJump(true)}
@@ -523,10 +550,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowMushafModeModal(true)}
-              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-quran-dark to-[#23453e] px-4 py-3 text-sm font-bold text-white shadow-sm"
+              className="flex min-w-0 flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-quran-dark to-[#23453e] px-3 py-3 text-sm font-bold text-white shadow-sm"
             >
               <BookOpen className="h-4 w-4 text-quran-gold" />
-              <span>Mode Mushaf</span>
+              <span>Mushaf</span>
             </button>
             <div className="relative">
               <button
@@ -542,7 +569,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     onClick={() => { setShowMemModal(true); setShowMobileHeaderMenu(false); }}
                     className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-stone-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700"
                   >
-                    <BrainCircuit className="h-4 w-4" /> Mode Hafalan
+                    <BrainCircuit className="h-4 w-4" /> Hafalan
                   </button>
                   {isMemMode && (
                     <button
@@ -589,61 +616,82 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         </div>
       </div>
       <div className="hidden sm:block sticky top-0 z-20 px-4 sm:px-6 lg:px-8 pt-2 pb-3 bg-stone-50/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-stone-200/70 dark:border-slate-700/70">
-        <div className="mx-auto grid max-w-4xl grid-cols-[auto_1fr_auto] items-center gap-3 rounded-2xl border border-stone-200/80 dark:border-slate-700 bg-white/92 dark:bg-slate-800/92 px-3 py-2 shadow-sm">
+        <div className="mx-auto grid max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 rounded-2xl border border-stone-200/80 dark:border-slate-700 bg-white/92 dark:bg-slate-800/92 px-4 py-2 shadow-sm">
+          {/* RTL: Next Surah on Left */}
           <div className="flex items-center justify-start">
-            {prevSurah ? (
+            {nextSurah ? (
               <button
-                onClick={() => handleNavigateSurah(prevSurah.id)}
-                className="inline-flex items-center justify-center rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-700/70 px-3 py-2 text-stone-600 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors"
-                title={`${t('prev_surah')}: ${prevSurah.transliteration}`}
+                onClick={() => handleNavigateSurah(nextSurah.id)}
+                className="group inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-700/70 px-3 py-2 text-stone-600 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-all"
+                title={`${t('next_surah')}: ${nextSurah.transliteration}`}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-4 w-4 group-hover:-translate-x-0.5 transition-transform" />
+                <span className="text-xs font-bold">{nextSurah.transliteration}</span>
               </button>
             ) : (
               <div className="w-10" />
             )}
           </div>
 
-          <div className="flex min-w-0 items-center justify-center gap-2">
-            <button
-              onClick={() => navigate('/')}
-              className="flex min-w-0 items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-700/80 px-3 py-2 text-gray-600 dark:text-gray-200 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-all"
-              title="Kembali ke daftar surat"
-            >
-              <BookOpen className="w-4 h-4" />
-              <span className="hidden xl:inline text-sm font-semibold truncate max-w-[140px]">{surah.transliteration}</span>
-            </button>
-            <button onClick={() => setShowMemModal(true)} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold transition-all ${isMemMode ? 'bg-quran-dark text-white shadow-md shadow-quran-dark/20' : 'bg-stone-50 dark:bg-slate-700/80 border border-stone-200 dark:border-slate-600 text-gray-600 dark:text-gray-200 hover:bg-stone-100 dark:hover:bg-slate-700'}`}>
-              <BrainCircuit className="w-4 h-4" />
-              <span className="hidden lg:inline">{isMemMode ? getMemLevelLabel(memLevel) : 'Hafalan'}</span>
-            </button>
-            {isMemMode && (
-              <button onClick={() => setHideTranslation(!hideTranslation)} className={`p-2 rounded-xl border transition-colors ${hideTranslation ? 'bg-red-50 border-red-200 text-red-500 dark:bg-red-900/20 dark:border-red-800' : 'bg-stone-50 dark:bg-slate-700/80 border-stone-200 dark:border-slate-600 text-gray-400 dark:text-gray-400 hover:bg-stone-100 dark:hover:bg-slate-700'}`} title={hideTranslation ? "Tampilkan Terjemahan" : "Sembunyikan Terjemahan"}>
-                {hideTranslation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {/* Centered Actions */}
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 p-1 bg-stone-100/50 dark:bg-slate-900/50 rounded-2xl border border-stone-200/50 dark:border-slate-700/50">
+              <button
+                onClick={() => navigate('/')}
+                className="flex items-center gap-2 rounded-xl bg-white dark:bg-slate-800 px-3 py-2 text-gray-600 dark:text-gray-200 shadow-sm border border-stone-200/50 dark:border-slate-700/50 hover:text-quran-gold transition-all"
+                title="Daftar surat"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span className="hidden xl:inline text-xs font-bold">{surah.transliteration}</span>
               </button>
-            )}
-            <button onClick={() => setShowFontSettings(true)} className="flex items-center gap-2 rounded-xl border bg-stone-50 dark:bg-slate-700/80 border-stone-200 dark:border-slate-600 px-3 py-2 text-gray-600 dark:text-gray-200 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-all" title="Tampilan Font">
-              <Type className="w-4 h-4" />
-              <span className="hidden xl:inline text-sm font-semibold">Tampilan</span>
-            </button>
-            <button onClick={() => setShowQuickJump(true)} className="flex items-center gap-2 rounded-xl bg-stone-50 dark:bg-slate-700/80 border border-stone-200 dark:border-slate-600 px-3 py-2 text-gray-600 dark:text-gray-200 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-all" title="Navigasi Cepat">
-              <Compass className="w-4 h-4" />
-              <span className="hidden xl:inline text-sm font-semibold">Cepat</span>
-            </button>
-            <button onClick={() => setShowMushafModeModal(true)} className="flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-quran-dark to-[#23453e] dark:from-quran-gold dark:to-[#f0c96b] px-4 py-2 text-sm font-bold text-white dark:text-quran-dark hover:opacity-95 transition-colors">
+              
+              <button 
+                onClick={() => setShowMemModal(true)} 
+                className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-all ${isMemMode ? 'bg-quran-dark text-white shadow-md' : 'bg-transparent text-gray-600 dark:text-gray-300 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'}`}
+              >
+                <BrainCircuit className="w-4 h-4" />
+                <span>{isMemMode ? getMemLevelLabel(memLevel) : 'Hafalan'}</span>
+              </button>
+
+              {isMemMode && (
+                <button 
+                  onClick={() => setHideTranslation(!hideTranslation)} 
+                  className={`p-2 rounded-xl transition-colors ${hideTranslation ? 'bg-red-50 text-red-500 shadow-inner' : 'text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:shadow-sm'}`}
+                  title={hideTranslation ? "Tampilkan Terjemahan" : "Sembunyikan Terjemahan"}
+                >
+                  {hideTranslation ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-0.5 bg-stone-100/50 dark:bg-slate-900/50 p-1 rounded-2xl border border-stone-200/50 dark:border-slate-700/50">
+              <button onClick={() => setShowFontSettings(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-quran-gold rounded-xl transition-all" title="Font">
+                <Type className="w-4 h-4" />
+              </button>
+              <button onClick={() => setShowQuickJump(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-quran-gold rounded-xl transition-all" title="Cepat">
+                <Compass className="w-4 h-4" />
+              </button>
+            </div>
+
+            <button 
+              onClick={() => setShowMushafModeModal(true)} 
+              className="flex items-center gap-2 rounded-xl bg-gradient-to-br from-quran-dark to-[#1a3a33] px-5 py-2 text-xs font-bold text-white shadow-lg shadow-quran-dark/20 hover:opacity-90 active:scale-95 transition-all"
+            >
               <BookOpen className="w-4 h-4 text-quran-gold" />
-              <span className="hidden lg:inline">Mode Mushaf</span>
+              <span>Mushaf</span>
             </button>
           </div>
 
+          {/* RTL: Prev Surah on Right */}
           <div className="flex items-center justify-end">
-            {nextSurah ? (
+            {prevSurah ? (
               <button
-                onClick={() => handleNavigateSurah(nextSurah.id)}
-                className="inline-flex items-center justify-center rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-700/70 px-3 py-2 text-stone-600 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-colors"
-                title={`${t('next_surah')}: ${nextSurah.transliteration}`}
+                onClick={() => handleNavigateSurah(prevSurah.id)}
+                className="group inline-flex items-center gap-2 rounded-xl border border-stone-200 dark:border-slate-600 bg-stone-50 dark:bg-slate-700/70 px-3 py-2 text-stone-600 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:bg-stone-100 dark:hover:bg-slate-700 transition-all"
+                title={`${t('prev_surah')}: ${prevSurah.transliteration}`}
               >
-                <ChevronRight className="h-4 w-4" />
+                <span className="text-xs font-bold">{prevSurah.transliteration}</span>
+                <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
               </button>
             ) : (
               <div className="w-10" />
@@ -651,6 +699,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           </div>
         </div>
       </div>
+
       <div className="flex-1">
           <Virtuoso
             ref={virtuosoRef}
@@ -687,7 +736,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                                         )}
                                         {isNewPage && (
                                             <span className="px-3 py-1 bg-quran-gold text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
-                                                Halaman {verse.page_number}
+                                                Hal {verse.page_number}
                                             </span>
                                         )}
                                         {isNewRuku && (
@@ -735,31 +784,33 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           />
       </div>
 
-      <div className={`sm:hidden sticky bottom-0 z-20 px-4 pb-4 pt-2 bg-gradient-to-t from-stone-50 via-stone-50/95 to-transparent dark:from-slate-900 dark:via-slate-900/95 dark:to-transparent backdrop-blur-sm transition-transform duration-300 ${mobileNavVisible ? 'translate-y-0' : 'translate-y-[120%]'}`}>
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 rounded-2xl border border-stone-200/80 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.08)]">
-          {prevSurah ? (
+      <div className={`sm:hidden fixed bottom-4 left-4 right-4 z-20 transition-all duration-300 ${mobileNavVisible ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0 pointer-events-none'}`}>
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 rounded-2xl border border-stone-200/80 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur-md">
+          {/* RTL: Next Surah (higher ID) on LEFT */}
+          {nextSurah ? (
             <button
-              onClick={() => handleNavigateSurah(prevSurah.id)}
+              onClick={() => handleNavigateSurah(nextSurah.id)}
               className="flex min-w-0 flex-1 items-center gap-2 rounded-xl px-2 py-2 text-left text-stone-600 dark:text-gray-300 transition-colors hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-quran-dark dark:hover:text-quran-gold"
-              title={`${t('prev_surah')}: ${prevSurah.transliteration}`}
+              title={`${t('next_surah')}: ${nextSurah.transliteration}`}
             >
               <ChevronLeft className="h-4 w-4 flex-shrink-0" />
               <div className="min-w-0">
-                <div className="truncate text-sm font-bold">{prevSurah.transliteration}</div>
+                <div className="truncate text-sm font-bold">{nextSurah.transliteration}</div>
               </div>
             </button>
           ) : (
             <div className="flex-1" />
           )}
 
-          {nextSurah ? (
+          {/* RTL: Previous Surah (lower ID) on RIGHT */}
+          {prevSurah ? (
             <button
-              onClick={() => handleNavigateSurah(nextSurah.id)}
+              onClick={() => handleNavigateSurah(prevSurah.id)}
               className="flex min-w-0 flex-1 items-center justify-end gap-2 rounded-xl px-2 py-2 text-right text-stone-600 dark:text-gray-300 transition-colors hover:bg-stone-50 dark:hover:bg-slate-700 hover:text-quran-dark dark:hover:text-quran-gold"
-              title={`${t('next_surah')}: ${nextSurah.transliteration}`}
+              title={`${t('prev_surah')}: ${prevSurah.transliteration}`}
             >
               <div className="min-w-0">
-                <div className="truncate text-sm font-bold">{nextSurah.transliteration}</div>
+                <div className="truncate text-sm font-bold">{prevSurah.transliteration}</div>
               </div>
               <ChevronRight className="h-4 w-4 flex-shrink-0" />
             </button>
@@ -779,7 +830,14 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           onClose={() => setSelectedWord(null)}
         />
       )}
-      <SurahInfoModal isOpen={showInfoModal} onClose={() => setShowInfoModal(false)} info={surahInfo} surah={surah} isLoading={loadingInfo} />
+      <SurahInfoModal 
+        isOpen={showInfoModal} 
+        onClose={() => setShowInfoModal(false)} 
+        info={surahInfo} 
+        surah={surah} 
+        isLoading={loadingInfo} 
+        onDownload={() => handleOpenInfo(true)}
+      />
       <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJump} />
       <FontSettingsModal
         isOpen={showFontSettings}
@@ -801,7 +859,17 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         }}
       />
       {shareData && <ShareVerseModal isOpen={true} onClose={() => setShareData(null)} surahName={shareData.surahName} verseNumber={shareData.verse.id} arabicText={shareData.verse.text} translationText={shareData.verse.translation || ''} />}
-      <MemorizationSettingsModal isOpen={showMemModal} onClose={() => setShowMemModal(false)} level={memLevel} onLevelChange={setMemLevel} isActive={isMemMode} onToggleActive={setIsMemMode} />
+      <MemorizationSettingsModal 
+        isOpen={showMemModal} 
+        onClose={() => setShowMemModal(false)} 
+        level={memLevel} 
+        onLevelChange={setMemLevel} 
+        isActive={isMemMode} 
+        onToggleActive={setIsMemMode}
+        repeatSettings={repeatSettings}
+        onRepeatSettingsChange={setRepeatSettings}
+        currentTotalVerses={surah?.total_verses || 1}
+      />
       {showMushafModeModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
             <div className="absolute inset-0 bg-quran-dark/80 dark:bg-black/80 backdrop-blur-sm" onClick={() => setShowMushafModeModal(false)} />

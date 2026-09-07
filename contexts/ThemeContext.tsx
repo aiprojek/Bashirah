@@ -1,52 +1,72 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import * as DB from '../services/db';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light' | 'dark' | 'system';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
   isLoading: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const initTheme = async () => {
       const savedTheme = await DB.getSetting('theme') as Theme;
       if (savedTheme) {
-        setTheme(savedTheme);
+        setThemeState(savedTheme);
       }
       setIsLoading(false);
     };
     initTheme();
   }, []);
 
-  useEffect(() => {
-    if (isLoading) return;
-
+  const applyTheme = (targetTheme: Theme) => {
     const root = window.document.documentElement;
-    
-    // Apply class to HTML tag
-    if (theme === 'dark') {
+    let actualTheme: 'light' | 'dark' = 'light';
+
+    if (targetTheme === 'system') {
+      actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    } else {
+      actualTheme = targetTheme;
+    }
+
+    if (actualTheme === 'dark') {
       root.classList.add('dark');
     } else {
       root.classList.remove('dark');
     }
-    
+  };
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    applyTheme(theme);
     DB.setSetting('theme', theme);
+
+    // Listen for system changes if in system mode
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      if (theme === 'system') {
+        applyTheme('system');
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, [theme, isLoading]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, isLoading }}>
+    <ThemeContext.Provider value={{ theme, setTheme, isLoading }}>
       {children}
     </ThemeContext.Provider>
   );

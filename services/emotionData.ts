@@ -23,6 +23,9 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 94, verseId: 6, surahName: 'Al-Insyirah' },
             { surahId: 12, verseId: 86, surahName: 'Yusuf' },
             { surahId: 3, verseId: 139, surahName: 'Ali Imran' },
+            { surahId: 2, verseId: 155, surahName: 'Al-Baqarah' },
+            { surahId: 2, verseId: 156, surahName: 'Al-Baqarah' },
+            { surahId: 93, verseId: 3, surahName: 'Ad-Duha' },
         ]
     },
     {
@@ -36,6 +39,8 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 65, verseId: 2, surahName: 'At-Talaq' },
             { surahId: 65, verseId: 3, surahName: 'At-Talaq' },
             { surahId: 13, verseId: 28, surahName: 'Ar-Ra\'d' },
+            { surahId: 48, verseId: 4, surahName: 'Al-Fath' },
+            { surahId: 2, verseId: 153, surahName: 'Al-Baqarah' },
         ]
     },
     {
@@ -48,6 +53,7 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 57, verseId: 4, surahName: 'Al-Hadid' },
             { surahId: 2, verseId: 186, surahName: 'Al-Baqarah' },
             { surahId: 21, verseId: 89, surahName: 'Al-Anbiya' },
+            { surahId: 39, verseId: 36, surahName: 'Az-Zumar' },
         ]
     },
     {
@@ -60,6 +66,8 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 42, verseId: 37, surahName: 'Asy-Syura' },
             { surahId: 41, verseId: 34, surahName: 'Fussilat' },
             { surahId: 7, verseId: 199, surahName: 'Al-A\'raf' },
+            { surahId: 2, verseId: 153, surahName: 'Al-Baqarah' },
+            { surahId: 42, verseId: 43, surahName: 'Asy-Syura' },
         ]
     },
     {
@@ -72,6 +80,8 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 27, verseId: 40, surahName: 'An-Naml' },
             { surahId: 93, verseId: 11, surahName: 'Ad-Duha' },
             { surahId: 55, verseId: 13, surahName: 'Ar-Rahman' },
+            { surahId: 2, verseId: 152, surahName: 'Al-Baqarah' },
+            { surahId: 31, verseId: 12, surahName: 'Luqman' },
         ]
     },
     {
@@ -84,9 +94,11 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 3, verseId: 135, surahName: 'Ali Imran' },
             { surahId: 42, verseId: 25, surahName: 'Asy-Syura' },
             { surahId: 66, verseId: 8, surahName: 'At-Tahrim' },
+            { surahId: 4, verseId: 110, surahName: 'An-Nisa' },
+            { surahId: 20, verseId: 82, surahName: 'Taha' },
         ]
     },
-     {
+    {
         id: 'lelah',
         label: 'Kelelahan',
         icon: 'Anchor',
@@ -96,6 +108,9 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 94, verseId: 5, surahName: 'Al-Insyirah' },
             { surahId: 2, verseId: 214, surahName: 'Al-Baqarah' },
             { surahId: 29, verseId: 69, surahName: 'Al-Ankabut' },
+            { surahId: 20, verseId: 1, surahName: 'Taha' },
+            { surahId: 20, verseId: 2, surahName: 'Taha' },
+            { surahId: 2, verseId: 286, surahName: 'Al-Baqarah' },
         ]
     },
     {
@@ -108,6 +123,8 @@ export const EMOTIONS: EmotionTopic[] = [
             { surahId: 65, verseId: 3, surahName: 'At-Talaq' },
             { surahId: 3, verseId: 159, surahName: 'Ali Imran' },
             { surahId: 18, verseId: 23, surahName: 'Al-Kahf' },
+            { surahId: 2, verseId: 2, surahName: 'Al-Baqarah' },
+            { surahId: 10, verseId: 108, surahName: 'Yunus' },
         ]
     }
 ];

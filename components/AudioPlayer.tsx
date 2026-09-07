@@ -64,10 +64,10 @@ const AudioPlayer: React.FC = () => {
                   Normal
               </button>
               <button 
-                onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'verse' })}
+                onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'verse', count: repeatSettings.mode === 'verse' ? repeatSettings.count : 5 })}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'verse' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
-                  Per Ayat
+                  Hifzh (Ayat)
               </button>
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'range' })}

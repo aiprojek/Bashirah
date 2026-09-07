@@ -56,6 +56,23 @@
   text-rendering: optimizeLegibility;
 }
 
+.arabic-justify {
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-text-justify: inter-word;
+  word-spacing: 0.08em;
+  /* Ensure last line isn't stretched but stays right-aligned for Arabic */
+  text-align-last: right;
+}
+
+@media (max-width: 640px) {
+  .arabic-justify {
+    /* Auto allows browser to be more flexible on narrow screens */
+    text-justify: auto;
+    word-spacing: 0.04em;
+  }
+}
+
 /* Ensure spans inside Arabic text behave strictly inline and preserve ligatures */
 .font-arabic span,
 .tajweed-container span {

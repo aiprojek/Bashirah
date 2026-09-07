@@ -259,7 +259,7 @@ const ShareVerseModal: React.FC<ShareVerseModalProps> = ({
                                 <p className={`text-xl font-sans uppercase tracking-[0.3em] opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>{t('app_subtitle')}</p>
                             </div>
                             <div className="text-right">
-                                <p className={`text-2xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.pages.dev</p>
+                                <p className={`text-2xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.aiprojek01.my.id</p>
                             </div>
                         </div>
                     </div>

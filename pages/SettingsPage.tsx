@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun, Save, Upload, HardDrive, Type } from 'lucide-react';
+import { Globe, BookType, Check, Loader2, Search, AlertCircle, ChevronDown, ChevronUp, Star, Download, Wifi, Book, Volume2, Mic2, Trash2, Image as ImageIcon, Palette, Sparkles, Moon, Sun, Save, Upload, HardDrive, Type, Bell } from 'lucide-react';
 import { LanguageCode, APP_LANGUAGES, TranslationOption, RECITERS, Surah, MUSHAF_EDITIONS, MushafEdition, TAJWEED_EDITION } from '../types';
 import LanguageModal from '../components/LanguageModal';
 import ConfirmationModal from '../components/ConfirmationModal'; 
@@ -48,7 +48,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   showTajweed,
   onToggleTajweed
 }) => {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
   
   const [isLangModalOpen, setIsLangModalOpen] = useState(false);
@@ -70,6 +70,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const [mushafProgress, setMushafProgress] = useState(0);
   const [defaultMushafMode, setDefaultMushafMode] = useState<'text' | 'image'>('text');
   const [showDailyAyat, setShowDailyAyat] = useState(true);
+  const [showNotifications, setShowNotifications] = useState(true);
   const [activeTab, setActiveTab] = useState<'quick' | 'offline' | 'audio' | 'mushaf' | 'reading' | 'data'>('quick');
   const [showFontSettings, setShowFontSettings] = useState(false);
   const [arabicFontSize, setArabicFontSize] = useState(30);
@@ -134,6 +135,7 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
     checkMushafStatus();
     const fetchInitialSettings = async () => {
         setShowDailyAyat(await StorageService.getShowAyatOfTheDay());
+        setShowNotifications(await StorageService.getNotificationsEnabled());
         const [savedArabicSize, savedTranslationSize, savedArabicFamily] = await Promise.all([
           StorageService.getArabicFontSize(),
           StorageService.getTranslationFontSize(),
@@ -183,6 +185,10 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const handleToggleDailyAyat = async (enabled: boolean) => {
       setShowDailyAyat(enabled);
       await StorageService.setShowAyatOfTheDay(enabled);
+  };
+  const handleToggleNotifications = async (enabled: boolean) => {
+      setShowNotifications(enabled);
+      await StorageService.setNotificationsEnabled(enabled);
   };
   const handleSetMushaf = (id: string) => {
       MushafService.setActiveMushafId(id);
@@ -647,17 +653,37 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                             {t('btn_change')}
                         </button>
                     </div>
-                    <div className="px-4 sm:px-5 py-4 flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                                {theme === 'dark' ? <Moon className="w-4 h-4 text-quran-gold" /> : <Sun className="w-4 h-4 text-quran-gold" />} 
-                                {t('settings_theme')}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{theme === 'dark' ? t('settings_theme_dark') : t('settings_theme_light')}</p>
+                    <div className="px-4 sm:px-5 py-4 flex flex-col gap-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0">
+                                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                                    <Palette className="w-4 h-4 text-quran-gold" /> {t('settings_theme')}
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    {theme === 'dark' ? t('settings_theme_dark') : theme === 'light' ? t('settings_theme_light') : t('settings_theme_system')}
+                                </p>
+                            </div>
                         </div>
-                        <button onClick={toggleTheme} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${theme === 'dark' ? 'bg-quran-gold' : 'bg-gray-300'}`}>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${theme === 'dark' ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
+                        <div className="flex items-center gap-2 p-1 bg-stone-100 dark:bg-slate-700 rounded-xl">
+                            <button 
+                                onClick={() => setTheme('light')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${theme === 'light' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+                            >
+                                <Sun className="w-3.5 h-3.5" /> {t('settings_theme_light')}
+                            </button>
+                            <button 
+                                onClick={() => setTheme('dark')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${theme === 'dark' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+                            >
+                                <Moon className="w-3.5 h-3.5" /> {t('settings_theme_dark')}
+                            </button>
+                            <button 
+                                onClick={() => setTheme('system')}
+                                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${theme === 'system' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
+                            >
+                                <Sparkles className="w-3.5 h-3.5" /> {t('settings_theme_system')}
+                            </button>
+                        </div>
                     </div>
                     <div className="px-4 sm:px-5 py-4 flex items-center justify-between gap-3">
                         <div className="min-w-0">
@@ -670,6 +696,17 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
                         </div>
                         <button onClick={() => setShowFontSettings(true)} className="shrink-0 px-3 py-2 text-xs font-bold bg-stone-100 dark:bg-slate-700 text-stone-600 dark:text-gray-200 rounded-lg hover:bg-stone-200 min-h-10">
                             Atur
+                        </button>
+                    </div>
+                    <div className="px-4 sm:px-5 py-4 flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                                <Bell className="w-4 h-4 text-quran-gold" /> {t('settings_notifications')}
+                            </h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('settings_notifications_desc')}</p>
+                        </div>
+                        <button onClick={() => handleToggleNotifications(!showNotifications)} className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${showNotifications ? 'bg-quran-dark dark:bg-quran-gold' : 'bg-gray-300'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showNotifications ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                     </div>
                     <div className="px-4 sm:px-5 py-4 flex items-center justify-between gap-3">

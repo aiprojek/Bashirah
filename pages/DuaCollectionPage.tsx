@@ -27,7 +27,7 @@ const DuaCollectionPage: React.FC = () => {
 
     const handleCopy = (text: string, id: string) => {
         // Adding Credit Footer
-        const creditText = `\n\nBashirah - Al Quran Digital\nbashirah.pages.dev`;
+        const creditText = `\n\nBashirah - Al Quran Digital\nbashirah.aiprojek01.my.id`;
         navigator.clipboard.writeText(text + creditText);
         
         setCopiedId(id);

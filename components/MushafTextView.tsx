@@ -80,6 +80,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [selectedVerse, setSelectedVerse] = useState<PageVerse | null>(null);
   const [selectedWord, setSelectedWord] = useState<{ word: Word; verseId: number; surahId: number } | null>(null);
   const [showVerseModal, setShowVerseModal] = useState(false);
+  const [activeMarkerVerse, setActiveMarkerVerse] = useState<PageVerse | null>(null);
   const [shareVerseData, setShareVerseData] = useState<PageVerse | null>(null);
   const [plainVerseTextMap, setPlainVerseTextMap] = useState<Record<string, string>>({});
   const [isLoadingPlainVerse, setIsLoadingPlainVerse] = useState(false);
@@ -97,6 +98,37 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const showCustomVerseOrnament = arabicFontFamily === 'indopak';
   const verseOrnamentClassName = showCustomVerseOrnament ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline';
   const isAudioPlayerVisible = !!currentSurah && !!currentVerse;
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const EDGE_SWIPE_ZONE_PX = 32;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    swipeStartRef.current = { x: t.clientX, y: t.clientY };
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!swipeStartRef.current) return;
+    const start = swipeStartRef.current;
+    const end = e.changedTouches[0];
+    const deltaX = start.x - end.clientX;
+    const deltaY = Math.abs(start.y - end.clientY);
+    const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+    const fromLeftEdge = start.x <= EDGE_SWIPE_ZONE_PX;
+    const fromRightEdge = start.x >= (viewportWidth - EDGE_SWIPE_ZONE_PX);
+    swipeStartRef.current = null;
+
+    if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > deltaY * 1.5) {
+      if (deltaX > 0 && fromRightEdge) handleNextPage(); // Swipe Left -> Next (higher page)
+      if (deltaX < 0 && fromLeftEdge) handlePrevPage(); // Swipe Right -> Prev (lower page)
+    }
+  };
+
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     setCurrentPage(startPage);
@@ -121,7 +153,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     const loadPage = async () => {
       setLoading(true);
       try {
-        const data = await getVersesByPage(currentPage, translationId, isTajweedOn, language);
+        const data = await getVersesByPage(
+          currentPage, 
+          translationId, 
+          isTajweedOn, 
+          language, 
+          showTranslation && !hideTranslation, 
+          !!tafsirId // Passing flag for future tafsir support in page view if needed
+        );
         setVerses(data || []);
       } catch (e) {
         console.error('Failed to load mushaf text page', e);
@@ -224,7 +263,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     const trans = showTranslation
       ? verses.map(v => `${v.surah.englishName} ${v.numberInSurah} — ${v.translation || 'Unduh terjemahan untuk offline.'}`)
       : [];
-    return [label, ...lines, ...(trans.length ? ['—', ...trans] : []), '', 'Bashirah - Al Quran Digital', 'bashirah.pages.dev'].join('\n');
+    return [label, ...lines, ...(trans.length ? ['—', ...trans] : []), '', 'Bashirah - Al Quran Digital', 'bashirah.aiprojek01.my.id'].join('\n');
   };
 
   const handleCopyPage = async () => {
@@ -242,7 +281,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     const label = `${verse.surah.englishName} ${verse.numberInSurah}`;
     const translation = verse.translation || 'Unduh terjemahan untuk offline.';
     const arabicText = arabicTextOverride || verse.text;
-    return [label, arabicText, translation, '', 'Bashirah - Al Quran Digital', 'bashirah.pages.dev'].join('\n');
+    return [label, arabicText, translation, '', 'Bashirah - Al Quran Digital', 'bashirah.aiprojek01.my.id'].join('\n');
   };
 
   const getVerseKey = (verse: PageVerse) => `${verse.surah.number}:${verse.numberInSurah}`;
@@ -587,44 +626,32 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const renderPageMarkers = (verse: PageVerse, isNewJuz: boolean, isNewHizb: boolean, isNewRuku: boolean) => {
     if (!isNewJuz && !isNewHizb && !isNewRuku) return null;
 
-    const markerItems = [
-      isNewJuz && verse.juz_number ? { label: `Juz ${verse.juz_number}`, tone: 'juz' as const } : null,
-      isNewHizb && verse.hizb_number ? { label: `Hizb ${verse.hizb_number}`, tone: 'hizb' as const } : null,
-      isNewRuku && verse.ruku_number ? { label: `Ruku ${verse.ruku_number}`, tone: 'ruku' as const } : null
-    ].filter(Boolean) as Array<{ label: string; tone: 'juz' | 'hizb' | 'ruku' }>;
-
     return (
-      <div className="block w-full my-6" style={{ textAlign: 'center', textAlignLast: 'center' }}>
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-3 sm:gap-4" dir="ltr">
-          <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-200/90 to-stone-300/80" />
-          <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] leading-none whitespace-nowrap">
-            {markerItems.map((item, index) => (
-              <React.Fragment key={`${item.label}-${index}`}>
-                <span
-                  className={
-                    item.tone === 'juz'
-                      ? 'text-quran-dark'
-                      : item.tone === 'hizb'
-                      ? 'text-stone-600'
-                      : 'text-stone-500'
-                  }
-                >
-                  {item.label}
-                </span>
-                {index < markerItems.length - 1 && (
-                  <span className="inline-block h-1 w-1 rounded-full bg-stone-300/80" aria-hidden="true" />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
-          <div className="h-px flex-1 bg-gradient-to-l from-transparent via-stone-200/90 to-stone-300/80" />
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveMarkerVerse(verse);
+        }}
+        className="inline-flex items-center justify-center mx-2 select-none align-middle p-1.5 rounded-full hover:bg-stone-200/50 transition-colors cursor-pointer group" 
+        dir="ltr"
+        title="Informasi Navigasi (Juz/Hizb)"
+      >
+        <div className="w-5 h-5 flex items-center justify-center text-quran-gold relative">
+          {/* Decorative Ornament Symbol */}
+          <div className="absolute inset-0 border border-quran-gold/40 rounded-sm rotate-45 group-hover:scale-110 transition-transform" />
+          <div className="absolute inset-0 border border-quran-gold/20 rounded-sm -rotate-12 group-hover:scale-105 transition-transform" />
+          <span className="text-[9px] font-bold z-10">۞</span>
         </div>
-      </div>
+      </button>
     );
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#f9f6ef]">
+    <div 
+      className="flex flex-col h-full bg-[#f9f6ef]"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div className="bg-white border-b border-stone-200 px-4 py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-sm z-20 shrink-0">
         <div className="flex items-center gap-3">
           <span className="bg-quran-dark text-white text-xs font-bold px-2 py-1 rounded hidden sm:inline-flex">
@@ -665,7 +692,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                   onClick={() => { onOpenMemorization?.(); setShowActionsMenu(false); }}
                   className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2"
                 >
-                  <BrainCircuit className="w-4 h-4" /> Mode Hafalan
+                  <BrainCircuit className="w-4 h-4" /> Hafalan
                 </button>
                 <button
                   onClick={() => { onOpenQuickJump?.(); setShowActionsMenu(false); }}
@@ -722,10 +749,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                 ? 'bg-quran-dark text-white border-quran-dark'
                 : 'bg-white text-gray-600 border-stone-200 hover:bg-stone-50'
             }`}
-            title="Mode Hafalan"
+            title="Hafalan"
           >
             <BrainCircuit className="w-4 h-4" />
-            <span className="hidden sm:inline">{isMemMode ? (memLevelLabel || 'Hafalan') : 'Mode Hafalan'}</span>
+            <span className="hidden sm:inline">{isMemMode ? (memLevelLabel || 'Hafalan') : 'Hafalan'}</span>
             {isMemMode && <ChevronDown className="w-3 h-3" />}
           </button>
           <button
@@ -771,7 +798,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               title="Mushaf Gambar"
             >
               <ImageIcon className="w-3 h-3" />
-              <span className="hidden sm:inline">Mushaf Gambar</span>
+              <span className="hidden sm:inline">Gambar</span>
             </button>
           )}
           {onClose && (
@@ -781,13 +808,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               title="Mode List"
             >
               <ScrollText className="w-3 h-3" />
-              <span className="hidden sm:inline">Mode List</span>
+              <span className="hidden sm:inline">Daftar</span>
             </button>
           )}
         </div>
       </div>
 
       <div
+        ref={scrollContainerRef}
         className={`flex-1 overflow-y-auto px-4 sm:px-6 py-6 transition-[padding] duration-300 ${
           isAudioPlayerVisible ? 'pb-36 sm:pb-40' : 'pb-6'
         }`}
@@ -806,8 +834,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             >
             <div
               dir="rtl"
-              className="font-arabic leading-[2.6] text-quran-dark"
-              style={{ textAlign: 'justify', textAlignLast: 'right', fontSize: `clamp(22px, 3.6vw, ${arabicFontSize}px)`, fontFamily: arabicFontFamilyStyle }}
+              className="font-arabic arabic-justify leading-[2.8] text-quran-dark relative"
+              style={{
+                textAlign: 'justify',
+                textAlignLast: 'right',
+                fontSize: `clamp(24px, 4.2vw, ${arabicFontSize}px)`,
+                fontFamily: arabicFontFamilyStyle,
+                letterSpacing: 'normal'
+              }}
             >
               {groupedVerses.map(({ verse, isNewSurah, isNewJuz, isNewHizb, isNewRuku }, idx) => {
                 const isActiveVerse = currentSurah === verse.surah.number && currentVerse === verse.numberInSurah;
@@ -817,9 +851,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                 const surahHeaderGlyph = isNewSurah ? getQcfSurahHeaderGlyph(verse.surah.number) : null;
                 const showFallbackArabicSurahName = !surahHeaderGlyph;
                 return (
-                <React.Fragment key={`${verse.surah.number}-${verse.numberInSurah}-${idx}`}>
-                  {renderPageMarkers(verse, isNewJuz, isNewHizb, isNewRuku)}
-                  {isNewSurah && (
+                  <React.Fragment key={`${verse.surah.number}-${verse.numberInSurah}-${idx}`}>
+                    {isNewSurah && (
                     <div className="block w-full my-7 text-center" style={{ textAlign: 'center', textAlignLast: 'center' }}>
                       {idx !== 0 && (
                         <div className="mb-6 flex items-center justify-center gap-3">
@@ -863,10 +896,11 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                   )}
                   <span className={isActiveVerse ? 'bg-quran-gold/20 rounded px-1' : ''}>
                     {renderMushafVerse(verse)}
-                    {' '}
+                    {'\u00A0'}
                     {renderVerseOrnament(verse)}
+                    {renderPageMarkers(verse, isNewJuz, isNewHizb, isNewRuku)}
                   </span>
-                  <span> </span>
+                  {' '}
                 </React.Fragment>
               )})}
             </div>
@@ -968,6 +1002,54 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
         />
       )}
 
+      {activeMarkerVerse && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-xs bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="bg-quran-dark px-6 py-4 flex items-center justify-between border-b border-quran-gold/20">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <Compass className="w-4 h-4 text-quran-gold" />
+                Navigasi
+              </h3>
+              <button 
+                onClick={() => setActiveMarkerVerse(null)}
+                className="p-1 text-white/60 hover:text-white"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-4">
+              <div className="text-center mb-2">
+                <p className="text-xs text-stone-500 uppercase tracking-widest font-bold">Informasi Ayat</p>
+                <p className="text-quran-dark font-bold">{activeMarkerVerse.surah.englishName} : {activeMarkerVerse.numberInSurah}</p>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                <div className="flex items-center justify-between p-3 bg-stone-50 rounded-2xl border border-stone-100">
+                  <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Juz</span>
+                  <span className="text-lg font-bold text-quran-dark">{activeMarkerVerse.juz_number}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-2xl border border-emerald-100">
+                  <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Hizb</span>
+                  <span className="text-lg font-bold text-emerald-700">{activeMarkerVerse.hizb_number}</span>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-stone-50 rounded-2xl border border-stone-100">
+                  <span className="text-xs font-bold text-stone-400 uppercase tracking-wider">Ruku</span>
+                  <span className="text-lg font-bold text-stone-700">{activeMarkerVerse.ruku_number}</span>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setActiveMarkerVerse(null)}
+                className="w-full py-3 bg-stone-100 hover:bg-stone-200 text-stone-600 rounded-2xl font-bold transition-colors"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedWord && (
         <WordDetailModal
           word={selectedWord.word}
@@ -982,13 +1064,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       <div className="bg-white border-t border-stone-200 p-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 shrink-0 safe-area-bottom">
         <div className="flex items-center gap-2 max-w-lg mx-auto">
           <button
-            onClick={handlePrevPage}
-            disabled={currentPage <= 1}
+            onClick={handleNextPage}
+            disabled={currentPage >= 604}
             className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+            title="Halaman Selanjutnya"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <div className="flex-1 px-2">
+          <div className="flex-1 px-2" dir="rtl">
             <input
               type="range"
               min="1"
@@ -1004,9 +1087,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             </div>
           </div>
           <button
-            onClick={handleNextPage}
-            disabled={currentPage >= 604}
+            onClick={handlePrevPage}
+            disabled={currentPage <= 1}
             className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+            title="Halaman Sebelumnya"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

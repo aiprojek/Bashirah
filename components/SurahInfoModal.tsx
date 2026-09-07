@@ -9,6 +9,7 @@ interface SurahInfoModalProps {
   info: SurahInfo | null;
   surah: Surah | null; // Passed to show basic details while loading
   isLoading: boolean;
+  onDownload?: () => void;
 }
 
 const SurahInfoModal: React.FC<SurahInfoModalProps> = ({ 
@@ -16,7 +17,8 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
     onClose, 
     info, 
     surah,
-    isLoading 
+    isLoading,
+    onDownload
 }) => {
   if (!isOpen) return null;
 
@@ -141,8 +143,22 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-10 text-gray-400">
-                        <p>Informasi detail tidak tersedia untuk surat ini.</p>
+                    <div className="text-center py-12 px-6">
+                        <div className="w-16 h-16 bg-stone-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
+                            <AlignLeft className="w-8 h-8" />
+                        </div>
+                        <h4 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Data Belum Tersedia</h4>
+                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-xs mx-auto">
+                            Detail info dan Asbabun Nuzul untuk surat ini belum diunduh ke penyimpanan lokal Anda.
+                        </p>
+                        
+                        <button 
+                            onClick={onDownload}
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-quran-dark text-white rounded-xl font-bold text-sm hover:bg-quran-dark/90 transition-all shadow-lg shadow-quran-dark/20"
+                        >
+                            <BookOpen className="w-4 h-4" />
+                            Unduh Info Surat
+                        </button>
                     </div>
                 )}
             </div>

@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search as SearchIcon, ArrowRight, Loader2, Wifi, Download, Settings } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight, Loader2, Wifi, Download, Settings, Zap, Globe } from 'lucide-react';
 import { searchGlobalVerses } from '../services/quranService';
 import { isEditionDownloaded } from '../services/db'; // Import DB check
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [verseResults, setVerseResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [isDeepSearching, setIsDeepSearching] = useState(false);
   const [isOfflineReady, setIsOfflineReady] = useState(false); // Track if data is downloaded
   const navigate = useNavigate();
 
@@ -32,6 +33,21 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
       checkStatus();
   }, [translationId]);
 
+  const performSearch = async (query: string, deep: boolean = false) => {
+    if (deep) setIsDeepSearching(true);
+    else setIsSearching(true);
+
+    try {
+      const results = await searchGlobalVerses(query, translationId, deep);
+      setVerseResults(results);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSearching(false);
+      setIsDeepSearching(false);
+    }
+  };
+
   // Debounce search
   useEffect(() => {
     if (!value || value.length < 3) {
@@ -39,20 +55,18 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
       return;
     }
 
-    const timer = setTimeout(async () => {
-      setIsSearching(true);
-      try {
-        const results = await searchGlobalVerses(value, translationId);
-        setVerseResults(results);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setIsSearching(false);
-      }
+    const timer = setTimeout(() => {
+      performSearch(value, false);
     }, 600); // 600ms debounce
 
     return () => clearTimeout(timer);
   }, [value, translationId]);
+
+  const handleDeepSearch = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    performSearch(value, true);
+  };
 
   const handleResultClick = (surahId: number, verseId: number) => {
     navigate(`/surah/${surahId}#verse-${verseId}`);
@@ -106,35 +120,79 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
             )}
 
             {/* RESULTS HEADER */}
-            <div className="flex items-center justify-between px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/50">
-                <span>Hasil Pencarian Ayat</span>
-                {isSearching && <Loader2 className="w-3 h-3 animate-spin text-quran-gold" />}
+            <div className="flex items-center justify-between px-4 py-2.5 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/50">
+                <div className="flex items-center gap-2">
+                    <span>Hasil Pencarian Ayat</span>
+                    {verseResults.length > 0 && <span className="text-[10px] bg-stone-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-1.5 rounded-full lowercase">{verseResults.length} hasil</span>}
+                </div>
+                {(isSearching || isDeepSearching) && <Loader2 className="w-3 h-3 animate-spin text-quran-gold" />}
             </div>
+
+            {/* DEEP SEARCH TRIGGER */}
+            {value.length >= 3 && !isDeepSearching && (
+                <div className="px-3 py-2 border-b border-stone-50 dark:border-slate-700/50 bg-quran-gold/5 dark:bg-quran-gold/10">
+                    <button
+                        onMouseDown={handleDeepSearch}
+                        className="w-full flex items-center justify-between gap-3 text-[11px] group"
+                    >
+                        <div className="flex items-center gap-2 text-quran-dark dark:text-quran-gold font-bold">
+                            <Zap className="w-3 h-3 fill-current" />
+                            <span>Pencarian Mendalam (Online)</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-gray-400 group-hover:text-quran-gold transition-colors">
+                            <span>Tekan untuk hasil lebih akurat</span>
+                            <ArrowRight className="w-3 h-3" />
+                        </div>
+                    </button>
+                </div>
+            )}
 
             {/* RESULTS LIST */}
             <div className="p-2">
-                {!isSearching && verseResults.length === 0 && (
-                    <div className="p-6 text-center text-gray-400 text-sm">
-                        <p className="italic mb-2">Tidak ditemukan ayat dengan kata kunci "{value}".</p>
-                        {!isOfflineReady && (
-                            <p className="text-xs text-gray-400">Coba kata kunci Arab atau unduh data terjemahan di Pengaturan.</p>
-                        )}
+                {!isSearching && !isDeepSearching && verseResults.length === 0 && (
+                    <div className="p-8 text-center text-gray-400">
+                        <p className="text-sm italic mb-3">Tidak ditemukan ayat dengan kata kunci "{value}".</p>
+                        <button
+                           onMouseDown={handleDeepSearch}
+                           className="inline-flex items-center gap-2 px-4 py-2 bg-quran-dark text-white rounded-xl text-xs font-bold hover:bg-quran-gold transition-colors"
+                        >
+                           <Globe className="w-3.5 h-3.5" />
+                           Coba Pencarian Mendalam
+                        </button>
                     </div>
                 )}
 
-                {verseResults.map((res, idx) => (
+                {isDeepSearching && (
+                    <div className="p-12 text-center flex flex-col items-center gap-3">
+                        <Loader2 className="w-8 h-8 text-quran-gold animate-spin" />
+                        <p className="text-sm font-bold text-gray-500">Mencari di seluruh database...</p>
+                        <p className="text-[11px] text-gray-400">Pencarian mendalam memindai setiap ayat dan terjemahan.</p>
+                    </div>
+                )}
+
+                {!isDeepSearching && verseResults.map((res, idx) => (
                     <button
                         key={`${res.surah.number}-${res.verseId}-${idx}`}
                         onMouseDown={(e) => { e.preventDefault(); handleResultClick(res.surah.number, res.verseId); }}
-                        className="w-full text-left p-3 hover:bg-stone-50 dark:hover:bg-slate-700/50 rounded-lg transition-colors group border-b border-stone-50 dark:border-slate-700 last:border-0"
+                        className="w-full text-left p-3.5 hover:bg-stone-50 dark:hover:bg-slate-700/50 rounded-xl transition-colors group border-b border-stone-50 dark:border-slate-700/50 last:border-0"
                     >
-                        <div className="flex justify-between items-start mb-1">
-                             <span className="text-xs font-bold bg-quran-gold/10 text-quran-dark dark:text-quran-gold px-2 py-0.5 rounded">
-                                 QS. {res.surah.englishName} : {res.verseId}
-                             </span>
-                             <ArrowRight className="w-3 h-3 text-gray-300 dark:text-gray-600 group-hover:text-quran-gold" />
+                        <div className="flex justify-between items-start mb-2">
+                             <div className="flex flex-col gap-1">
+                                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                     Surat {res.surah.englishName}
+                                 </span>
+                                 <span className="text-xs font-bold text-quran-dark dark:text-quran-gold">
+                                     Ayat {res.verseId}
+                                 </span>
+                             </div>
+                             <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-quran-gold group-hover:translate-x-0.5 transition-all" />
                         </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2 leading-relaxed" 
+                        {res.text && res.text !== res.translation && (
+                            <p className="font-arabic text-right text-lg text-quran-dark/60 dark:text-white/40 mb-2 line-clamp-1 leading-relaxed">
+                                {res.text}
+                            </p>
+                        )}
+                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-3 leading-relaxed" 
                            dangerouslySetInnerHTML={{
                                __html: res.translation.replace(new RegExp(`(${escapeRegExp(value)})`, 'gi'), '<mark class="bg-yellow-200 text-gray-800 rounded-sm px-0.5">$1</mark>')
                            }} 

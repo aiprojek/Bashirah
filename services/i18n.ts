@@ -10,8 +10,10 @@ type TranslationKey =
   | 'home_greeting' | 'home_subtitle' | 'search_placeholder' | 'daily_verse'
   | 'last_read' | 'khatam_target' | 'tab_surah' | 'tab_juz' | 'tab_page'
   | 'no_surah_found'
+  | 'settings_notifications' | 'settings_notifications_desc'
+  | 'settings_daily_notif'
   // Settings
-  | 'settings_theme' | 'settings_theme_dark' | 'settings_theme_light'
+  | 'settings_theme' | 'settings_theme_dark' | 'settings_theme_light' | 'settings_theme_system'
   | 'settings_lang' | 'settings_data' | 'settings_backup' | 'settings_restore'
   | 'settings_ui' | 'settings_tajweed' | 'settings_tajweed_desc' | 'settings_tajweed_downloaded'
   | 'settings_mushaf' | 'settings_audio' | 'settings_reciter'
@@ -121,10 +123,14 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     tab_juz: "Juz",
     tab_page: "Halaman",
     no_surah_found: "Tidak ada surat yang ditemukan.",
+    settings_notifications: "Saran Cerdas",
+    settings_notifications_desc: "Tampilkan saran bacaan relevan (seperti Al-Kahfi di hari Jum'at).",
+    settings_daily_notif: "Ayat Hari Ini",
 
     settings_theme: "Tema Aplikasi",
     settings_theme_dark: "Mode Gelap",
     settings_theme_light: "Mode Terang",
+    settings_theme_system: "Otomatis (Sistem)",
     settings_lang: "Bahasa Aplikasi",
     settings_data: "Manajemen Data",
     settings_backup: "Backup Data",
@@ -230,6 +236,25 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     quiz_msg_keep_learning: "Teruslah Belajar!",
     quiz_btn_play_again: "Main Lagi",
     quiz_btn_home: "Kembali ke Beranda",
+    quiz_mode_title: "Pilih Mode Permainan",
+    quiz_mode_trivia_title: "Trivia Umum",
+    quiz_mode_trivia_desc: "Tebak arti nama, jumlah ayat, dan urutan surah.",
+    quiz_mode_guess_surah_title: "Tebak Surah",
+    quiz_mode_guess_surah_desc: "Diberikan potongan ayat Arab, tebak nama surahnya.",
+    quiz_mode_complete_verse_title: "Lengkapi Ayat",
+    quiz_mode_complete_verse_desc: "Tebak kata yang hilang dari sebuah potongan ayat.",
+    quiz_mode_guess_translation_title: "Tebak Terjemah",
+    quiz_mode_guess_translation_desc: "Tebak arti bahasa Indonesia dari sebuah ayat Arab.",
+    quiz_no_translation: "Terjemahan belum diunduh. Silakan unduh di Pengaturan agar bisa bermain mode ini.",
+    quiz_btn_download_trans: "Ke Pengaturan",
+    quiz_correct_title: "Alhamdulillah, kamu benar!",
+    quiz_incorrect_title: "Ups, belum tepat.",
+    quiz_verse_info: "Ayat Selengkapnya:",
+    quiz_leaderboard_all: "Semua",
+    quiz_rank_beginner: "Pemula",
+    quiz_rank_intermediate: "Penghafal",
+    quiz_rank_expert: "Mufassir",
+    quiz_total_points: "Total Poin",
 
     stats_title: "Statistik Ibadah",
     stats_less: "Sedikit",
@@ -345,6 +370,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     btn_share: "Bagikan",
     btn_share_image: "Bagikan Gambar",
     btn_copy: "Salin",
+    btn_next: "Selanjutnya",
+    btn_back: "Kembali",
+    btn_finish: "Selesai",
     share_verse_title: "Ayat Pilihan",
     share_verse_marker: "Ayat",
     share_capt_text: "Dibagikan dari aplikasi Bashirah.",
@@ -449,10 +477,14 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     tab_juz: "Juz",
     tab_page: "Page",
     no_surah_found: "No surah found.",
+    settings_notifications: "Smart Suggestions",
+    settings_notifications_desc: "Show relevant reading suggestions on home (like Al-Kahfi on Fridays).",
+    settings_daily_notif: "Daily Verse",
 
     settings_theme: "App Theme",
     settings_theme_dark: "Dark Mode",
     settings_theme_light: "Light Mode",
+    settings_theme_system: "Automatic (System)",
     settings_lang: "App Language",
     settings_data: "Data Management",
     settings_backup: "Backup Data",
@@ -558,6 +590,25 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     quiz_msg_keep_learning: "Keep Learning!",
     quiz_btn_play_again: "Play Again",
     quiz_btn_home: "Back to Home",
+    quiz_mode_title: "Select Game Mode",
+    quiz_mode_trivia_title: "General Trivia",
+    quiz_mode_trivia_desc: "Guess name meanings, verse counts, and surah order.",
+    quiz_mode_guess_surah_title: "Guess the Surah",
+    quiz_mode_guess_surah_desc: "Given an Arabic fragment, guess the surah name.",
+    quiz_mode_complete_verse_title: "Complete the Verse",
+    quiz_mode_complete_verse_desc: "Guess the missing word from a verse fragment.",
+    quiz_mode_guess_translation_title: "Guess Translation",
+    quiz_mode_guess_translation_desc: "Guess the meaning of an Arabic verse in English.",
+    quiz_no_translation: "Translation not downloaded. Please download in Settings to play this mode.",
+    quiz_btn_download_trans: "Go to Settings",
+    quiz_correct_title: "Alhamdulillah, you are correct!",
+    quiz_incorrect_title: "Oops, not quite right.",
+    quiz_verse_info: "Full Verse:",
+    quiz_leaderboard_all: "All",
+    quiz_rank_beginner: "Beginner",
+    quiz_rank_intermediate: "Hafiz",
+    quiz_rank_expert: "Mufassir",
+    quiz_total_points: "Total Points",
 
     stats_title: "Worship Statistics",
     stats_less: "Less",
@@ -674,6 +725,9 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     btn_share: "Share",
     btn_share_image: "Share Image",
     btn_copy: "Copy",
+    btn_next: "Next",
+    btn_back: "Back",
+    btn_finish: "Finish",
     share_verse_title: "Selected Verse",
     share_verse_marker: "Verse",
     share_capt_text: "Shared from Bashirah app.",

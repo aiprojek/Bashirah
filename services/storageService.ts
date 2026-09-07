@@ -16,6 +16,7 @@ const DEFAULT_MUSHAF_MODE_KEY = 'default_mushaf_mode';
 const ARABIC_FONT_SIZE_KEY = 'arabic_font_size';
 const TRANSLATION_FONT_SIZE_KEY = 'translation_font_size';
 const ARABIC_FONT_FAMILY_KEY = 'arabic_font_family';
+const NOTIFICATIONS_ENABLED_KEY = 'notifications_enabled';
 
 // Helper to notify components of changes
 const notifyUpdate = () => {
@@ -23,6 +24,16 @@ const notifyUpdate = () => {
 };
 
 // --- SETTINGS PREFERENCES ---
+export const getNotificationsEnabled = async (): Promise<boolean> => {
+    const data = await DB.getSetting(NOTIFICATIONS_ENABLED_KEY);
+    return data === undefined ? true : data;
+};
+
+export const setNotificationsEnabled = async (enabled: boolean) => {
+    await DB.setSetting(NOTIFICATIONS_ENABLED_KEY, enabled);
+    notifyUpdate();
+};
+
 export const getShowAyatOfTheDay = async (): Promise<boolean> => {
     const data = await DB.getSetting(SHOW_DAILY_AYAT_KEY);
     return data === undefined ? true : data;
@@ -351,13 +362,14 @@ export const logReading = async (pagesRead: number) => {
 };
 
 // --- QUIZ SCORES ---
-export const saveQuizScore = async (playerName: string, score: number, totalQuestions: number) => {
+export const saveQuizScore = async (playerName: string, score: number, totalQuestions: number, gameMode?: string) => {
     const newScore: QuizScore = {
         id: Date.now().toString(),
         playerName,
         score,
         totalQuestions,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        gameMode
     };
     
     await DB.saveQuizScore(newScore);

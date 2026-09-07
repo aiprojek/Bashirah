@@ -146,6 +146,7 @@ export interface QuizScore {
     score: number;
     totalQuestions: number;
     timestamp: number;
+    gameMode?: string;
 }
 
 export interface TadabburData {

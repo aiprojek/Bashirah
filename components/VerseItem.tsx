@@ -117,7 +117,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
 
   // Handle Copy
   const handleCopyVerse = () => {
-      const textToCopy = `${verse.text}\n\n"${verseTranslation || ''}"\n(QS. ${surahName}: ${verse.id})\n\nBashirah - Al Quran Digital\nbashirah.pages.dev`;
+      const textToCopy = `${verse.text}\n\n"${verseTranslation || ''}"\n(QS. ${surahName}: ${verse.id})\n\nBashirah - Al Quran Digital\nbashirah.aiprojek01.my.id`;
       navigator.clipboard.writeText(textToCopy);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -142,20 +142,51 @@ const VerseItem: React.FC<VerseItemProps> = ({
       return [];
   }, [verse.text, isTajweedMode, memorizationMode.isActive]);
 
+  const renderInteractiveWords = () => {
+    if (!verse.words || verse.words.length === 0) {
+      return isTajweedMode ? <TajweedText text={verse.text} /> : <span>{verse.text}</span>;
+    }
+    
+    // Filter out the end marker if it exists in words array
+    const interactiveWords = verse.words.filter(word => word.char_type_name !== 'end');
+    
+    return (
+      <span className="inline-flex flex-row-reverse flex-wrap gap-x-1.5 justify-start">
+        {interactiveWords.map((word, idx) => (
+          <button
+            key={`${word.id}-${idx}`}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onWordClick(word);
+            }}
+            className="inline-block rounded-md px-1 py-0.5 text-quran-dark dark:text-white transition-colors hover:bg-quran-gold/20 hover:text-quran-dark dark:hover:text-quran-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40 cursor-pointer"
+            title={word.translation?.text || word.transliteration?.text || 'Lihat detail kata'}
+          >
+            {isTajweedMode ? <TajweedText text={word.text_uthmani} /> : word.text_uthmani}
+          </button>
+        ))}
+      </span>
+    );
+  };
+
   // --- SMART MEMORIZATION LOGIC ---
   const renderArabicText = () => {
       // 1. Default Normal View (Not in Memorization Mode)
       if (!memorizationMode.isActive) {
            return (
-             <p 
+             <div 
                 lang="ar"
-                className={`font-arabic leading-[2.5] text-quran-dark dark:text-white ${isAudioPlaying ? 'font-medium' : ''}`}
-                style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
+                className={`font-arabic leading-[2.6] text-quran-dark dark:text-white ${isAudioPlaying ? 'font-medium' : ''} text-right`}
+                style={{
+                  fontSize: responsiveArabicFontSize,
+                  fontFamily: arabicFontFamilyStyle
+                }}
              >
-                <TajweedText text={verse.text} />
+                {renderInteractiveWords()}
                 {' '}
                 {renderVerseOrnament()}
-             </p>
+             </div>
            );
       }
 

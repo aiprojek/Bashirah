@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, Volume2, BookOpen, Loader2, ArrowRight } from 'lucide-react';
+import { X, BookOpen, Loader2, ArrowRight } from 'lucide-react';
 import { AsmaulHusna } from '../services/asmaulHusnaData';
-import { searchGlobalVerses } from '../services/quranService';
+import { searchGlobalVerses, getSpecificVerses } from '../services/quranService';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -16,7 +16,6 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
     const { t, language } = useLanguage();
     const [verses, setVerses] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);
     const navigate = useNavigate();
 
     // Reset when data changes
@@ -33,31 +32,20 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
         setLoading(true);
         
         try {
-            // Using translation ID to search for verses related to the meaning if needed, 
-            // but primarily searching arabic or specific known verses.
-            // For now, keeping the simple text search logic.
-            const results = await searchGlobalVerses(data.arabic, 'quran-simple');
-            setVerses(results.slice(0, 5));
+            if (data.verses && data.verses.length > 0) {
+                // If we have curated verses, use them
+                const results = await getSpecificVerses(data.verses);
+                setVerses(results);
+            } else {
+                // Fallback to search
+                const results = await searchGlobalVerses(data.arabic, 'quran-simple');
+                setVerses(results.slice(0, 5));
+            }
         } catch (error) {
             console.error("Failed to find dalil", error);
         } finally {
             setLoading(false);
         }
-    };
-
-    const playAudio = () => {
-        if (!data) return;
-        setIsPlaying(true);
-        
-        // Use Web Speech API for Arabic pronunciation
-        const utterance = new SpeechSynthesisUtterance(data.arabic);
-        utterance.lang = 'ar-SA';
-        utterance.rate = 0.8; 
-        
-        utterance.onend = () => setIsPlaying(false);
-        utterance.onerror = () => setIsPlaying(false);
-        
-        window.speechSynthesis.speak(utterance);
     };
 
     const handleVerseClick = (surahId: number, verseId: number) => {
@@ -102,19 +90,6 @@ const AsmaulHusnaDetailModal: React.FC<AsmaulHusnaDetailModalProps> = ({ isOpen,
                         <p className="text-quran-gold text-sm font-medium">
                             {language === 'id' ? data.translation_id : data.translation_en}
                         </p>
-                        
-                        <button 
-                            onClick={playAudio}
-                            disabled={isPlaying}
-                            className={`mt-6 flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-xs transition-all ${
-                                isPlaying 
-                                ? 'bg-quran-gold text-white shadow-inner' 
-                                : 'bg-white text-quran-dark hover:bg-stone-100 shadow-lg'
-                            }`}
-                        >
-                            {isPlaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Volume2 className="w-4 h-4" />}
-                            {isPlaying ? t('names_playing') : t('names_listen')}
-                        </button>
                     </div>
                 </div>
 

@@ -25,9 +25,10 @@ interface AyatOfTheDayProps {
     isOpen: boolean;
     onClose: () => void;
     translationId: string;
+    showTranslation?: boolean;
 }
 
-const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translationId }) => {
+const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translationId, showTranslation = true }) => {
     const { t } = useLanguage();
     const [ayat, setAyat] = useState<AyatData | null>(null);
     const [loading, setLoading] = useState(true);
@@ -194,19 +195,22 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
+        <div className="fixed inset-0 z-[100] overflow-y-auto flex items-center justify-center py-12 px-4 animate-fade-in">
             <div 
-                className="absolute inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
+                className="fixed inset-0 bg-quran-dark/80 backdrop-blur-sm transition-opacity"
                 onClick={onClose}
             />
 
-            <div className="relative w-full max-w-sm z-10 flex flex-col items-center">
-                <button 
-                    onClick={onClose}
-                    className="absolute -top-12 right-0 text-white/80 hover:text-white transition-colors p-2 bg-white/10 rounded-full"
-                >
-                    <X className="w-6 h-6" />
-                </button>
+            {/* Always visible close button */}
+            <button 
+                onClick={onClose}
+                className="fixed top-6 right-6 z-[110] text-white hover:text-stone-200 transition-colors p-3 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-md shadow-2xl"
+                title="Tutup"
+            >
+                <X className="w-6 h-6" />
+            </button>
+
+            <div className="relative w-full max-w-sm z-10 flex flex-col items-center my-auto">
 
                 {loading ? (
                      <div className="bg-white rounded-3xl p-10 shadow-2xl border border-stone-100 flex flex-col items-center justify-center aspect-square w-full">
@@ -217,7 +221,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                     <div className="w-full flex flex-col gap-4">
                         
                         {/* === VISIBLE CARD (UI) === */}
-                        <div className={`relative aspect-square w-full overflow-hidden rounded-3xl bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} shadow-2xl border ${currentTheme.border} flex flex-col justify-between p-6 sm:p-8 transition-all duration-500`}>
+                        <div className={`relative aspect-[4/5] w-full overflow-hidden rounded-3xl bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} shadow-2xl border ${currentTheme.border} flex flex-col justify-between p-6 sm:p-8 transition-all duration-500`}>
                             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] pointer-events-none"></div>
                             {selectedTheme === 'emerald' && (
                                 <>
@@ -238,13 +242,15 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                 </div>
                             </div>
 
-                            <div className="relative z-10 flex-1 flex flex-col items-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth text-center">
-                                 <p className="font-arabic text-2xl sm:text-3xl leading-[2.5] drop-shadow-md mb-4 w-full pt-12 pb-2 px-4 text-center" dir="rtl">
+                            <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center overflow-y-auto custom-scrollbar my-2 px-2 scroll-smooth">
+                                 <p className={`font-arabic ${ayat.text.length > 250 ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} leading-[2.5] drop-shadow-md mb-3 w-full py-2 px-4 text-center`} dir="rtl">
                                      {ayat.text}
                                  </p>
-                                 <p className={`font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto ${currentTheme.subText} pb-8`}>
-                                     "{ayat.translation}"
-                                 </p>
+                                 {showTranslation && (
+                                     <p className={`font-serif text-sm italic opacity-90 leading-relaxed max-w-xs mx-auto ${currentTheme.subText} pb-2`}>
+                                         "{ayat.translation}"
+                                     </p>
+                                 )}
                             </div>
 
                             <div className="relative z-10 shrink-0 flex flex-col items-center gap-1 border-t border-white/10 pt-3">
@@ -259,7 +265,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                             data-export-card="true"
                             style={{ 
                                 position: 'fixed', top: 0, left: '-9999px',
-                                width: '1080px', minHeight: '1080px', height: 'auto',
+                                width: '1080px', height: '1350px',
                             }}
                             className={`bg-gradient-to-br ${currentTheme.bg} ${currentTheme.text} flex flex-col justify-between p-[80px] relative`}
                         >
@@ -277,20 +283,22 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                 </>
                             )}
 
-                            <div className="relative z-10 flex flex-col items-center h-full justify-center gap-12">
+                            <div className="relative z-10 flex flex-col items-center h-full justify-between py-10">
                                 <div className={`text-2xl font-black uppercase tracking-[0.3em] border-2 px-10 py-4 rounded-full bg-black/40 flex items-center justify-center gap-4 min-w-[400px] h-[90px] ${currentTheme.badge}`}>
                                     <div className="flex items-center justify-center h-full">
                                         <Quote className="w-8 h-8 fill-current" />
                                     </div>
                                     <span className="leading-tight flex items-center h-full">{t('daily_verse')}</span>
                                 </div>
-                                 <div className="text-center w-full flex-1 flex flex-col justify-center py-10">
-                                     <p className="font-arabic text-[64px] leading-[2] drop-shadow-lg mb-10 w-full py-6 px-10" dir="rtl">
+                                 <div className="text-center w-full flex-1 flex flex-col items-center justify-center py-6">
+                                     <p className={`font-arabic ${ayat.text.length > 250 ? 'text-[48px]' : 'text-[60px]'} leading-[2.1] drop-shadow-lg mb-8 w-full py-4 px-8`} dir="rtl">
                                          {ayat.text}
                                      </p>
-                                     <p className={`font-serif text-[32px] italic opacity-90 leading-relaxed max-w-4xl mx-auto ${currentTheme.subText}`}>"{ayat.translation}"</p>
+                                     {showTranslation && (
+                                         <p className={`font-serif text-[28px] italic opacity-90 leading-relaxed max-w-4xl mx-auto ${currentTheme.subText}`}>"{ayat.translation}"</p>
+                                     )}
                                  </div>
-                                <div className="flex flex-col items-center gap-10 border-t border-white/20 pt-8 pb-32 w-full">
+                                <div className="flex flex-col items-center gap-6 border-t border-white/20 pt-8 w-full">
                                     <h4 className={`font-bold text-4xl ${currentTheme.accent}`}>{ayat.surah.englishName}</h4>
                                     <span className="text-2xl opacity-60 font-sans tracking-wide">{t('tab_surah')} {ayat.verseNo} • {ayat.surah.englishNameTranslation}</span>
                                 </div>
@@ -302,7 +310,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
                                     <p className={`text-xl font-sans uppercase tracking-[0.3em] opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>{t('app_subtitle')}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className={`text-2xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.pages.dev</p>
+                                    <p className={`text-2xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.aiprojek01.my.id</p>
                                 </div>
                             </div>
                         </div>

@@ -224,7 +224,7 @@ const KhatamCelebrationModal: React.FC<KhatamCelebrationModalProps> = ({ isOpen,
                                     <p className="text-[10px] sm:text-xs opacity-70 italic font-serif leading-relaxed px-2">
                                         "Ya Allah, rahmatilah aku dengan Al-Quran, dan jadikanlah ia bagiku sebagai pemimpin, cahaya, petunjuk dan rahmat."
                                     </p>
-                                    <p className="text-[9px] opacity-40 font-bold uppercase tracking-[0.3em] mt-6">Bashirah Quran App • bashirah.pages.dev</p>
+                                    <p className="text-[9px] opacity-40 font-bold uppercase tracking-[0.3em] mt-6">Bashirah Quran App • bashirah.aiprojek01.my.id</p>
                                 </div>
                             </div>
 

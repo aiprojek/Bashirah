@@ -16,14 +16,24 @@ interface MushafViewProps {
   onSwitchToText?: (page: number) => void;
   onOpenQuickJump?: () => void;
   translationId: string;
+  showTranslation: boolean;
+  language?: LanguageCode;
 }
 
 type TurnDirection = 'next' | 'prev' | null;
 const EDGE_SWIPE_ZONE_PX = 32;
 
-const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToText, onOpenQuickJump, translationId }) => {
+const MushafView: React.FC<MushafViewProps> = ({ 
+  startPage, 
+  onClose, 
+  onSwitchToText, 
+  onOpenQuickJump, 
+  translationId,
+  showTranslation,
+  language = 'id'
+}) => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
+  // const { language } = useLanguage(); // Removing local useLanguage to use prop
   const [isInitialized, setIsInitialized] = useState(isMushafInitialized());
   const [currentPage, setCurrentPage] = useState(startPage);
   const [loadingImage, setLoadingImage] = useState(true);
@@ -101,6 +111,25 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
       window.addEventListener('storage-update', checkLastRead);
       return () => window.removeEventListener('storage-update', checkLastRead);
   }, []);
+
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+        if (isFullscreen || isTurning) return;
+        const target = event.target as HTMLElement | null;
+        if (target?.tagName?.toLowerCase() === 'input' || target?.tagName?.toLowerCase() === 'textarea') return;
+
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            handleNextPage(); // In RTL, Next (higher page) is on the left
+        } else if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            handlePrevPage(); // In RTL, Prev (lower page) is on the right
+        }
+    };
+
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [currentPage, isTurning, isFullscreen, isDualPage]);
 
   // LOGIC UNTUK SPREAD (Tampilan Buku)
   const rightPageNum = isDualPage 
@@ -262,7 +291,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
       setShowTranslationSheet(true);
       setLoadingTranslation(true);
       try {
-          const verses = await getVersesByPage(currentPage, translationId, false, language);
+          const verses = await getVersesByPage(currentPage, translationId, false, language, showTranslation);
           setTranslationContent(verses);
       } catch (e) {
           console.error(e);
@@ -276,7 +305,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
       setIsMarkingRead(true);
       try {
           // Fetch verses for this page to get the Surah ID and Verse ID of the LAST verse on page
-          const verses = await getVersesByPage(currentPage, translationId, false, language);
+          const verses = await getVersesByPage(currentPage, translationId, false, language, false); // No translation needed for bookmarking
           
           if (verses && verses.length > 0) {
               const firstVerse = verses[0]; // Start of page
@@ -304,7 +333,7 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
   const performKhatamUpdate = async () => {
       setIsMarkingRead(true);
       try {
-           const verses = await getVersesByPage(currentPage, translationId, false, language);
+           const verses = await getVersesByPage(currentPage, translationId, false, language, false);
            let message = `Target Khatam diperbarui ke halaman ${currentPage}.`;
            
            if (verses && verses.length > 0) {
@@ -419,13 +448,13 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
                                     onClick={handleGoList}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <ScrollText className="w-4 h-4" /> Mode List
+                                    <ScrollText className="w-4 h-4" /> Daftar
                                 </button>
                                 <button
                                     onClick={() => { onSwitchToText?.(currentPage); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <BookOpen className="w-4 h-4" /> Mushaf Teks
+                                    <BookOpen className="w-4 h-4" /> Teks
                                 </button>
                                 <button
                                     onClick={() => { onOpenQuickJump?.(); setShowOptionsMenu(false); }}
@@ -495,14 +524,14 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
                         title="Mode List"
                     >
-                        <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">Mode List</span>
+                        <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">Daftar</span>
                     </button>
                     <button
                         onClick={() => onSwitchToText?.(currentPage)}
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
                         title="Mushaf Teks"
                     >
-                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">Mushaf Teks</span>
+                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">Teks</span>
                     </button>
                 </div>
             </div>
@@ -652,14 +681,15 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
             <div className="bg-white border-t border-stone-200 p-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 shrink-0 safe-area-bottom">
                 <div className="flex items-center gap-2 max-w-lg mx-auto">
                      <button 
-                        onClick={handlePrevPage} 
-                        disabled={currentPage <= 1 || isTurning}
+                        onClick={handleNextPage} 
+                        disabled={currentPage >= 604 || isTurning}
                         className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+                        title="Halaman Selanjutnya"
                      >
                          <ChevronLeft className="w-5 h-5" />
                      </button>
 
-                     <div className="flex-1 px-2">
+                     <div className="flex-1 px-2" dir="rtl">
                          <input 
                             type="range" 
                             min="1" 
@@ -683,9 +713,10 @@ const MushafView: React.FC<MushafViewProps> = ({ startPage, onClose, onSwitchToT
                      </div>
 
                      <button 
-                        onClick={handleNextPage} 
-                        disabled={currentPage >= 604 || isTurning}
+                        onClick={handlePrevPage} 
+                        disabled={currentPage <= 1 || isTurning}
                         className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+                        title="Halaman Sebelumnya"
                      >
                          <ChevronRight className="w-5 h-5" />
                      </button>

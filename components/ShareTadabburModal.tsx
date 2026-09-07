@@ -238,7 +238,7 @@ const ShareTadabburModal: React.FC<ShareTadabburModalProps> = ({
                                 <p className={`text-2xl font-sans uppercase tracking-[0.4em] opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>{t('app_subtitle')}</p>
                             </div>
                             <div className="text-right">
-                                <p className={`text-3xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.pages.dev</p>
+                                <p className={`text-3xl font-sans font-medium tracking-wider opacity-60 ${selectedTheme === 'mushaf' ? 'text-stone-800' : 'text-white'}`}>bashirah.aiprojek01.my.id</p>
                             </div>
                         </div>
                     </div>

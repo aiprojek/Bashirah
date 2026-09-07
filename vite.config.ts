@@ -16,9 +16,10 @@ export default defineConfig({
   base: './',
   // Tauri expects a fixed port, fail if that port is not available
   server: {
-    host: '127.0.0.1',
-    port: 1420,
+    host: '0.0.0.0',
+    port: 3000,
     strictPort: true,
+    allowedHosts: true,
   },
   // to make use of `TAURI_PLATFORM`, `TAURI_ARCH`, `TAURI_FAMILY`,
   // `TAURI_PLATFORM_VERSION`, `TAURI_PLATFORM_TYPE` and `TAURI_DEBUG`
@@ -34,33 +35,35 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    electron([
-      {
-        // Main-Process entry point of the Electron App.
-        entry: 'electron/main.ts',
-        onstart(options) {
-          options.startup();
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
+    ...(process.env.ELECTRON ? [
+      electron([
+        {
+          // Main-Process entry point of the Electron App.
+          entry: 'electron/main.ts',
+          onstart(options) {
+            options.startup();
+          },
+          vite: {
+            build: {
+              outDir: 'dist-electron',
+            },
           },
         },
-      },
-      {
-        entry: 'electron/preload.ts',
-        onstart(options) {
-          // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete.
-          options.reload();
-        },
-        vite: {
-          build: {
-            outDir: 'dist-electron',
+        {
+          entry: 'electron/preload.ts',
+          onstart(options) {
+            // Notify the Renderer-Process to reload the page when the Preload-Scripts build is complete.
+            options.reload();
+          },
+          vite: {
+            build: {
+              outDir: 'dist-electron',
+            },
           },
         },
-      },
-    ]),
-    renderer(),
+      ]),
+      renderer()
+    ] : []),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: './',

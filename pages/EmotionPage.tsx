@@ -30,46 +30,41 @@ const EmotionPage: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-fade-in min-h-screen pb-24">
             
-            {/* Elegant Header */}
-            <div className="text-center mb-12 relative">
-                <div className="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-stone-300 dark:via-slate-600 to-transparent opacity-50 -z-10"></div>
-                <div className="inline-block bg-stone-50 dark:bg-slate-900 px-6 relative z-10 transition-colors duration-300">
-                    <div className="w-16 h-16 mx-auto bg-quran-gold/10 rounded-2xl flex items-center justify-center text-quran-dark mb-4 border border-quran-gold/20 rotate-45">
-                        <div className="-rotate-45">
-                            <Heart className="w-8 h-8 fill-current text-quran-gold" />
-                        </div>
-                    </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-quran-dark dark:text-gray-100 font-serif mb-3 tracking-tight">
-                        {t('feelings_title')}
-                    </h2>
-                    <p className="text-gray-500 dark:text-gray-400 font-serif italic text-sm md:text-base max-w-lg mx-auto">
-                        {t('feelings_desc')}
-                    </p>
+            {/* Header */}
+            <div className="text-center mb-10">
+                <div className="inline-block p-3 bg-quran-gold/10 rounded-full mb-4 ring-1 ring-quran-gold/20">
+                    <Heart className="w-8 h-8 text-quran-gold fill-current" />
                 </div>
+                <h1 className="text-4xl font-bold text-quran-dark dark:text-white font-serif mb-2">
+                    {t('feelings_title')}
+                </h1>
+                <p className="text-gray-500 dark:text-gray-400 max-w-lg mx-auto font-serif italic text-sm">
+                    {t('feelings_desc')}
+                </p>
             </div>
 
             {/* Elegant Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                 {EMOTIONS.map((emotion) => (
                     <button 
                         key={emotion.id}
                         onClick={() => setSelectedEmotion(emotion)}
-                        className="group relative bg-white dark:bg-slate-800 p-6 rounded-xl border border-stone-200 dark:border-slate-700 hover:border-quran-gold dark:hover:border-quran-gold transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-left flex flex-col justify-between overflow-hidden"
+                        className="group relative bg-white dark:bg-slate-800 p-5 md:p-6 rounded-xl border border-stone-200 dark:border-slate-700 hover:border-quran-gold dark:hover:border-quran-gold transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-left flex flex-col justify-between"
                     >
                         {/* Background Decoration */}
-                        <div className="absolute -right-4 -top-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110 group-hover:rotate-12">
-                             {renderIcon(emotion.icon, "w-32 h-32 text-quran-dark dark:text-white")}
+                        <div className="absolute -right-4 -top-4 opacity-[0.03] dark:opacity-[0.05] group-hover:opacity-10 transition-opacity duration-500 transform group-hover:scale-110 group-hover:rotate-12 pointer-events-none">
+                             {renderIcon(emotion.icon, "w-24 h-24 md:w-32 md:h-32 text-quran-dark dark:text-white")}
                         </div>
 
                         <div className="relative z-10">
-                            <div className="w-12 h-12 rounded-full bg-stone-50 dark:bg-slate-700 border border-stone-100 dark:border-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-300 mb-6 group-hover:bg-quran-dark group-hover:text-quran-gold group-hover:border-quran-dark dark:group-hover:bg-quran-gold dark:group-hover:text-quran-dark transition-colors duration-300">
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-stone-50 dark:bg-slate-700 border border-stone-100 dark:border-slate-600 flex items-center justify-center text-gray-500 dark:text-gray-300 mb-4 md:mb-6 group-hover:bg-quran-dark group-hover:text-quran-gold group-hover:border-quran-dark dark:group-hover:bg-quran-gold dark:group-hover:text-quran-dark transition-colors duration-300">
                                 {renderIcon(emotion.icon, "w-5 h-5")}
                             </div>
                             
-                            <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 font-serif mb-2 group-hover:text-quran-dark dark:group-hover:text-quran-gold transition-colors">
+                            <h3 className="text-base md:text-lg font-bold text-gray-800 dark:text-gray-100 font-serif mb-2 group-hover:text-quran-dark dark:group-hover:text-quran-gold transition-colors break-words">
                                 {t(`emotion_${emotion.id}_label`)}
                             </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed opacity-80 line-clamp-2 mb-4 group-hover:opacity-100 font-sans">
+                            <p className="text-[11px] md:text-xs text-gray-500 dark:text-gray-400 leading-relaxed opacity-80 mb-4 group-hover:opacity-100 font-sans">
                                 {t(`emotion_${emotion.id}_desc`)}
                             </p>
                         </div>
@@ -92,15 +87,15 @@ const EmotionPage: React.FC = () => {
                     
                     <div className="relative bg-[#fcfbf7] dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in flex flex-col max-h-[85vh] border border-white/50 dark:border-white/10">
                         {/* Modal Header */}
-                        <div className="px-8 py-8 text-center relative overflow-hidden bg-white dark:bg-slate-800 border-b border-stone-100 dark:border-slate-700">
+                        <div className="px-5 py-6 md:px-8 md:py-8 text-center relative overflow-hidden bg-white dark:bg-slate-800 border-b border-stone-100 dark:border-slate-700 shrink-0">
                             <div className="absolute inset-0 bg-pattern-overlay opacity-50 dark:opacity-10"></div>
                             
                             <div className="relative z-10 flex flex-col items-center">
-                                <div className="w-16 h-16 rounded-full bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 flex items-center justify-center text-quran-dark dark:text-quran-gold mb-4 shadow-sm">
-                                    {renderIcon(selectedEmotion.icon, "w-8 h-8")}
+                                <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-stone-50 dark:bg-slate-700 border border-stone-200 dark:border-slate-600 flex items-center justify-center text-quran-dark dark:text-quran-gold mb-3 md:mb-4 shadow-sm">
+                                    {renderIcon(selectedEmotion.icon, "w-6 h-6 md:w-8 md:h-8")}
                                 </div>
-                                <h3 className="font-bold font-serif text-2xl text-quran-dark dark:text-white mb-2">{t(`emotion_${selectedEmotion.id}_label`)}</h3>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xs font-serif italic">
+                                <h3 className="font-bold font-serif text-xl md:text-2xl text-quran-dark dark:text-white mb-2 break-words w-full">{t(`emotion_${selectedEmotion.id}_label`)}</h3>
+                                <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 leading-relaxed w-full font-serif italic px-2">
                                     {t(`emotion_${selectedEmotion.id}_desc`)}
                                 </p>
                             </div>

@@ -176,6 +176,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
                     isOpen={showAyatModal} 
                     onClose={() => setShowAyatModal(false)} 
                     translationId={translationId}
+                    showTranslation={showTranslation}
                 />
             )}
             

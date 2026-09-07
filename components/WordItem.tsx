@@ -7,6 +7,7 @@ interface WordItemProps {
   onClick: (word: Word) => void;
   showVerseOrnament?: boolean;
   verseOrnamentVariant?: 'plain' | 'capsule';
+  showTranslation?: boolean;
 }
 
 const WordItem: React.FC<WordItemProps> = ({
@@ -14,7 +15,8 @@ const WordItem: React.FC<WordItemProps> = ({
   verseNumber,
   onClick,
   showVerseOrnament = true,
-  verseOrnamentVariant = 'plain'
+  verseOrnamentVariant = 'plain',
+  showTranslation = true
 }) => {
   const isEnd = word.char_type_name === 'end';
   
@@ -48,9 +50,11 @@ const WordItem: React.FC<WordItemProps> = ({
       </div>
 
       {/* Inline Meaning */}
-      <p className="text-[10px] sm:text-xs text-gray-400 font-sans mt-1 text-center max-w-[80px] truncate group-hover:text-gray-600 transition-colors">
-          {word.translation?.text}
-      </p>
+      {showTranslation && (
+        <p className="text-[10px] sm:text-xs text-gray-400 font-sans mt-1 text-center max-w-[80px] truncate group-hover:text-gray-600 transition-colors">
+            {word.translation?.text}
+        </p>
+      )}
     </div>
   );
 };

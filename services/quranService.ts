@@ -156,20 +156,97 @@ const fetchOnlineJson = async (url: string, init: RequestInit = {}, timeoutMs: n
 };
 
 const DAILY_VERSES_POOL = [
-    { surah: 2, verse: 255 },
-    { surah: 2, verse: 286 },
-    { surah: 94, verse: 5 },
-    { surah: 65, verse: 2 },
-    { surah: 3, verse: 139 },
-    { surah: 2, verse: 153 },
-    { surah: 40, verse: 60 },
-    { surah: 2, verse: 45 },
-    { surah: 39, verse: 53 },
-    { surah: 13, verse: 28 },
-    { surah: 2, verse: 216 },
-    { surah: 8, verse: 30 },
-    { surah: 1, verse: 6 },
-    { surah: 112, verse: 1 },
+    { surah: 1, verse: 1 }, { surah: 1, verse: 2 }, { surah: 1, verse: 5 }, { surah: 1, verse: 6 },
+    { surah: 2, verse: 2 }, { surah: 2, verse: 45 }, { surah: 2, verse: 152 }, { surah: 2, verse: 153 },
+    { surah: 2, verse: 183 }, { surah: 2, verse: 185 }, { surah: 2, verse: 186 }, { surah: 2, verse: 201 },
+    { surah: 2, verse: 255 }, { surah: 2, verse: 256 }, { surah: 2, verse: 261 }, { surah: 2, verse: 284 },
+    { surah: 2, verse: 285 }, { surah: 2, verse: 286 }, { surah: 3, verse: 8 }, { surah: 3, verse: 16 },
+    { surah: 3, verse: 26 }, { surah: 3, verse: 27 }, { surah: 3, verse: 53 }, { surah: 3, verse: 103 },
+    { surah: 3, verse: 133 }, { surah: 3, verse: 134 }, { surah: 3, verse: 139 }, { surah: 3, verse: 159 },
+    { surah: 3, verse: 173 }, { surah: 3, verse: 191 }, { surah: 3, verse: 193 }, { surah: 3, verse: 194 },
+    { surah: 3, verse: 200 }, { surah: 4, verse: 1 }, { surah: 4, verse: 29 }, { surah: 4, verse: 31 },
+    { surah: 4, verse: 58 }, { surah: 4, verse: 86 }, { surah: 4, verse: 100 }, { surah: 4, verse: 147 },
+    { surah: 5, verse: 2 }, { surah: 5, verse: 8 }, { surah: 5, verse: 32 }, { surah: 5, verse: 54 },
+    { surah: 5, verse: 119 }, { surah: 6, verse: 17 }, { surah: 6, verse: 59 }, { surah: 6, verse: 73 },
+    { surah: 6, verse: 115 }, { surah: 6, verse: 125 }, { surah: 6, verse: 151 }, { surah: 6, verse: 162 },
+    { surah: 7, verse: 23 }, { surah: 7, verse: 56 }, { surah: 7, verse: 96 }, { surah: 7, verse: 126 },
+    { surah: 7, verse: 156 }, { surah: 7, verse: 205 }, { surah: 8, verse: 2 }, { surah: 8, verse: 29 },
+    { surah: 8, verse: 45 }, { surah: 8, verse: 46 }, { surah: 8, verse: 58 }, { surah: 9, verse: 40 },
+    { surah: 9, verse: 51 }, { surah: 9, verse: 71 }, { surah: 9, verse: 119 }, { surah: 9, verse: 128 },
+    { surah: 10, verse: 9 }, { surah: 10, verse: 57 }, { surah: 10, verse: 62 }, { surah: 10, verse: 63 },
+    { surah: 10, verse: 107 }, { surah: 11, verse: 6 }, { surah: 11, verse: 56 }, { surah: 11, verse: 88 },
+    { surah: 11, verse: 112 }, { surah: 11, verse: 115 }, { surah: 12, verse: 22 }, { surah: 12, verse: 56 },
+    { surah: 12, verse: 86 }, { surah: 12, verse: 87 }, { surah: 12, verse: 90 }, { surah: 12, verse: 101 },
+    { surah: 13, verse: 11 }, { surah: 13, verse: 22 }, { surah: 13, verse: 24 }, { surah: 13, verse: 28 },
+    { surah: 14, verse: 7 }, { surah: 14, verse: 34 }, { surah: 14, verse: 40 }, { surah: 14, verse: 42 },
+    { surah: 15, verse: 9 }, { surah: 15, verse: 29 }, { surah: 15, verse: 85 }, { surah: 15, verse: 99 },
+    { surah: 16, verse: 18 }, { surah: 16, verse: 90 }, { surah: 16, verse: 96 }, { surah: 16, verse: 97 },
+    { surah: 16, verse: 128 }, { surah: 17, verse: 9 }, { surah: 17, verse: 23 }, { surah: 17, verse: 24 },
+    { surah: 17, verse: 32 }, { surah: 17, verse: 37 }, { surah: 17, verse: 70 }, { surah: 17, verse: 80 },
+    { surah: 17, verse: 82 }, { surah: 17, verse: 85 }, { surah: 18, verse: 10 }, { surah: 18, verse: 28 },
+    { surah: 18, verse: 30 }, { surah: 18, verse: 46 }, { surah: 18, verse: 109 }, { surah: 19, verse: 30 },
+    { surah: 19, verse: 47 }, { surah: 19, verse: 55 }, { surah: 20, verse: 25 }, { surah: 20, verse: 26 },
+    { surah: 20, verse: 27 }, { surah: 20, verse: 28 }, { surah: 20, verse: 46 }, { surah: 20, verse: 114 },
+    { surah: 21, verse: 30 }, { surah: 21, verse: 35 }, { surah: 21, verse: 87 }, { surah: 21, verse: 89 },
+    { surah: 21, verse: 107 }, { surah: 22, verse: 38 }, { surah: 22, verse: 40 }, { surah: 22, verse: 41 },
+    { surah: 22, verse: 78 }, { surah: 23, verse: 1 }, { surah: 23, verse: 2 }, { surah: 23, verse: 11 },
+    { surah: 23, verse: 51 }, { surah: 23, verse: 118 }, { surah: 24, verse: 35 }, { surah: 24, verse: 38 },
+    { surah: 24, verse: 55 }, { surah: 25, verse: 58 }, { surah: 25, verse: 63 }, { surah: 25, verse: 74 },
+    { surah: 26, verse: 80 }, { surah: 26, verse: 83 }, { surah: 26, verse: 89 }, { surah: 27, verse: 19 },
+    { surah: 27, verse: 30 }, { surah: 27, verse: 62 }, { surah: 28, verse: 24 }, { surah: 28, verse: 77 },
+    { surah: 28, verse: 83 }, { surah: 29, verse: 2 }, { surah: 29, verse: 6 }, { surah: 29, verse: 45 },
+    { surah: 29, verse: 69 }, { surah: 30, verse: 21 }, { surah: 30, verse: 41 }, { surah: 31, verse: 13 },
+    { surah: 31, verse: 17 }, { surah: 31, verse: 22 }, { surah: 32, verse: 15 }, { surah: 32, verse: 16 },
+    { surah: 33, verse: 21 }, { surah: 33, verse: 35 }, { surah: 33, verse: 41 }, { surah: 33, verse: 42 },
+    { surah: 33, verse: 56 }, { surah: 34, verse: 2 }, { surah: 34, verse: 4 }, { surah: 35, verse: 2 },
+    { surah: 35, verse: 5 }, { surah: 35, verse: 10 }, { surah: 36, verse: 1 }, { surah: 36, verse: 12 },
+    { surah: 36, verse: 58 }, { surah: 37, verse: 39 }, { surah: 38, verse: 29 }, { surah: 39, verse: 10 },
+    { surah: 39, verse: 23 }, { surah: 39, verse: 53 }, { surah: 40, verse: 40 }, { surah: 40, verse: 55 },
+    { surah: 40, verse: 60 }, { surah: 41, verse: 30 }, { surah: 41, verse: 33 }, { surah: 41, verse: 34 },
+    { surah: 42, verse: 19 }, { surah: 42, verse: 38 }, { surah: 43, verse: 13 }, { surah: 44, verse: 58 },
+    { surah: 45, verse: 15 }, { surah: 46, verse: 13 }, { surah: 47, verse: 7 }, { surah: 47, verse: 15 },
+    { surah: 48, verse: 1 }, { surah: 48, verse: 4 }, { surah: 48, verse: 29 }, { surah: 49, verse: 10 },
+    { surah: 49, verse: 12 }, { surah: 49, verse: 13 }, { surah: 50, verse: 16 }, { surah: 51, verse: 55 },
+    { surah: 51, verse: 56 }, { surah: 52, verse: 48 }, { surah: 53, verse: 39 }, { surah: 53, verse: 40 },
+    { surah: 53, verse: 41 }, { surah: 53, verse: 42 }, { surah: 54, verse: 17 }, { surah: 55, verse: 1 },
+    { surah: 55, verse: 13 }, { surah: 55, verse: 60 }, { surah: 56, verse: 1 }, { surah: 57, verse: 3 },
+    { surah: 57, verse: 4 }, { surah: 57, verse: 20 }, { surah: 58, verse: 11 }, { surah: 59, verse: 9 },
+    { surah: 59, verse: 18 }, { surah: 60, verse: 4 }, { surah: 60, verse: 7 }, { surah: 61, verse: 2 },
+    { surah: 61, verse: 10 }, { surah: 62, verse: 9 }, { surah: 62, verse: 10 }, { surah: 63, verse: 9 },
+    { surah: 64, verse: 11 }, { surah: 65, verse: 2 }, { surah: 65, verse: 3 }, { surah: 66, verse: 6 },
+    { surah: 66, verse: 8 }, { surah: 67, verse: 1 }, { surah: 67, verse: 2 }, { surah: 67, verse: 15 },
+    { surah: 68, verse: 4 }, { surah: 69, verse: 1 }, { surah: 70, verse: 5 }, { surah: 71, verse: 10 },
+    { surah: 71, verse: 11 }, { surah: 71, verse: 12 }, { surah: 72, verse: 1 }, { surah: 73, verse: 8 },
+    { surah: 73, verse: 9 }, { surah: 73, verse: 20 }, { surah: 74, verse: 1 }, { surah: 74, verse: 3 },
+    { surah: 75, verse: 3 }, { surah: 76, verse: 3 }, { surah: 76, verse: 9 }, { surah: 77, verse: 1 },
+    { surah: 78, verse: 31 }, { surah: 79, verse: 40 }, { surah: 79, verse: 41 }, { surah: 80, verse: 1 },
+    { surah: 81, verse: 27 }, { surah: 81, verse: 28 }, { surah: 82, verse: 6 }, { surah: 83, verse: 1 },
+    { surah: 84, verse: 6 }, { surah: 85, verse: 21 }, { surah: 85, verse: 22 }, { surah: 86, verse: 4 },
+    { surah: 87, verse: 14 }, { surah: 87, verse: 15 }, { surah: 88, verse: 17 }, { surah: 89, verse: 27 },
+    { surah: 89, verse: 28 }, { surah: 89, verse: 29 }, { surah: 89, verse: 30 }, { surah: 90, verse: 4 },
+    { surah: 90, verse: 17 }, { surah: 91, verse: 9 }, { surah: 91, verse: 10 }, { surah: 92, verse: 5 },
+    { surah: 92, verse: 6 }, { surah: 92, verse: 7 }, { surah: 93, verse: 3 }, { surah: 93, verse: 4 },
+    { surah: 93, verse: 5 }, { surah: 93, verse: 6 }, { surah: 93, verse: 7 }, { surah: 93, verse: 8 },
+    { surah: 93, verse: 9 }, { surah: 93, verse: 10 }, { surah: 93, verse: 11 }, { surah: 94, verse: 1 },
+    { surah: 94, verse: 2 }, { surah: 94, verse: 3 }, { surah: 94, verse: 4 }, { surah: 94, verse: 5 },
+    { surah: 94, verse: 6 }, { surah: 94, verse: 7 }, { surah: 94, verse: 8 }, { surah: 95, verse: 4 },
+    { surah: 95, verse: 5 }, { surah: 95, verse: 6 }, { surah: 96, verse: 1 }, { surah: 96, verse: 2 },
+    { surah: 96, verse: 3 }, { surah: 96, verse: 4 }, { surah: 96, verse: 5 }, { surah: 97, verse: 1 },
+    { surah: 97, verse: 2 }, { surah: 97, verse: 3 }, { surah: 97, verse: 4 }, { surah: 97, verse: 5 },
+    { surah: 98, verse: 7 }, { surah: 98, verse: 8 }, { surah: 99, verse: 7 }, { surah: 99, verse: 8 },
+    { surah: 100, verse: 6 }, { surah: 101, verse: 1 }, { surah: 102, verse: 1 }, { surah: 102, verse: 2 },
+    { surah: 102, verse: 8 }, { surah: 103, verse: 1 }, { surah: 103, verse: 2 }, { surah: 103, verse: 3 },
+    { surah: 104, verse: 1 }, { surah: 105, verse: 1 }, { surah: 106, verse: 1 }, { surah: 106, verse: 2 },
+    { surah: 106, verse: 3 }, { surah: 106, verse: 4 }, { surah: 107, verse: 1 }, { surah: 107, verse: 2 },
+    { surah: 107, verse: 3 }, { surah: 107, verse: 4 }, { surah: 107, verse: 5 }, { surah: 107, verse: 6 },
+    { surah: 107, verse: 7 }, { surah: 108, verse: 1 }, { surah: 108, verse: 2 }, { surah: 108, verse: 3 },
+    { surah: 109, verse: 1 }, { surah: 109, verse: 2 }, { surah: 109, verse: 3 }, { surah: 109, verse: 4 },
+    { surah: 109, verse: 5 }, { surah: 109, verse: 6 }, { surah: 110, verse: 1 }, { surah: 110, verse: 2 },
+    { surah: 110, verse: 3 }, { surah: 111, verse: 1 }, { surah: 112, verse: 1 }, { surah: 112, verse: 2 },
+    { surah: 112, verse: 3 }, { surah: 112, verse: 4 }, { surah: 113, verse: 1 }, { surah: 113, verse: 2 },
+    { surah: 113, verse: 3 }, { surah: 113, verse: 4 }, { surah: 113, verse: 5 }, { surah: 114, verse: 1 },
+    { surah: 114, verse: 2 }, { surah: 114, verse: 3 }, { surah: 114, verse: 4 }, { surah: 114, verse: 5 },
+    { surah: 114, verse: 6 }
 ];
 
 export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian') => {
@@ -249,6 +326,172 @@ export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian
     }
 };
 
+export const getSpecificVerses = async (refs: { surah: number; verse: number }[], translationId: string = 'id.indonesian'): Promise<{ surah: Surah, verseId: number, text: string, translation: string }[]> => {
+    if (!refs || refs.length === 0) return [];
+    
+    try {
+        if (!globalArabicCache) {
+            const response = await fetch(QURAN_LOCAL_URL);
+            globalArabicCache = await response.json();
+        }
+        
+        const allSurahs = await getAllSurahs();
+        const results = [];
+
+        for (const ref of refs) {
+            const surahKey = ref.surah.toString();
+            const arabicData = globalArabicCache?.[surahKey]?.find(v => v.verse === ref.verse);
+            const surah = allSurahs.find(s => s.id === ref.surah);
+
+            if (arabicData && surah) {
+                // Try to get translation
+                let translation = "";
+                try {
+                    const cachedTranslation = await DB.getSurahContent(translationId, ref.surah);
+                    const localVerse = cachedTranslation?.find((v: any) => v.numberInSurah === ref.verse);
+                    translation = localVerse ? localVerse.text : "Terjemahan belum diunduh.";
+                } catch (e) {
+                    translation = "Terjemahan belum tersedia offline.";
+                }
+
+                results.push({
+                    surah: {
+                        number: surah.id,
+                        name: surah.name,
+                        englishName: surah.transliteration,
+                        englishNameTranslation: surah.translation
+                    } as any,
+                    verseId: ref.verse,
+                    text: arabicData.text,
+                    translation: translation
+                });
+            }
+        }
+        return results;
+    } catch (e) {
+        console.error("Failed to fetch specific verses", e);
+        return [];
+    }
+};
+
+export const isAnyTranslationDownloaded = async (): Promise<boolean> => {
+    try {
+        const downloads = await DB.getDownloadedEditions();
+        return downloads.length > 0;
+    } catch (e) {
+        return false;
+    }
+};
+
+export const getVerseSampleForQuiz = async (limit: number = 5, includeWords: boolean = false, translationId: string = 'id.indonesian'): Promise<{ surahId: number; verseId: number; text: string; translation: string; surahName: string; words?: Word[] }[]> => {
+    try {
+        if (!globalArabicCache) {
+            const response = await fetch(QURAN_LOCAL_URL);
+            globalArabicCache = await response.json();
+        }
+
+        const allSurahs = await getAllSurahs();
+        const surahIds = Object.keys(globalArabicCache);
+        
+        // 1. Pick a few random surahs first to limit network requests
+        const preferredSurahs = surahIds.filter(id => parseInt(id) >= 78);
+        const selectedSurahPool: string[] = [];
+        const poolSize = Math.min(5, preferredSurahs.length);
+        
+        while (selectedSurahPool.length < poolSize) {
+            const id = preferredSurahs[Math.floor(Math.random() * preferredSurahs.length)];
+            if (!selectedSurahPool.includes(id)) selectedSurahPool.push(id);
+        }
+
+        // 2. Pick samples from this pool
+        const samples: { surahId: number; verse: any }[] = [];
+        const usedVerses = new Set<string>();
+        
+        let attempts = 0;
+        while (samples.length < limit && attempts < 150) {
+            attempts++;
+            const surahId = selectedSurahPool[Math.floor(Math.random() * selectedSurahPool.length)];
+            const verses = globalArabicCache[surahId];
+            if (!verses || verses.length === 0) continue;
+            
+            const verse = verses[Math.floor(Math.random() * verses.length)];
+            const key = `${surahId}:${verse.verse}`;
+            
+            if (usedVerses.has(key)) continue;
+            if (verse.text.length > 250 || verse.text.length < 15) continue;
+
+            samples.push({ surahId: parseInt(surahId), verse });
+            usedVerses.add(key);
+
+            // If we run out of verses in our small pool, expand it slightly
+            if (attempts > 50 && samples.length < limit && selectedSurahPool.length < 10) {
+                const id = preferredSurahs[Math.floor(Math.random() * preferredSurahs.length)];
+                if (!selectedSurahPool.includes(id)) selectedSurahPool.push(id);
+            }
+        }
+
+        // 3. Group by Surah to batch fetching
+        const surahGroups: Record<number, any[]> = {};
+        samples.forEach(s => {
+            if (!surahGroups[s.surahId]) surahGroups[s.surahId] = [];
+            surahGroups[s.surahId].push(s);
+        });
+
+        const results: any[] = [];
+        
+        // 4. Fetch data for each surah in parallel (limited to pool size)
+        await Promise.all(Object.keys(surahGroups).map(async (sIdStr) => {
+            const sId = parseInt(sIdStr);
+            const surahInfo = allSurahs.find(s => s.id === sId);
+            if (!surahInfo) return;
+
+            // Batch Translation fetching (from local DB)
+            let translationMap: Record<number, string> = {};
+            if (translationId) {
+                try {
+                    const localContent = await DB.getSurahContent(translationId, sId);
+                    if (localContent && Array.isArray(localContent)) {
+                        localContent.forEach((v: any) => {
+                            translationMap[v.numberInSurah] = v.text;
+                        });
+                    }
+                } catch (e) {
+                    console.error(`Failed to fetch translations for surah ${sId}`, e);
+                }
+            }
+
+            // Batch Word-by-word fetching (from API or Cache)
+            let wordMap: Record<number, Word[]> = {};
+            if (includeWords) {
+                try {
+                    // Check cache first in the service function (it already does)
+                    // But we only call it if we really need it
+                    wordMap = await fetchWordByWordForSurah(sId);
+                } catch (e) {
+                    console.error(`Failed to fetch words for surah ${sId}`, e);
+                }
+            }
+
+            surahGroups[sId].forEach(sample => {
+                const verse = sample.verse;
+                results.push({
+                    surahId: sId,
+                    verseId: verse.verse,
+                    text: verse.text,
+                    translation: translationMap[verse.verse] || "",
+                    surahName: surahInfo.transliteration,
+                    words: wordMap[verse.verse] || buildFallbackWordsForVerse(verse.text, verse.verse)
+                });
+            });
+        }));
+
+        return results;
+    } catch (e) {
+        console.error("Failed to get verse sample", e);
+        return [];
+    }
+};
+
 export const SURAH_START_PAGES: number[] = [0, 1, 2, 50, 77, 106, 128, 151, 177, 187, 208, 221, 235, 249, 255, 262, 267, 282, 293, 305, 312, 322, 332, 342, 350, 359, 367, 377, 385, 396, 404, 411, 415, 418, 428, 434, 440, 446, 453, 458, 467, 477, 483, 489, 496, 499, 502, 507, 511, 515, 518, 520, 523, 526, 528, 531, 534, 537, 542, 545, 549, 551, 553, 554, 556, 558, 560, 562, 564, 566, 568, 570, 572, 574, 575, 577, 578, 580, 582, 583, 585, 586, 587, 587, 589, 590, 591, 591, 592, 593, 594, 595, 596, 596, 597, 597, 598, 598, 599, 599, 600, 600, 601, 601, 601, 602, 602, 602, 603, 603, 603, 604, 604, 604];
 
 export const getSurahStartPage = (surahId: number): number => {
@@ -289,7 +532,9 @@ export const getVersesByPage = async (
     pageNumber: number,
     translationId: string = 'id.indonesian',
     useTajweed: boolean = false,
-    language: LanguageCode = 'id'
+    language: LanguageCode = 'id',
+    showTranslation: boolean = true,
+    showTafsir: boolean = false // Tafsir usually off by default for page view unless specified
 ): Promise<any[]> => {
     // 1. Offline First
     try {
@@ -316,7 +561,11 @@ export const getVersesByPage = async (
             }
 
             // Get Translation
-            const translationVerses = await DB.getSurahContent(translationId, sId);
+            let translationVerses: any[] = [];
+            if (showTranslation) {
+                translationVerses = await DB.getSurahContent(translationId, sId);
+            }
+            
             const wordByWordMap = await fetchWordByWordForSurah(sId);
             
             return arabicVerses
@@ -326,12 +575,12 @@ export const getVersesByPage = async (
                 })
                 .map(v => {
                     const verseNum = v.verse || v.numberInSurah || v.number;
-                    const trans = translationVerses?.find((tv: any) => tv.numberInSurah === verseNum);
+                    const trans = showTranslation ? translationVerses?.find((tv: any) => tv.numberInSurah === verseNum) : null;
                     const local = getLocalVerseMeta(localMeta, sId, verseNum);
                     return {
                         numberInSurah: verseNum,
                         text: v.text,
-                        translation: trans ? trans.text : "Unduh terjemahan untuk offline.",
+                        translation: trans ? trans.text : (showTranslation ? "Unduh terjemahan untuk offline." : ""),
                         surah: {
                             number: sId,
                             name: surah.name,
@@ -457,17 +706,26 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
     }
 };
 
-export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id'): Promise<SurahInfo | null> => {
+export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id', forceDownload: boolean = false): Promise<SurahInfo | null> => {
     const cacheKey = `${surahId}:${language}`;
+    
+    // If pack is not downloaded in settings and not forcing download, return null
+    const packMeta = await DB.getSetting(`qul_surah_info_pack_meta_${language}`);
+    if (!packMeta && !forceDownload) {
+        return null;
+    }
+
     // 1. Check Memory Cache
-    if (cachedSurahInfo[cacheKey]) return cachedSurahInfo[cacheKey];
+    if (cachedSurahInfo[cacheKey] && !forceDownload) return cachedSurahInfo[cacheKey];
 
     // 2. Check Persistent Cache (IndexedDB)
     const dbInfo = await DB.getSurahInfo(surahId, language);
-    if (dbInfo) {
+    if (dbInfo && !forceDownload) {
         cachedSurahInfo[cacheKey] = dbInfo;
         return dbInfo;
     }
+
+    if (!forceDownload) return null;
 
     try {
         if (!navigator.onLine) return null; // Simple offline check
@@ -482,7 +740,9 @@ export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id
         }
     } catch (e) {
         console.error("Failed to fetch Surah Info", e);
-        showToast("Gagal mengambil info Surah dari server.", "warning");
+        if (navigator.onLine && forceDownload) {
+            showToast("Gagal mengambil info Surah dari server.", "warning");
+        }
     }
     return null;
 };
@@ -514,81 +774,117 @@ export const bulkDownloadSurahInfo = async (onProgress?: (progress: number) => v
 };
 
 // IMPROVED SEARCH: HYBRID (Offline -> Online fallback)
-export const searchGlobalVerses = async (query: string, translationId: string = 'id.indonesian'): Promise<{ surah: Surah, verseId: number, text: string, translation: string }[]> => {
+export const searchGlobalVerses = async (query: string, translationId: string = 'id.indonesian', forceDeepSearch: boolean = false): Promise<{ surah: Surah, verseId: number, text: string, translation: string }[]> => {
     if (!query || query.length < 3) return [];
     const allSurahs = await getAllSurahs();
+    const normalizedQuery = query.trim().toLowerCase();
 
-    // 1. Offline First (Search in IndexedDB)
+    const results: any[] = [];
+    const seenKeys = new Set<string>();
+
+    // 1. Search Surah Names / Transliterations (Local & Instant)
+    const matchedSurahs = allSurahs.filter(s => 
+        s.transliteration.toLowerCase().includes(normalizedQuery) || 
+        s.translation.toLowerCase().includes(normalizedQuery) ||
+        s.name.includes(query)
+    );
+
+    matchedSurahs.slice(0, 5).forEach(s => {
+        const key = `${s.id}:1`;
+        results.push({
+            surah: {
+                number: s.id,
+                name: s.name,
+                englishName: s.transliteration,
+                englishNameTranslation: s.translation
+            },
+            verseId: 1,
+            text: "", // Placeholder or fetch first verse
+            translation: `Buka Surat ${s.transliteration}`
+        });
+        seenKeys.add(key);
+    });
+
+    // 2. Offline Translation Search (IndexedDB)
     try {
         const offlineResults = await DB.searchOfflineContent(query, translationId);
-        if (offlineResults.length > 0) {
-            return offlineResults.map(res => {
+        offlineResults.forEach(res => {
+            const key = `${res.surah.number}:${res.verseId}`;
+            if (!seenKeys.has(key)) {
                 let fullSurah = res.surah;
-                if (typeof res.surah === 'object' && res.surah.number) {
-                    const found = allSurahs.find(s => s.id === res.surah.number);
-                    if (found) {
-                        fullSurah = {
-                            number: found.id,
-                            name: found.name,
-                            englishName: found.transliteration,
-                            englishNameTranslation: found.translation
-                        };
-                    }
+                const found = allSurahs.find(s => s.id === res.surah.number);
+                if (found) {
+                    fullSurah = {
+                        number: found.id,
+                        name: found.name,
+                        englishName: found.transliteration,
+                        englishNameTranslation: found.translation
+                    };
                 }
-
-                return {
+                results.push({
                     surah: fullSurah,
                     verseId: res.verseId,
                     text: res.text,
                     translation: res.translation
-                };
-            });
-        }
+                });
+                seenKeys.add(key);
+            }
+        });
     } catch (e) {
         console.error("Offline search failed", e);
     }
 
-    // 2. Offline Arabic Fallback (No translation download required)
-    try {
-        const arabicMatches = await findOccurrences(query, 'text');
-        if (arabicMatches.length > 0) {
-            return arabicMatches.map((match) => {
-                const surah = allSurahs.find(s => s.id === match.surahId);
-                return {
-                    surah: {
-                        number: match.surahId,
-                        name: surah?.name || '',
-                        englishName: surah?.transliteration || '',
-                        englishNameTranslation: surah?.translation || ''
-                    } as any,
-                    verseId: match.verseId,
-                    text: match.text,
-                    translation: match.text
-                };
+    // 3. Offline Arabic Fallback (Local JSON)
+    if (results.length < 10) {
+        try {
+            const arabicMatches = await findOccurrences(query, 'text');
+            arabicMatches.forEach(match => {
+                const key = `${match.surahId}:${match.verseId}`;
+                if (!seenKeys.has(key)) {
+                    const surah = allSurahs.find(s => s.id === match.surahId);
+                    results.push({
+                        surah: {
+                            number: match.surahId,
+                            name: surah?.name || '',
+                            englishName: surah?.transliteration || '',
+                            englishNameTranslation: surah?.translation || ''
+                        } as any,
+                        verseId: match.verseId,
+                        text: match.text,
+                        translation: match.text // Fallback translation to text itself if offline
+                    });
+                    seenKeys.add(key);
+                }
             });
+        } catch (e) {
+            console.error("Offline Arabic fallback failed", e);
         }
-    } catch (e) {
-        console.error("Offline Arabic fallback failed", e);
     }
 
-    // 3. Online Fallback
-    if (navigator.onLine) {
+    // 4. Online Fallback / Deep Search (Always try if results are low or forced)
+    if (navigator.onLine && (results.length < 5 || forceDeepSearch)) {
         try {
             const data = await fetchOnlineJson(`${API_BASE_URL}/search/${query}/all/${translationId}`);
             if (data.code === 200 && data.data && data.data.matches) {
-                return data.data.matches.map((match: any) => ({
-                    surah: match.surah,
-                    verseId: match.numberInSurah,
-                    text: match.text,
-                    translation: match.text
-                }));
+                data.data.matches.forEach((match: any) => {
+                    const key = `${match.surah.number}:${match.numberInSurah}`;
+                    if (!seenKeys.has(key)) {
+                        results.push({
+                            surah: match.surah,
+                            verseId: match.numberInSurah,
+                            text: match.text,
+                            translation: match.text
+                        });
+                        seenKeys.add(key);
+                    }
+                });
             }
         } catch (e) {
             console.warn("Online search fallback failed", e);
         }
     }
 
-    return [];
+    return results;
 };
 
 const fetchContentForSurah = async (editionId: string, surahId: number): Promise<any[]> => {
@@ -613,7 +909,9 @@ const fetchContentForSurah = async (editionId: string, surahId: number): Promise
         }
     } catch (e) {
         console.error(`API fetch failed for ${editionId}`, e);
-        showToast("Gagal mengambil teks dari server. Periksa jaringan Anda.");
+        if (navigator.onLine) {
+            showToast("Gagal mengambil teks dari server. Periksa jaringan Anda.");
+        }
     }
     return [];
 };
@@ -636,7 +934,9 @@ const fetchWordByWordForSurah = async (surahId: number): Promise<Record<number, 
         }
     } catch (e) {
         console.error("Failed to fetch Word-By-Word data", e);
-        showToast("Gagal memuat terjemahan per kata.", "warning");
+        if (navigator.onLine) {
+            showToast("Gagal memuat terjemahan per kata.", "warning");
+        }
     }
     return {};
 }
@@ -657,7 +957,9 @@ const processDetail = async (
     translationIdentifier?: string,
     tafsirIdentifier?: string,
     includeWords: boolean = false,
-    useTajweed: boolean = false
+    useTajweed: boolean = false,
+    showTranslation: boolean = true,
+    showTafsir: boolean = true
 ): Promise<SurahDetail> => {
 
     let arabicVerses: any[] = [];
@@ -683,9 +985,14 @@ const processDetail = async (
 
     const promises: Promise<any>[] = [];
     const metaSourceId = translationIdentifier || 'quran-uthmani';
-    promises.push(fetchContentForSurah(metaSourceId, id));
+    
+    if (showTranslation && translationIdentifier) {
+        promises.push(fetchContentForSurah(metaSourceId, id));
+    } else {
+        promises.push(Promise.resolve([]));
+    }
 
-    if (tafsirIdentifier) {
+    if (showTafsir && tafsirIdentifier) {
         promises.push(fetchContentForSurah(tafsirIdentifier, id));
     } else {
         promises.push(Promise.resolve([]));
@@ -738,12 +1045,14 @@ export const getSurahDetail = async (
     translationIdentifier?: string,
     tafsirIdentifier?: string,
     includeWords: boolean = false,
-    useTajweed: boolean = false
+    useTajweed: boolean = false,
+    showTranslation: boolean = false,
+    showTafsir: boolean = false
 ): Promise<SurahDetail> => {
     const surahs = await getAllSurahs(lang);
     const meta = surahs.find(s => s.id === id);
     if (!meta) throw new Error(`Surah ${id} not found`);
-    return processDetail(id, meta, translationIdentifier, tafsirIdentifier, includeWords, useTajweed);
+    return processDetail(id, meta, translationIdentifier, tafsirIdentifier, includeWords, useTajweed, showTranslation, showTafsir);
 };
 
 export const removeDiacritics = (text: string): string => {
