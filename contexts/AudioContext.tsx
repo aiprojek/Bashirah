@@ -42,6 +42,7 @@ interface AudioContextType {
   repeatSettings: RepeatSettings;
   setRepeatSettings: (settings: RepeatSettings) => void;
   currentLoopCount: number; 
+  selectSurah: (surahId: number, totalVerses: number, surahName: string) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -391,6 +392,20 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
   };
 
+  const selectSurah = (surahId: number, totalVerses: number, sName: string) => {
+      const safeTotal = Math.max(1, Math.floor(totalVerses) || 1);
+      setCurrentSurah(surahId);
+      setCurrentVerse(1);
+      setCurrentTotalVerses(safeTotal);
+      setSurahName(sName);
+      setIsPlaying(false);
+      setCurrentLoopCount(1);
+      if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current.currentTime = 0;
+      }
+  };
+
   return (
     <AudioContext.Provider value={{
         isPlaying,
@@ -413,7 +428,8 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         resolveDownloadPrompt,
         repeatSettings,
         setRepeatSettings,
-        currentLoopCount
+        currentLoopCount,
+        selectSurah
     }}>
       {children}
     </AudioContext.Provider>

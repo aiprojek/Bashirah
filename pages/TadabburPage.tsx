@@ -8,7 +8,7 @@ import ShareTadabburModal from '../components/ShareTadabburModal';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const TadabburPage: React.FC = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [entries, setEntries] = useState<TadabburData[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isEditorOpen, setIsEditorOpen] = useState(false);
@@ -260,7 +260,7 @@ const TadabburPage: React.FC = () => {
                 onClose={() => setDeleteId(null)}
                 onConfirm={confirmDelete}
                 title={t('btn_delete') + "?"}
-                message="Catatan tadabbur yang dihapus tidak dapat dikembalikan lagi. Anda yakin?"
+                message={language === 'en' ? 'Deleted reflections cannot be recovered. Are you sure?' : 'Catatan tadabbur yang dihapus tidak dapat dikembalikan lagi. Anda yakin?'}
                 confirmText={t('btn_delete')}
                 variant="danger"
             />

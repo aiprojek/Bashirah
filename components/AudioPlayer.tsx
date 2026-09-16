@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { useAudio } from '../contexts/AudioContext';
 import { Play, Pause, SkipForward, SkipBack, X, Mic2, Loader2, ChevronUp, ChevronDown, Repeat, Settings2, Infinity as InfinityIcon } from 'lucide-react';
 import { RECITERS } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const AudioPlayer: React.FC = () => {
+  const { language, t } = useLanguage();
   const { 
       isPlaying, 
       currentSurah, 
@@ -50,7 +52,7 @@ const AudioPlayer: React.FC = () => {
           <div className="flex items-center justify-between mb-2">
                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-2">
                    <Repeat className="w-4 h-4 text-quran-gold" />
-                   Muraja'ah (Pengulangan)
+                   {language === 'en' ? "Muraja'ah (Loop / Repeat)" : "Muraja'ah (Pengulangan)"}
                </span>
                <button onClick={closeExpandedPanel}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
           </div>
@@ -61,19 +63,19 @@ const AudioPlayer: React.FC = () => {
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'none' })}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'none' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
-                  Normal
+                  {language === 'en' ? 'Normal' : 'Normal'}
               </button>
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'verse', count: repeatSettings.mode === 'verse' ? repeatSettings.count : 5 })}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'verse' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
-                  Hifzh (Ayat)
+                  {language === 'en' ? 'Hifz (Verse)' : 'Hifzh (Ayat)'}
               </button>
               <button 
                 onClick={() => setRepeatSettings({ ...repeatSettings, mode: 'range' })}
                 className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${repeatSettings.mode === 'range' ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
               >
-                  Rentang
+                  {language === 'en' ? 'Range' : 'Rentang'}
               </button>
           </div>
 
@@ -85,7 +87,9 @@ const AudioPlayer: React.FC = () => {
                   {repeatSettings.mode === 'range' && (
                     <div className="col-span-2 flex gap-3 items-center bg-white dark:bg-slate-700 p-3 rounded-xl border border-stone-200 dark:border-slate-600">
                         <div className="flex-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Mulai Ayat</label>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">
+                                {language === 'en' ? 'Start Verse' : 'Mulai Ayat'}
+                            </label>
                             <input 
                                 type="number" 
                                 min={1} 
@@ -97,7 +101,9 @@ const AudioPlayer: React.FC = () => {
                         </div>
                         <span className="text-gray-300">-</span>
                         <div className="flex-1">
-                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">Sampai Ayat</label>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase block mb-1">
+                                {language === 'en' ? 'End Verse' : 'Sampai Ayat'}
+                            </label>
                             <input 
                                 type="number" 
                                 min={repeatSettings.rangeStart} 
@@ -113,9 +119,13 @@ const AudioPlayer: React.FC = () => {
                   {/* Repeat Count */}
                   <div className="col-span-2 bg-white dark:bg-slate-700 p-3 rounded-xl border border-stone-200 dark:border-slate-600 flex items-center justify-between">
                        <div>
-                            <label className="text-[10px] text-gray-400 font-bold uppercase block">Jumlah Ulang</label>
+                            <label className="text-[10px] text-gray-400 font-bold uppercase block">
+                                {language === 'en' ? 'Repeat Count' : 'Jumlah Ulang'}
+                            </label>
                             <div className="text-xs text-gray-400 mt-0.5">
-                                {repeatSettings.count === Infinity ? 'Tanpa Batas' : `${repeatSettings.count} Kali`}
+                                {repeatSettings.count === Infinity
+                                  ? (language === 'en' ? 'Unlimited' : 'Tanpa Batas')
+                                  : `${repeatSettings.count} ${language === 'en' ? (repeatSettings.count === 1 ? 'Time' : 'Times') : 'Kali'}`}
                             </div>
                        </div>
                        
@@ -127,8 +137,8 @@ const AudioPlayer: React.FC = () => {
                                <InfinityIcon className="w-4 h-4" />
                            </button>
                            <input 
-                                type="number"
-                                min={1}
+                                type="number" 
+                                min={1} 
                                 max={100}
                                 disabled={repeatSettings.count === Infinity}
                                 value={repeatSettings.count === Infinity ? '' : repeatSettings.count}
@@ -149,7 +159,7 @@ const AudioPlayer: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-wide flex items-center gap-2">
                         <Mic2 className="w-4 h-4 text-quran-gold" />
-                        Pilih Qari
+                        {language === 'en' ? 'Select Reciter' : 'Pilih Qari'}
                     </span>
                     <button onClick={closeExpandedPanel}><ChevronUp className="w-4 h-4 text-gray-400" /></button>
             </div>
@@ -209,7 +219,7 @@ const AudioPlayer: React.FC = () => {
                             )}
                         </div>
                         <p className="text-sm font-bold text-quran-dark dark:text-gray-100 truncate">
-                            Surat {surahName} : Ayat {currentVerse}
+                            {t('surah')} {surahName} : {t('verse')} {currentVerse}
                         </p>
                     </div>
 
@@ -258,13 +268,13 @@ const AudioPlayer: React.FC = () => {
                              {repeatSettings.mode !== 'none' && (
                                  <span className="text-[9px] bg-stone-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400 font-bold border border-stone-200 dark:border-slate-600 flex items-center gap-1">
                                      <Repeat className="w-2 h-2" /> 
-                                     {repeatSettings.mode === 'verse' ? '1 Ayat' : 'Range'} 
+                                     {repeatSettings.mode === 'verse' ? (language === 'en' ? '1 Verse' : '1 Ayat') : 'Range'} 
                                      ({currentLoopCount}/{repeatSettings.count === Infinity ? '∞' : repeatSettings.count})
                                  </span>
                              )}
                         </div>
                         <p className="text-sm font-bold text-quran-dark dark:text-gray-100 truncate">
-                            Surat {surahName} : Ayat {currentVerse}
+                            {t('surah')} {surahName} : {t('verse')} {currentVerse}
                         </p>
                     </div>
                 </div>
@@ -313,14 +323,14 @@ const AudioPlayer: React.FC = () => {
                             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold text-gray-600 dark:text-gray-300"
                         >
                             <SkipBack className="w-4 h-4 fill-current" />
-                            <span>Sebelum</span>
+                            <span>{language === 'en' ? 'Prev' : 'Sebelum'}</span>
                         </button>
                         <button
                             onClick={nextVerse}
                             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-2 py-2 text-xs font-bold text-gray-600 dark:text-gray-300"
                         >
                             <SkipForward className="w-4 h-4 fill-current" />
-                            <span>Sesudah</span>
+                            <span>{language === 'en' ? 'Next' : 'Sesudah'}</span>
                         </button>
                         <button
                             onClick={() => toggleSettings('repeat')}
@@ -338,7 +348,7 @@ const AudioPlayer: React.FC = () => {
                             className="flex flex-col items-center justify-center gap-1 rounded-xl border border-red-100 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-2 py-2 text-xs font-bold text-red-500"
                         >
                             <X className="w-4 h-4" />
-                            <span>Tutup</span>
+                            <span>{language === 'en' ? 'Close' : 'Tutup'}</span>
                         </button>
                     </div>
                 </div>

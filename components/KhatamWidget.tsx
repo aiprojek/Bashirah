@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 const TOTAL_PAGES = 604; // Standard Madani Mushaf
 
 const KhatamWidget: React.FC = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [target, setTarget] = useState<KhatamTarget | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [showHint, setShowHint] = useState(false);
@@ -358,9 +358,19 @@ const KhatamWidget: React.FC = () => {
                                     <button onClick={() => setShowHint(false)}><X className="w-3 h-3 opacity-50 hover:opacity-100" /></button>
                                 </div>
                                 <ul className="space-y-1 opacity-80 list-disc list-inside">
-                                    <li>Menu Ayat: Klik (⋮) &rarr; <em>Update Progres Khatam</em>.</li>
-                                    <li>Mode Mushaf: Klik ikon target di toolbar.</li>
-                                    <li>Manual: Gunakan tombol Update di bawah.</li>
+                                    {language === 'en' ? (
+                                        <>
+                                            <li>Verse Menu: Click (⋮) &rarr; <em>Update Khatam Progress</em>.</li>
+                                            <li>Mushaf Mode: Click target icon in the toolbar.</li>
+                                            <li>Manual: Use the Update button below.</li>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <li>Menu Ayat: Klik (⋮) &rarr; <em>Update Progres Khatam</em>.</li>
+                                            <li>Mode Mushaf: Klik ikon target di toolbar.</li>
+                                            <li>Manual: Gunakan tombol Update di bawah.</li>
+                                        </>
+                                    )}
                                 </ul>
                             </div>
                          ) : null}

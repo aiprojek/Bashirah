@@ -4,6 +4,7 @@ import { Search as SearchIcon, ArrowRight, Loader2, Wifi, Download, Settings, Za
 import { searchGlobalVerses } from '../services/quranService';
 import { isEditionDownloaded } from '../services/db'; // Import DB check
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SearchProps {
   value: string;
@@ -17,6 +18,7 @@ const escapeRegExp = (string: string) => {
 };
 
 const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
+  const { language, t } = useLanguage();
   const [isFocused, setIsFocused] = useState(false);
   const [verseResults, setVerseResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -87,7 +89,11 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
         className={`block w-full pl-11 pr-4 py-4 bg-white dark:bg-slate-800 border rounded-2xl leading-5 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-quran-gold/50 focus:border-quran-gold sm:text-sm shadow-sm transition-all text-gray-800 dark:text-white ${
             isFocused ? 'border-quran-gold ring-2 ring-quran-gold/20' : 'border-stone-200 dark:border-slate-700'
         }`}
-        placeholder="Cari surat atau ayat (contoh: 'sabar', 'puasa', 'Al-Kahfi')..."
+        placeholder={
+          language === 'en'
+            ? "Search surah or verse (e.g. 'patience', 'fasting', 'Al-Kahf')..."
+            : "Cari surat atau ayat (contoh: 'sabar', 'puasa', 'Al-Kahfi')..."
+        }
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => setIsFocused(true)}
@@ -105,15 +111,19 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                         <Wifi className="w-3 h-3" />
                     </div>
                     <div className="flex-1">
-                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Pencarian Offline Dasar Aktif</p>
+                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">
+                            {language === 'en' ? 'Basic Offline Search Active' : 'Pencarian Offline Dasar Aktif'}
+                        </p>
                         <p className="text-[10px] text-blue-600 dark:text-blue-400 leading-relaxed mt-0.5">
-                            Data terjemahan belum diunduh. Pencarian offline tetap bisa untuk teks Arab, namun hasil terjemahan lebih lengkap jika data diunduh.
+                            {language === 'en'
+                              ? 'Translation data is not downloaded yet. Offline search works for Arabic text, but translation results will be more complete once downloaded.'
+                              : 'Data terjemahan belum diunduh. Pencarian offline tetap bisa untuk teks Arab, namun hasil terjemahan lebih lengkap jika data diunduh.'}
                         </p>
                         <button 
                             onMouseDown={(e) => { e.preventDefault(); handleGoToSettings(); }} // onMouseDown prevents blur issue
                             className="mt-2 text-[10px] font-bold bg-blue-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 hover:bg-blue-700 transition-colors w-fit"
                         >
-                            <Download className="w-3 h-3" /> Unduh Data Offline
+                            <Download className="w-3 h-3" /> {language === 'en' ? 'Download Offline Data' : 'Unduh Data Offline'}
                         </button>
                     </div>
                 </div>
@@ -122,8 +132,12 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
             {/* RESULTS HEADER */}
             <div className="flex items-center justify-between px-4 py-2.5 text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/50">
                 <div className="flex items-center gap-2">
-                    <span>Hasil Pencarian Ayat</span>
-                    {verseResults.length > 0 && <span className="text-[10px] bg-stone-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-1.5 rounded-full lowercase">{verseResults.length} hasil</span>}
+                    <span>{language === 'en' ? 'Verse Search Results' : 'Hasil Pencarian Ayat'}</span>
+                    {verseResults.length > 0 && (
+                        <span className="text-[10px] bg-stone-200 dark:bg-slate-600 text-gray-600 dark:text-gray-300 px-1.5 rounded-full lowercase">
+                            {verseResults.length} {language === 'en' ? (verseResults.length === 1 ? 'result' : 'results') : 'hasil'}
+                        </span>
+                    )}
                 </div>
                 {(isSearching || isDeepSearching) && <Loader2 className="w-3 h-3 animate-spin text-quran-gold" />}
             </div>
@@ -137,10 +151,10 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                     >
                         <div className="flex items-center gap-2 text-quran-dark dark:text-quran-gold font-bold">
                             <Zap className="w-3 h-3 fill-current" />
-                            <span>Pencarian Mendalam (Online)</span>
+                            <span>{language === 'en' ? 'Deep Search (Online)' : 'Pencarian Mendalam (Online)'}</span>
                         </div>
                         <div className="flex items-center gap-1 text-gray-400 group-hover:text-quran-gold transition-colors">
-                            <span>Tekan untuk hasil lebih akurat</span>
+                            <span>{language === 'en' ? 'Tap for more comprehensive results' : 'Tekan untuk hasil lebih akurat'}</span>
                             <ArrowRight className="w-3 h-3" />
                         </div>
                     </button>
@@ -151,13 +165,17 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
             <div className="p-2">
                 {!isSearching && !isDeepSearching && verseResults.length === 0 && (
                     <div className="p-8 text-center text-gray-400">
-                        <p className="text-sm italic mb-3">Tidak ditemukan ayat dengan kata kunci "{value}".</p>
+                        <p className="text-sm italic mb-3">
+                            {language === 'en'
+                              ? `No verses found matching "${value}".`
+                              : `Tidak ditemukan ayat dengan kata kunci "${value}".`}
+                        </p>
                         <button
                            onMouseDown={handleDeepSearch}
                            className="inline-flex items-center gap-2 px-4 py-2 bg-quran-dark text-white rounded-xl text-xs font-bold hover:bg-quran-gold transition-colors"
                         >
                            <Globe className="w-3.5 h-3.5" />
-                           Coba Pencarian Mendalam
+                           {language === 'en' ? 'Try Deep Search' : 'Coba Pencarian Mendalam'}
                         </button>
                     </div>
                 )}
@@ -165,8 +183,14 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                 {isDeepSearching && (
                     <div className="p-12 text-center flex flex-col items-center gap-3">
                         <Loader2 className="w-8 h-8 text-quran-gold animate-spin" />
-                        <p className="text-sm font-bold text-gray-500">Mencari di seluruh database...</p>
-                        <p className="text-[11px] text-gray-400">Pencarian mendalam memindai setiap ayat dan terjemahan.</p>
+                        <p className="text-sm font-bold text-gray-500">
+                            {language === 'en' ? 'Searching entire database...' : 'Mencari di seluruh database...'}
+                        </p>
+                        <p className="text-[11px] text-gray-400">
+                            {language === 'en'
+                              ? 'Deep search scans every verse and translation.'
+                              : 'Pencarian mendalam memindai setiap ayat dan terjemahan.'}
+                        </p>
                     </div>
                 )}
 
@@ -179,10 +203,10 @@ const Search: React.FC<SearchProps> = ({ value, onChange, translationId }) => {
                         <div className="flex justify-between items-start mb-2">
                              <div className="flex flex-col gap-1">
                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                     Surat {res.surah.englishName}
+                                     {t('surah')} {res.surah.englishName}
                                  </span>
                                  <span className="text-xs font-bold text-quran-dark dark:text-quran-gold">
-                                     Ayat {res.verseId}
+                                     {t('verse')} {res.verseId}
                                  </span>
                              </div>
                              <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 group-hover:text-quran-gold group-hover:translate-x-0.5 transition-all" />

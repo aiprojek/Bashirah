@@ -2,6 +2,7 @@
 import React from 'react';
 import { Surah } from '../types';
 import { Star } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SurahCardProps {
   surah: Surah;
@@ -10,6 +11,7 @@ interface SurahCardProps {
 }
 
 const SurahCard: React.FC<SurahCardProps> = ({ surah, onClick, showTranslation = true }) => {
+  const { language } = useLanguage();
   return (
     <div 
       onClick={() => onClick(surah.id)}
@@ -33,7 +35,9 @@ const SurahCard: React.FC<SurahCardProps> = ({ surah, onClick, showTranslation =
         </div>
         <div className="text-right">
              <span className="block font-arabic text-2xl text-quran-dark/80 dark:text-gray-300 group-hover:text-quran-dark dark:group-hover:text-white mb-1">{surah.name}</span>
-             <span className="text-xs text-gray-400 dark:text-gray-500 font-medium px-2 py-1 bg-stone-50 dark:bg-slate-700 rounded-full border border-stone-100 dark:border-slate-600">{surah.total_verses} Ayat</span>
+             <span className="text-xs text-gray-400 dark:text-gray-500 font-medium px-2 py-1 bg-stone-50 dark:bg-slate-700 rounded-full border border-stone-100 dark:border-slate-600">
+               {surah.total_verses} {language === 'en' ? 'Verses' : 'Ayat'}
+             </span>
         </div>
       </div>
     </div>

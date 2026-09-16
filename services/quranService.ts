@@ -267,7 +267,24 @@ export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian
         const surahKey = target.surah.toString();
         const arabicData = globalArabicCache?.[surahKey]?.find(v => v.verse === target.verse);
 
-        // 1. Try Offline First (Tafsir/Translation might be in DB)
+        // 1. Ambil pokok dari API online jika terhubung ke internet
+        if (navigator.onLine) {
+            try {
+                const transJson = await fetchOnlineJson(`${API_BASE_URL}/ayah/${target.surah}:${target.verse}/${translationId}`);
+                if (transJson?.data) {
+                    return {
+                        surah: transJson.data.surah,
+                        verseNo: target.verse,
+                        text: arabicData ? arabicData.text : (transJson.data.text || ""),
+                        translation: transJson.data.text
+                    };
+                }
+            } catch (e) {
+                console.warn("Gagal mengambil ayat harian dari API online, beralih ke data offline lokal:", e);
+            }
+        }
+
+        // 2. Fallback Offline: Ambil dari database lokal IndexedDB jika terjemahan/tafsir tersedia
         const cachedTranslation = await DB.getSurahContent(translationId, target.surah);
         const localVerse = cachedTranslation?.find((v: any) => v.numberInSurah === target.verse);
         
@@ -287,22 +304,7 @@ export const getAyatOfTheDayData = async (translationId: string = 'id.indonesian
             };
         }
 
-        // 2. Try Online if not in local DB
-        if (navigator.onLine) {
-            try {
-                const transJson = await fetchOnlineJson(`${API_BASE_URL}/ayah/${target.surah}:${target.verse}/${translationId}`);
-                return {
-                    surah: transJson.data.surah,
-                    verseNo: target.verse,
-                    text: arabicData ? arabicData.text : transJson.data.text,
-                    translation: transJson.data.text
-                };
-            } catch (e) {
-                // Ignore API failure, fallback further
-            }
-        }
-
-        // 3. Absolute Fallback (Arabic only)
+        // 3. Fallback Terakhir: Teks Arab lokal jika belum ada terjemahan tersimpan
         if (arabicData) {
             const allSurahs = await getAllSurahs();
             const surahInfo = allSurahs.find(s => s.id === target.surah);
@@ -916,7 +918,7 @@ const fetchContentForSurah = async (editionId: string, surahId: number): Promise
     return [];
 };
 
-const fetchWordByWordForSurah = async (surahId: number): Promise<Record<number, Word[]>> => {
+export const fetchWordByWordForSurah = async (surahId: number): Promise<Record<number, Word[]>> => {
     const cacheKey = `wbw-v4-${surahId}`;
     if (cachedWordByWord[cacheKey]) return cachedWordByWord[cacheKey];
 

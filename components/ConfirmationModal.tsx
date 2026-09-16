@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { AlertTriangle, X, CheckCircle, Info } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -19,10 +20,11 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   onConfirm,
   title,
   message,
-  confirmText = 'Ya, Lanjutkan',
-  cancelText = 'Batal',
+  confirmText,
+  cancelText,
   variant = 'danger'
 }) => {
+  const { language, t } = useLanguage();
   if (!isOpen) return null;
 
   // Configuration based on variant
@@ -31,23 +33,26 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           icon: <AlertTriangle className="w-8 h-8 text-red-500" />,
           iconBg: 'bg-red-50 dark:bg-red-900/20',
           confirmBtn: 'bg-red-500 hover:bg-red-600 shadow-red-500/30 text-white',
-          confirmTextDefault: 'Hapus'
+          confirmTextDefault: language === 'en' ? 'Delete' : 'Hapus'
       },
       primary: {
           icon: <CheckCircle className="w-8 h-8 text-quran-gold" />,
           iconBg: 'bg-quran-gold/10',
           confirmBtn: 'bg-quran-dark hover:bg-quran-gold shadow-quran-dark/30 text-white',
-          confirmTextDefault: 'Simpan'
+          confirmTextDefault: t('save')
       },
       neutral: {
           icon: <Info className="w-8 h-8 text-blue-500" />,
           iconBg: 'bg-blue-50 dark:bg-blue-900/20',
           confirmBtn: 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30 text-white',
-          confirmTextDefault: 'Lanjutkan'
+          confirmTextDefault: language === 'en' ? 'Continue' : 'Lanjutkan'
       }
   };
 
   const activeConfig = config[variant];
+  const effectiveCancelText = cancelText || t('cancel');
+  const defaultConfirm = language === 'en' ? 'Yes, Continue' : 'Ya, Lanjutkan';
+  const effectiveConfirmText = confirmText || (variant === 'danger' ? activeConfig.confirmTextDefault : defaultConfirm);
 
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center px-4 animate-fade-in">
@@ -85,7 +90,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 onClick={onClose}
                 className="flex-1 px-4 py-3 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-stone-100 dark:bg-slate-700 hover:bg-stone-200 dark:hover:bg-slate-600 transition-colors"
             >
-                {cancelText}
+                {effectiveCancelText}
             </button>
             <button 
                 onClick={() => {
@@ -94,7 +99,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                 }}
                 className={`flex-1 px-4 py-3 rounded-xl text-sm font-bold transition-all shadow-lg transform active:scale-95 ${activeConfig.confirmBtn}`}
             >
-                {confirmText === 'Ya, Lanjutkan' && variant === 'danger' ? activeConfig.confirmTextDefault : confirmText}
+                {effectiveConfirmText}
             </button>
         </div>
       </div>

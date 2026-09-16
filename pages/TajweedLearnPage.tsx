@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { TAJWEED_LEARNING_DATA, TajweedCategory, TajweedRuleItem } from '../services/tajweedData';
-import { BookOpen, ChevronRight, X, ArrowLeft, GraduationCap, Volume2 } from 'lucide-react';
+import { BookOpen, ChevronRight, ArrowLeft, GraduationCap, Volume2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import UnifiedModal from '../components/UnifiedModal';
 
 const TajweedLearnPage: React.FC = () => {
     const navigate = useNavigate();
@@ -104,91 +105,66 @@ const TajweedLearnPage: React.FC = () => {
 
             {/* --- LEVEL 3: RULE DETAIL MODAL/VIEW --- */}
             {selectedRule && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                     <div 
-                        className="absolute inset-0 bg-stone-900/60 dark:bg-black/80 backdrop-blur-sm transition-opacity"
-                        onClick={() => setSelectedRule(null)}
-                    />
-                    
-                    <div className="relative bg-white dark:bg-slate-800 w-full max-w-lg max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-slide-up border border-white/10">
-                        
-                        {/* Header */}
-                        <div className="px-6 py-5 border-b border-stone-100 dark:border-slate-700 flex justify-between items-start bg-stone-50 dark:bg-slate-700/50">
-                            <div>
-                                <span 
-                                    className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider text-white mb-2 inline-block"
-                                    style={{ backgroundColor: selectedRule.colorCode || '#1e3a34' }}
-                                >
-                                    Tajwid
-                                </span>
-                                <h3 className="text-2xl font-bold text-quran-dark dark:text-white font-serif">{t(`tajweed_${formatKey(selectedRule.id)}_name`)}</h3>
+                <UnifiedModal
+                    isOpen={!!selectedRule}
+                    onClose={() => setSelectedRule(null)}
+                    badge={
+                        <span className="flex items-center gap-1.5">
+                            <span 
+                                className="w-2 h-2 rounded-full inline-block"
+                                style={{ backgroundColor: selectedRule.colorCode || '#10b981' }}
+                            />
+                            <span>Tajwid</span>
+                        </span>
+                    }
+                    title={t(`tajweed_${formatKey(selectedRule.id)}_name`)}
+                    maxWidth="max-w-lg"
+                >
+                    <div className="space-y-6">
+                        {/* Definition */}
+                        <section>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                <BookOpen className="w-4 h-4 text-quran-gold" /> {t('tajweed_def')}
+                            </h4>
+                            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed bg-stone-50/80 dark:bg-slate-700/40 p-4 rounded-xl border-l-4 border-stone-300 dark:border-slate-600">
+                                {t(`tajweed_${formatKey(selectedRule.id)}_desc`)}
+                            </p>
+                        </section>
+
+                        {/* How to Read */}
+                        <section>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                                <Volume2 className="w-4 h-4 text-quran-gold" /> {t('tajweed_how')}
+                            </h4>
+                            <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed bg-stone-50/80 dark:bg-slate-700/40 p-4 rounded-xl">
+                                {t(`tajweed_${formatKey(selectedRule.id)}_how`)}
+                            </p>
+                        </section>
+
+                        {/* Examples */}
+                        <section>
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-3 border-b border-stone-100 dark:border-slate-700 pb-2">
+                                {t('tajweed_example')}
+                            </h4>
+                            <div className="space-y-3">
+                                {selectedRule.examples.map((ex, idx) => (
+                                    <div key={idx} className="bg-stone-50/80 dark:bg-slate-700/30 rounded-xl p-4 border border-stone-100 dark:border-slate-700 text-center">
+                                        <p 
+                                            className="font-arabic text-3xl text-quran-dark dark:text-white mb-2 leading-relaxed" 
+                                            dir="rtl"
+                                            style={{ color: selectedRule.colorCode || 'inherit' }}
+                                        >
+                                            {ex.arabic}
+                                        </p>
+                                        <p className="font-serif text-sm text-gray-500 dark:text-gray-400 italic">
+                                            "{ex.latin}"
+                                        </p>
+                                    </div>
+                                ))}
                             </div>
-                            <button 
-                                onClick={() => setSelectedRule(null)}
-                                className="p-2 bg-white dark:bg-slate-700 rounded-full text-gray-400 hover:text-red-500 shadow-sm border border-stone-100 dark:border-slate-600 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar space-y-8 bg-white dark:bg-slate-800">
-                            
-                            {/* Definition */}
-                            <section>
-                                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                                    <BookOpen className="w-4 h-4 text-quran-gold" /> {t('tajweed_def')}
-                                </h4>
-                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed bg-stone-50 dark:bg-slate-700/50 p-4 rounded-xl border-l-4 border-stone-300 dark:border-slate-600">
-                                    {t(`tajweed_${formatKey(selectedRule.id)}_desc`)}
-                                </p>
-                            </section>
-
-                            {/* How to Read */}
-                            <section>
-                                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-2 flex items-center gap-2">
-                                    <Volume2 className="w-4 h-4 text-quran-gold" /> {t('tajweed_how')}
-                                </h4>
-                                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                                    {t(`tajweed_${formatKey(selectedRule.id)}_how`)}
-                                </p>
-                            </section>
-
-                            {/* Examples */}
-                            <section>
-                                <h4 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 border-b border-stone-100 dark:border-slate-700 pb-2">
-                                    {t('tajweed_example')}
-                                </h4>
-                                <div className="space-y-4">
-                                    {selectedRule.examples.map((ex, idx) => (
-                                        <div key={idx} className="bg-stone-50 dark:bg-slate-700/30 rounded-xl p-4 border border-stone-100 dark:border-slate-700 text-center">
-                                            <p 
-                                                className="font-arabic text-3xl text-quran-dark dark:text-white mb-3 leading-relaxed" 
-                                                dir="rtl"
-                                                style={{ color: selectedRule.colorCode || 'inherit' }}
-                                            >
-                                                {ex.arabic}
-                                            </p>
-                                            <p className="font-serif text-sm text-gray-500 dark:text-gray-400 italic">
-                                                "{ex.latin}"
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-                            </section>
-                        </div>
-                        
-                        <div className="p-4 border-t border-stone-100 dark:border-slate-700 bg-white dark:bg-slate-800 text-center">
-                            <button 
-                                onClick={() => setSelectedRule(null)}
-                                className="text-xs font-bold text-gray-400 hover:text-quran-dark dark:hover:text-quran-gold uppercase tracking-wider transition-colors"
-                            >
-                                {t('tajweed_close')}
-                            </button>
-                        </div>
-
+                        </section>
                     </div>
-                </div>
+                </UnifiedModal>
             )}
 
         </div>

@@ -96,10 +96,12 @@ export interface Reciter {
 export interface MushafEdition {
     id: string;
     name: string;
+    nameEn?: string;
     type: string;
     format: string;
     provider: string;
     description?: string;
+    descriptionEn?: string;
 }
 
 export interface LastReadData {
@@ -228,42 +230,52 @@ export const MUSHAF_EDITIONS: MushafEdition[] = [
     { 
         id: 'madani', 
         name: 'Madani (Standar)', 
+        nameEn: 'Madani (Standard)',
         type: 'images', 
         format: 'png', 
         provider: 'https://android.quran.com/data/width_1024/page',
-        description: 'Mushaf Madinah standar internasional.'
+        description: 'Mushaf Madinah standar internasional.',
+        descriptionEn: 'Standard international Madinah Mushaf.'
     },
     { 
         id: 'indopak', 
         name: 'IndoPak (Asia)', 
+        nameEn: 'IndoPak (South Asian)',
         type: 'images', 
         format: 'jpg', 
         provider: 'https://android.quran.com/data/13_lines/page',
-        description: 'Gaya penulisan umum di Indonesia & Pakistan.'
+        description: 'Gaya penulisan umum di Indonesia & Pakistan.',
+        descriptionEn: 'Common South Asian Nastaliq script used in Indonesia & Pakistan.'
     },
     { 
         id: 'warsh', 
         name: 'Warsh (Nafi)', 
+        nameEn: 'Warsh (Nafi)',
         type: 'images', 
         format: 'jpg', 
         provider: 'https://android.quran.com/data/warsh/page',
-        description: 'Riwayat Warsh dari Imam Nafi (Afrika Utara).'
+        description: 'Riwayat Warsh dari Imam Nafi (Afrika Utara).',
+        descriptionEn: 'Warsh recitation via Imam Nafi (North Africa).'
     },
     { 
         id: 'qaloon', 
         name: 'Qaloon (Nafi)', 
+        nameEn: 'Qaloon (Nafi)',
         type: 'images', 
         format: 'jpg', 
         provider: 'https://android.quran.com/data/qaloon/page',
-        description: 'Riwayat Qaloon dari Imam Nafi (Libya).'
+        description: 'Riwayat Qaloon dari Imam Nafi (Libya).',
+        descriptionEn: 'Qaloon recitation via Imam Nafi (Libya).'
     },
     { 
         id: 'douri', 
         name: 'Douri (Basri)', 
+        nameEn: 'Douri (Abu Amr)',
         type: 'images', 
         format: 'jpg', 
         provider: 'https://android.quran.com/data/douri/page',
-        description: 'Riwayat Douri dari Abu Amr (Sudan & Afrika Timur).'
+        description: 'Riwayat Douri dari Abu Amr (Sudan & Afrika Timur).',
+        descriptionEn: 'Douri recitation via Abu Amr (Sudan & East Africa).'
     }
 ];
 
@@ -281,6 +293,13 @@ export const TAJWEED_EDITION: TranslationOption = {
     type: 'quran',
     approxSize: '1.5 MB'
 };
+
+export interface RepeatSettings {
+    mode: 'none' | 'verse' | 'range';
+    rangeStart: number;
+    rangeEnd: number;
+    count: number;
+}
 
 export const CURATED_EDITIONS: TranslationOption[] = [
   { identifier: 'id.indonesian', name: 'Kemenag RI', language: 'id', englishName: 'Indonesian Ministry of Religious Affairs', format: 'text', type: 'translation', approxSize: '1.1 MB' },

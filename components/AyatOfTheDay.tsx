@@ -205,7 +205,7 @@ const AyatOfTheDay: React.FC<AyatOfTheDayProps> = ({ isOpen, onClose, translatio
             <button 
                 onClick={onClose}
                 className="fixed top-6 right-6 z-[110] text-white hover:text-stone-200 transition-colors p-3 bg-black/60 hover:bg-black/80 rounded-full backdrop-blur-md shadow-2xl"
-                title="Tutup"
+                title={t('btn_close')}
             >
                 <X className="w-6 h-6" />
             </button>

@@ -4,7 +4,7 @@ import {
     Info, List, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
     ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
-    Smartphone, Moon, Download
+    Smartphone, Moon, Download, Tag, BookOpen, ArrowUp
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -33,12 +33,16 @@ const AboutPage: React.FC = () => {
     const featuresList = [
         { title: t('feature_mushaf_title'), desc: t('feature_mushaf_desc'), icon: BookMarked },
         { title: t('feature_tajweed_title'), desc: t('feature_tajweed_desc'), icon: Palette },
+        { title: t('feature_ayah_topics_title'), desc: t('feature_ayah_topics_desc'), icon: Tag },
+        { title: t('feature_mutashabihat_title'), desc: t('feature_mutashabihat_desc'), icon: Sparkles },
+        { title: t('feature_verse_action_title'), desc: t('feature_verse_action_desc'), icon: BookOpen },
         { title: t('feature_audio_title'), desc: t('feature_audio_desc'), icon: Mic2 },
         { title: t('feature_trans_title'), desc: t('feature_trans_desc'), icon: BookMarked },
         { title: t('feature_wbw_title'), desc: t('feature_wbw_desc'), icon: Type },
         { title: t('feature_tadabbur_title'), desc: t('feature_tadabbur_desc'), icon: PenTool },
         { title: t('feature_feelings_title'), desc: t('feature_feelings_desc'), icon: Heart },
         { title: t('feature_topics_title'), desc: t('feature_topics_desc'), icon: LayoutGrid },
+        { title: t('feature_back_to_top_title'), desc: t('feature_back_to_top_desc'), icon: ArrowUp },
         { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
         { title: t('feature_names_title'), desc: t('feature_names_desc'), icon: Sparkles },
         { title: t('feature_khatam_title'), desc: t('feature_khatam_desc'), icon: Target },
@@ -56,10 +60,10 @@ const AboutPage: React.FC = () => {
                     <div className="p-5 sm:p-6">
                         <div className="flex items-start justify-between gap-4">
                             <div>
-                                <p className="text-[11px] uppercase tracking-[0.25em] font-black text-quran-gold">Informasi</p>
-                                <h1 className="mt-2 text-xl sm:text-2xl font-bold text-quran-dark dark:text-white">Tentang Bashirah</h1>
+                                <p className="text-[11px] uppercase tracking-[0.25em] font-black text-quran-gold">{t('about_info_badge')}</p>
+                                <h1 className="mt-2 text-xl sm:text-2xl font-bold text-quran-dark dark:text-white">{t('about_hero_title')}</h1>
                                 <p className="mt-2 text-sm text-gray-500 dark:text-gray-400 max-w-lg">
-                                    Mengenal lebih dekat aplikasi Bashirah, fitur-fitur unggulan, serta terhubung dengan komunitas dan pembuat.
+                                    {t('about_hero_desc')}
                                 </p>
                             </div>
                             <div className="hidden sm:flex h-12 w-12 items-center justify-center rounded-2xl bg-white/80 dark:bg-slate-700/70 text-quran-gold shadow-sm">

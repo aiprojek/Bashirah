@@ -12,6 +12,7 @@ import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { migrateFromLocalStorage } from './services/db';
 import AppRoutes from './routes';
 import Toast from './components/Toast';
+import BackToTopFAB from './components/BackToTopFAB';
 import { App as CapApp } from '@capacitor/app';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
@@ -112,6 +113,9 @@ const AppContent: React.FC = () => {
           availableEditions={availableEditions}
         />
       </main>
+      {!location.pathname.startsWith('/surah/') && (
+        <BackToTopFAB targetContainerSelector="main" />
+      )}
       <AudioPlayer />
       <AudioDownloadModal />
       <Toast />

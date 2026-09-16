@@ -14,11 +14,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: "npm"
 
       - name: Install NPM dependencies
-        run: npm ci
+        run: npm ci || npm install
 
       - name: Generate Capacitor assets
         run: npx @capacitor/assets generate --android --iconBackgroundColor '#ffffff'

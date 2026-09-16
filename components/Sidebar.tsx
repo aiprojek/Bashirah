@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap } from 'lucide-react';
+import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap, Repeat } from 'lucide-react';
 import Logo from './Logo';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -89,6 +89,18 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                     <GraduationCap className={`w-5 h-5 ${isActive('/tajweed-learn') ? 'text-[#d4af37]' : ''}`} />
                     <span>{t('nav_tajweed')}</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/mutashabihat')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/mutashabihat') 
+                        ? 'bg-[#d4af37]/10 dark:bg-slate-800 text-[#1e3a34] dark:text-quran-gold font-bold' 
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+                    }`}
+                >
+                    <Repeat className={`w-5 h-5 ${isActive('/mutashabihat') ? 'text-[#d4af37]' : ''}`} />
+                    <span>{t('nav_mutashabihat')}</span>
                 </button>
 
                 <button 

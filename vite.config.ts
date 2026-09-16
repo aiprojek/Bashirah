@@ -69,7 +69,7 @@ export default defineConfig({
       srcDir: './',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'logo.svg'],
+      includeAssets: ['favicon.ico', 'logo.svg', 'icon.png'],
       manifest: {
         name: 'Bashirah - Al-Quran Digital',
         short_name: 'Bashirah',
@@ -110,9 +110,9 @@ export default defineConfig({
         ]
       },
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        globIgnores: ['qul/**/*.json', 'qul/**/*.db'],
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json,ttf,woff,woff2}'],
+        globIgnores: ['qul/**/*.db', 'qul/**/*.json', 'qul/**'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       }
     })
   ],

@@ -2,6 +2,7 @@
 import React from 'react';
 import { X, BookOpen, MapPin, AlignLeft } from 'lucide-react';
 import { SurahInfo, Surah } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface SurahInfoModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
     isLoading,
     onDownload
 }) => {
+  const { language } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -37,7 +39,7 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
             <div className="px-6 py-5 border-b border-stone-100 dark:border-slate-700 flex justify-between items-center bg-stone-50/50 dark:bg-slate-700/50">
                 <div>
                      <h3 className="text-xl font-bold text-quran-dark dark:text-white font-serif">
-                         Info & Asbabun Nuzul
+                         {language === 'en' ? 'Surah Info & Context' : 'Info & Asbabun Nuzul'}
                      </h3>
                      {surah && (
                          <p className="text-sm text-gray-500 dark:text-gray-400">QS. {surah.transliteration} ({surah.translation})</p>
@@ -72,21 +74,27 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                                         <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </div>
                                     <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.total_verses}</div>
-                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Ayat</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">
+                                        {language === 'en' ? 'Verses' : 'Ayat'}
+                                    </div>
                                 </div>
                                 <div className="bg-stone-50/50 dark:bg-slate-700/30 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-slate-700 flex flex-col items-center justify-center gap-1 group hover:border-quran-gold/30 transition-all duration-300">
                                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-quran-gold mb-1">
                                         <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </div>
                                     <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.type}</div>
-                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Tempat</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">
+                                        {language === 'en' ? 'Place' : 'Tempat'}
+                                    </div>
                                 </div>
                                 <div className="bg-stone-50/50 dark:bg-slate-700/30 p-3 sm:p-4 rounded-2xl border border-stone-100 dark:border-slate-700 flex flex-col items-center justify-center gap-1 group hover:border-quran-gold/30 transition-all duration-300">
                                     <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-700 shadow-sm flex items-center justify-center text-quran-gold mb-1">
                                         <AlignLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                                     </div>
                                     <div className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-lg">{surah.id}</div>
-                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">Urutan</div>
+                                    <div className="text-[8px] sm:text-[10px] uppercase font-black text-gray-400 dark:text-gray-500 tracking-tight sm:tracking-widest">
+                                        {language === 'en' ? 'Order' : 'Urutan'}
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -101,19 +109,25 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                             <div className="space-y-5 rounded-2xl border border-stone-100 dark:border-slate-700 bg-stone-50/60 dark:bg-slate-700/20 p-5">
                                 {info.summary && (
                                     <div>
-                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Ringkasan</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">
+                                            {language === 'en' ? 'Summary' : 'Ringkasan'}
+                                        </h4>
                                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{info.summary}</p>
                                     </div>
                                 )}
                                 {info.revelation_background && (
                                     <div>
-                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Latar Turun Surat</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">
+                                            {language === 'en' ? 'Revelation Context' : 'Latar Turun Surat'}
+                                        </h4>
                                         <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{info.revelation_background}</p>
                                     </div>
                                 )}
                                 {info.main_themes && info.main_themes.length > 0 && (
                                     <div>
-                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Tema Utama</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">
+                                            {language === 'en' ? 'Main Themes' : 'Tema Utama'}
+                                        </h4>
                                         <div className="flex flex-wrap gap-2">
                                             {info.main_themes.map((theme, idx) => (
                                                 <span key={`${theme}-${idx}`} className="rounded-full bg-white dark:bg-slate-700 border border-stone-200 dark:border-slate-600 px-3 py-1 text-xs font-semibold text-gray-600 dark:text-gray-200">
@@ -125,7 +139,9 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                                 )}
                                 {info.key_topics && info.key_topics.length > 0 && (
                                     <div>
-                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">Topik Kunci</h4>
+                                        <h4 className="text-xs font-black uppercase tracking-[0.2em] text-quran-gold mb-2">
+                                            {language === 'en' ? 'Key Topics' : 'Topik Kunci'}
+                                        </h4>
                                         <div className="flex flex-wrap gap-2">
                                             {info.key_topics.map((topic, idx) => (
                                                 <span key={`${topic}-${idx}`} className="rounded-full bg-quran-gold/10 border border-quran-gold/20 px-3 py-1 text-xs font-semibold text-quran-dark dark:text-quran-gold">
@@ -139,7 +155,7 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                         )}
                         
                         <div className="mt-8 pt-4 border-t border-stone-100 dark:border-slate-700 text-[10px] text-gray-400 italic">
-                            Sumber: {info.source}
+                            {language === 'en' ? 'Source' : 'Sumber'}: {info.source}
                         </div>
                     </div>
                 ) : (
@@ -147,9 +163,13 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                         <div className="w-16 h-16 bg-stone-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-stone-400">
                             <AlignLeft className="w-8 h-8" />
                         </div>
-                        <h4 className="text-lg font-bold text-gray-800 dark:text-white mb-2">Data Belum Tersedia</h4>
+                        <h4 className="text-lg font-bold text-gray-800 dark:text-white mb-2">
+                            {language === 'en' ? 'Data Not Available' : 'Data Belum Tersedia'}
+                        </h4>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mb-8 max-w-xs mx-auto">
-                            Detail info dan Asbabun Nuzul untuk surat ini belum diunduh ke penyimpanan lokal Anda.
+                            {language === 'en'
+                              ? 'Surah info details and context have not been downloaded to your local storage yet.'
+                              : 'Detail info dan Asbabun Nuzul untuk surat ini belum diunduh ke penyimpanan lokal Anda.'}
                         </p>
                         
                         <button 
@@ -157,7 +177,7 @@ const SurahInfoModal: React.FC<SurahInfoModalProps> = ({
                             className="inline-flex items-center gap-2 px-6 py-3 bg-quran-dark text-white rounded-xl font-bold text-sm hover:bg-quran-dark/90 transition-all shadow-lg shadow-quran-dark/20"
                         >
                             <BookOpen className="w-4 h-4" />
-                            Unduh Info Surat
+                            {language === 'en' ? 'Download Surah Info' : 'Unduh Info Surat'}
                         </button>
                     </div>
                 )}

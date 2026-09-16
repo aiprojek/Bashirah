@@ -1,187 +1,178 @@
-# Bashirah - Aplikasi Al-Quran Digital & Tadabbur
+# 📖 Bashirah — Al-Quran Digital & Tadabbur
 
-![Basirah App Banner](https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop)
+![Bashirah App Banner](https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=1200&auto=format&fit=crop)
 
-**Bashirah** adalah aplikasi Al-Quran web modern (Progressive Web App / PWA) dan Native (Android/Desktop) yang dirancang untuk memberikan pengalaman membaca, mendengar, dan mentadabburi Al-Quran yang nyaman, estetik, dan menenangkan jiwa.
+> Aplikasi Al-Quran modern, estetik, dan berorientasi *offline-first* yang dirancang untuk menghadirkan pengalaman membaca, mendengar murottal, dan mentadabburi firman Allah SWT dengan nyaman, tenang, dan tanpa gangguan.
 
-Aplikasi ini dibangun dengan teknologi web terbaru, mendukung penggunaan offline (setelah unduh data), dan memiliki antarmuka responsif yang optimal.
+---
 
-## 🆕 Release Notes (Versi 20260309)
+## 📌 Daftar Isi
 
-Rilis ini fokus pada tiga hal: **offline-first**, **kenyamanan mobile**, dan **keandalan native Android**.
+- [Tentang Bashirah](#-tentang-bashirah)
+- [Fitur Utama](#-fitur-utama)
+  - [Membaca & Belajar](#-membaca--belajar)
+  - [Audio & Muraja'ah](#-audio--murottal)
+  - [Tadabbur & Ibadah](#-tadabbur--refleksi)
+  - [Produktivitas & Kesiapan Offline](#-produktivitas--kesiapan-offline)
+- [Unduh Aplikasi](#-unduh-aplikasi)
+- [Teknologi & Arsitektur](#-teknologi--arsitektur)
+- [Panduan Pengembang (Development)](#-panduan-pengembang-development)
+  - [Prasyarat](#prasyarat)
+  - [Menjalankan Lokal](#menjalankan-lokal)
+  - [Target Platform (Android & Desktop)](#target-platform-android--desktop)
+- [Sumber Data & Atribusi](#-sumber-data--atribusi)
+- [Dukungan & Donasi](#-dukungan--donasi)
+- [Lisensi & Perjanjian Pengguna](#-lisensi--perjanjian-pengguna)
+- [Ucapan Terima Kasih](#-ucapan-terima-kasih)
 
-### 1) Offline & Data
+---
 
-- Penanda **Halaman, Juz, Hizb, dan Ruku** sekarang siap offline dari awal (tanpa menunggu cache jaringan).
-- Strategi data dioptimalkan ke **offline-first** pada alur penting (mushaf/page verses, pencarian, fallback konten).
-- Pencarian offline ditingkatkan: tetap bisa mencari ayat walau data terjemahan belum diunduh (fallback teks Arab lokal).
+## 🌿 Tentang Bashirah
 
-### 2) Unduhan & Resume
+**Bashirah** adalah aplikasi Al-Quran multi-platform yang dapat dijalankan sebagai **Progressive Web App (PWA)** di peramban, aplikasi **Android Native** melalui Capacitor, maupun aplikasi **Desktop (Windows/macOS/Linux)** melalui Electron.
 
-- Ditambahkan penyimpanan task unduhan (`download_tasks`) di IndexedDB.
-- Unduhan audio dan mushaf kini mendukung **resume** dari progres terakhir.
-- Pengaturan kini punya panel **Unduhan Tertunda** untuk lanjut 1 klik.
-- Ditambahkan panel **Status Kesiapan Offline** untuk memantau kelengkapan data offline.
-
-### 3) UX Mobile & Navigasi
-
-- Banyak komponen mobile dipoles (touch target, wrapping, spacing) agar lebih nyaman.
-- Mode mushaf mendapat animasi ganti halaman dengan kesan lembar buku.
-- Gesture sentuh:
-  - Swipe antar halaman di mode mushaf.
-  - Swipe antar surat di mode list.
-  - Diperketat jadi **edge swipe only** agar tidak mudah kepicu saat scroll.
-- Tombol back Android kini mengikuti pola native:
-  - kembali ke halaman sebelumnya,
-  - double-back untuk keluar dari beranda.
-
-### 4) Ringkasan Dampak ke Pengguna
-
-- Aplikasi lebih siap dipakai saat koneksi lambat atau tanpa internet.
-- Pengalaman baca di ponsel jadi lebih natural dan minim salah sentuh.
-- Pengguna tidak perlu mengulang unduhan dari awal ketika proses terputus.
-
-## 📥 Unduh Aplikasi
-
-Dapatkan versi terbaru untuk perangkat Anda (Android APK, Windows, macOS, Linux) di halaman Rilis:
-
-[**🔗 Unduh Bashirah (GitHub Releases)**](https://github.com/aiprojek/Bashirah/releases)
+Fokus utama Bashirah adalah:
+1. **Offline-First**: Semua data esensial (teks ayat, tajwid, navigasi halaman/juz/hizb, dan catatan) dapat diakses tanpa koneksi internet.
+2. **Kenyamanan Visual & Tipografi**: Dilengkapi pilihan font mushaf klasik hingga modern (Uthmani Hafs, IndoPak, Nastaleeq, ME Quran) serta ukuran teks yang dapat disesuaikan.
+3. **Mendalam & Berbobot**: Tidak hanya sekadar membaca, melainkan memfasilitasi tadabbur ayat, tafsir, pemahaman per kata, hingga murottal berulang (hifz/muraja'ah).
 
 ---
 
 ## ✨ Fitur Utama
 
 ### 📖 Membaca & Belajar
-
-- **Al-Quran 30 Juz**: Teks Rasm Utsmani yang jelas.
-- **Terjemahan & Tafsir**: Mendukung berbagai bahasa dan tafsir (Jalalayn, Kemenag RI, Ibnu Katsir, dll).
-- **Mode Mushaf**: Tampilan per halaman layaknya membaca Al-Quran cetak fisik dengan dukungan berbagai riwayat (Madani, IndoPak, Warsh, Qaloon, dll).
-- **Tajwid Berwarna**: Membantu membaca dengan hukum tajwid yang benar.
-- **Terjemahan Perkata**: Memahami arti setiap kata dalam ayat.
+- **Al-Quran 30 Juz (114 Surat)**: Teks Rasm Utsmani dan IndoPak yang jernih dan nyaman di mata.
+- **Mode Mushaf Halaman**: Tampilan per halaman fisik menyerupai mushaf cetak dengan pilihan riwayat (Madani, IndoPak, Warsh, Qaloon).
+- **Tajwid Berwarna**: Pewarnaan tajwid interaktif dengan panduan kaidah bacaan untuk memfasilitasi tilawah yang tartil.
+- **Terjemahan & Tafsir Lengkap**: Terjemahan bahasa Indonesia & Inggris, dilengkapi tafsir terpercaya (Kemenag RI, Jalalayn, Ibnu Katsir).
+- **Terjemahan Per Kata (Word-by-Word)**: Dilengkapi morfologi akar kata (root words) dan frekuensi kemunculan lafaz di dalam Al-Quran.
 
 ### 🎧 Audio & Murottal
-
-- **Audio Player Canggih**: Pemutaran gapless (tanpa jeda).
-- **Pilihan Qari**: Beragam Qari ternama (Mishary Rashid, Sudais, dll).
-- **Mode Muraja'ah**: Fitur pengulangan (loop) per ayat atau rentang ayat untuk hafalan.
-- **Download Manager**: Unduh audio per surat atau full 30 juz untuk didengarkan offline.
+- **Gapless Audio Player**: Pemutaran audio ayat berkesinambungan tanpa jeda yang mengganggu.
+- **Pilihan Qari Internasional**: Murottal dari para syaikh terkemuka (Ali Huthaify, Abdurrahman As-Sudais, dll.).
+- **Mode Muraja'ah & Hifz**: Pengulangan fleksibel (per ayat atau rentang ayat) dengan hitungan pengulangan kustom atau tanpa batas (*infinite loop*).
+- **Manajer Unduhan Offline**: Unduh audio per surat atau seluruh juz dengan dukungan *task-based resume* jika koneksi terputus.
 
 ### 🧠 Tadabbur & Refleksi
+- **Jurnal Tadabbur Pribadi**: Catat perenungan dan hikmah ayat langsung ke ruang catatan yang terenkripsi lokal.
+- **Ayat Pelipur Lara (Kondisi Hati)**: Temukan bimbingan dan penawar dari Al-Quran saat merasakan sedih, cemas, ragu, atau bersyukur.
+- **Indeks Tematik**: Telusuri ayat-ayat pilihan berdasarkan tema ibadah, akhlak, muamalah, akidah, dan kisah para nabi.
+- **Asmaul Husna**: 99 Nama Allah lengkap dengan makna, dalil ayat rujukan, dan penjelasan.
+- **Kuis Al-Quran**: Asah dan uji wawasan seputar isi dan sejarah Al-Quran secara interaktif.
 
-- **Jurnal Tadabbur**: Tulis dan simpan catatan refleksi pribadi Anda.
-- **Ayat Pelipur Lara**: Temukan ayat-ayat penenang berdasarkan emosi (Sedih, Cemas, Marah, dll).
-- **Indeks Topik**: Jelajahi ayat berdasarkan tema kehidupan.
-- **Kuis Al-Quran**: Uji wawasan Anda tentang Al-Quran.
-- **Asmaul Husna**: Pelajari 99 nama Allah yang indah.
-
-### 🛠️ Produktivitas & Teknis
-
-- **Target Khatam**: Hitung target bacaan harian dan pantau progres.
-- **Statistik Ibadah**: Heatmap visual untuk memantau konsistensi membaca.
-- **Backup & Restore**: Amankan data catatan dan bookmark Anda ke dalam file JSON.
-- **Resume Download**: Lanjutkan unduhan audio/mushaf yang terputus.
-- **Multi-Platform**: Tersedia sebagai PWA (Web), Android, dan Desktop.
+### 🛠️ Produktivitas & Kesiapan Offline
+- **Target Khatam Terukur**: Kalkulasi target halaman harian, estimasi tanggal khatam, dan tren kecepatan tilawah.
+- **Heatmap Aktivitas Ibadah**: Visualisasi kalender tilawah harian untuk menjaga konsistensi (*istiqamah*).
+- **Mode Hafalan**: Sembunyikan sebagian atau seluruh lafaz ayat (blur, ghost, first & last word) untuk menguji kekuatan hafalan.
+- **Pencarian Cepat & Global**: Cari surat, nama surat, nomor ayat, atau kata kunci terjemahan secara instan.
+- **Cadangkan & Pulihkan (Backup/Restore)**: Ekspor dan impor catatan, bookmark, serta progres khatam dalam format JSON.
 
 ---
 
-## 🛠️ Teknologi
+## 📥 Unduh Aplikasi
 
-- **Frontend**: React, TypeScript, Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Storage**: IndexedDB (`idb`), Cache API (untuk Audio & Gambar Mushaf)
-- **Runtime Native**:
-  - Android: Capacitor
-  - Desktop: Electron
+Bashirah dapat digunakan langsung di web atau dipasang ke perangkat Anda:
 
----
+| Platform | Distribusi | Keterangan |
+| :--- | :--- | :--- |
+| **Web / PWA** | [Buka di Browser](https://bashirah.aiprojek01.my.id) | Klik tombol *"Install App"* / *"Add to Home Screen"* |
+| **Android** | APK Installer | Tersedia pada halaman rilis repositori |
+| **Desktop** | Windows / macOS / Linux | Paket installer installer mandiri (Electron) |
 
-## 🔄 Migrasi Teknologi
-
-- **Local Storage ➜ IndexedDB**  
-  Migrasi data user (bookmark, catatan, history, pengaturan) untuk stabilitas dan skala data yang lebih baik.
-
-- **Cache Audio/Mushaf v1 ➜ v2**  
-  Diterapkan versioning cache yang lebih ketat dengan kompatibilitas data lama.
-
-- **Online-first ➜ Offline-first**  
-  Jalur data penting kini memprioritaskan data lokal agar aplikasi cepat dan stabil di koneksi lemah.
-
-- **Unduhan stateless ➜ task-based resume**  
-  Progress unduhan kini persist di IndexedDB, dapat dilanjutkan tanpa mengulang dari nol.
+> 🔗 Kunjungi halaman rilis untuk mengunduh versi biner terbaru:  
+> [**GitHub Releases — Bashirah**](https://github.com/aiprojek/Bashirah/releases)
 
 ---
 
-## 🗺️ Roadmap Singkat
+## 🛠️ Teknologi & Arsitektur
 
-### Berikutnya (Near-term)
+Bashirah dirancang dengan prinsip modularitas tinggi, pemisahan dependensi yang bersih, dan skalabilitas data:
 
-- Penyempurnaan animasi transisi mushaf agar tetap halus di perangkat low-end.
-- Optimasi performa daftar surat panjang (virtualized rendering yang lebih agresif).
-- Pemerataan polish komponen mobile (tombol, jarak, dan state loading/error).
-
-### Menengah (Mid-term)
-
-- Smart prefetch data ayat/audio berdasarkan pola baca pengguna.
-- Paket offline per tema (mis. “paket hafalan”, “paket tafsir ringkas”).
-- Observabilitas lokal untuk mendeteksi kegagalan unduhan/cache lebih dini.
-
----
-
-## 🚀 Cara Menjalankan (Development)
-
-1.  **Clone repositori**
-
-    ```bash
-    git clone https://github.com/aiprojek/Bashirah.git
-    cd Bashirah
-    ```
-
-2.  **Instal dependensi**
-
-    ```bash
-    npm install
-    ```
-
-3.  **Jalankan server development**
-
-    ```bash
-    npm run dev
-    ```
-
-    Untuk Android (Capacitor):
-
-    ```bash
-    npm run android
-    ```
-
-    Untuk build desktop (Electron):
-
-    ```bash
-    npm run electron:build
-    ```
-
-4.  **Build untuk Produksi**
-    ```bash
-    npm run build
-    ```
+- **Frontend Core**: [React](https://react.dev/) 18, [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
+- **Styling & UI**: [Tailwind CSS](https://tailwindcss.com/), [Lucide React Icons](https://lucide.dev/)
+- **Penyimpanan Lokal (Persistence)**:
+  - `IndexedDB` (via `idb`) untuk profil pengguna, bookmark, catatan tadabbur, task unduhan, riwayat khatam, dan cache teks.
+  - `Cache API` untuk berkas audio murottal dan halaman gambar mushaf.
+- **Runtimes Native**:
+  - **Android**: [@capacitor/core](https://capacitorjs.com/) & Capacitor CLI
+  - **Desktop**: [Electron](https://www.electronjs.org/)
 
 ---
 
-## 📚 Sumber Data
+## 🚀 Panduan Pengembang (Development)
 
-- **Teks Al-Quran & Metadata**: [Github Risan](https://github.com/risan/quran-json).
-- **Audio Murottal, Gambar Mushaf, Audio, Tajwid**: [Al-Quran Cloud](https://alquran.cloud/api).
-- **Info surat offline, morphology, dan pengayaan data Quran**: [Quranic Universal Library (QUL)](https://qul.tarteel.ai/).
+### Prasyarat
+- [Node.js](https://nodejs.org/) versi 18.x atau 20.x LTS
+- Manajer paket `npm` (atau `pnpm` / `yarn`)
+
+### Menjalankan Lokal
+
+1. **Kloning Repositori**:
+   ```bash
+   git clone https://github.com/aiprojek/Bashirah.git
+   cd Bashirah
+   ```
+
+2. **Pasang Dependensi**:
+   ```bash
+   npm install
+   ```
+
+3. **Jalankan Server Development**:
+   ```bash
+   npm run dev
+   ```
+   Buka peramban di `http://localhost:3000` (atau port yang tertera pada konsol).
+
+4. **Kompilasi / Build Produksi**:
+   ```bash
+   npm run build
+   ```
+
+### Target Platform (Android & Desktop)
+
+- **Menjalankan Target Android (Capacitor)**:
+  ```bash
+  npm run android
+  ```
+- **Membangun Paket Desktop (Electron)**:
+  ```bash
+  npm run electron:build
+  ```
 
 ---
 
-## 🤖 Bantuan AI dalam Pengembangan
+## 📚 Sumber Data & Atribusi
 
-Pengembangan Bashirah dibantu oleh beberapa asisten AI untuk riset, refactor, validasi logika, dan percepatan iterasi:
+Kami berterima kasih kepada penyedia data terbuka Al-Quran yang memungkinkan aplikasi ini terwujud:
 
-- **Gemini**
-- **GPT Codex**
-- **Antigravity**
+- **Teks Al-Quran & Terjemahan**: [quran-json oleh Risan](https://github.com/risan/quran-json).
+- **Murottal Audio, Lembar Mushaf, & Tajwid**: [Al-Quran Cloud API](https://alquran.cloud/api).
+- **Morfologi & Data Pengayaan Quran**: [Quranic Universal Library (QUL)](https://qul.tarteel.ai/) oleh Tarteel.
 
-Barakallahu fiikum.
+---
+
+## 💖 Dukungan & Donasi
+
+Bagi Anda yang ingin mendukung keberlangsungan pengembangan, pemeliharaan server, dan penambahan fitur-fitur baru aplikasi Bashirah, Anda dapat menyalurkan donasi dukungan melalui tautan berikut:
+
+👉 [**Donasi Dukungan Pengembangan Aplikasi (Lynk.id)**](https://lynk.id/aiprojek/s/bvBJvdA)
+
+Dukungan Anda sangat berarti untuk memajukan inovasi teknologi Al-Quran terbuka bagi umat. *Jazakumullahu khairan katsiran.*
+
+---
+
+## 📜 Lisensi & Perjanjian Pengguna
+
+Aplikasi ini didistribusikan di bawah lisensi terbuka [GNU General Public License v3.0 (GPL-3.0)](https://www.gnu.org/licenses/gpl-3.0.html).
+
+Anda bebas menggunakan, memodifikasi, dan mendistribusikan aplikasi ini dengan tetap menyertakan atribusi sumber terbuka dan lisensi yang sama.
+
+---
+
+## 🤲 Ucapan Terima Kasih
+
+Pengembangan Bashirah didukung oleh riset pustaka Islam terbuka dan bantuan model AI generatif (Gemini, Codex, Antigravity, dan AI Studio) untuk refaktorisasi kode, optimasi algoritma data offline, serta penajaman desain antarmuka.
+
+Semoga aplikasi ini dapat menjadi amal jariyah dan memberikan manfaat luas bagi kaum muslimin di mana pun berada.  
+*Barakallahu fiikum.*

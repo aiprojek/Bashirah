@@ -625,7 +625,7 @@ const QuizPage: React.FC = () => {
 
                 <div className="flex flex-col gap-3 w-full max-w-xs">
                     <button 
-                        onClick={startGame}
+                        onClick={() => startGame(gameMode)}
                         className="py-4 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg hover:opacity-90 active:scale-95 transition-all"
                     >
                         <RefreshCw className="w-4 h-4" /> {t('quiz_btn_play_again')}

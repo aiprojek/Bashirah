@@ -12,7 +12,7 @@ interface MushafSetupOverlayProps {
 }
 
 const MushafSetupOverlay: React.FC<MushafSetupOverlayProps> = ({ onConfirm, onCancel, onGoToSettings }) => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [activeMushafId, setActiveMushafId] = useState<string>(MushafService.getActiveMushafId());
     const [downloads, setDownloads] = useState<Record<string, boolean>>({});
 
@@ -75,16 +75,16 @@ const MushafSetupOverlay: React.FC<MushafSetupOverlayProps> = ({ onConfirm, onCa
                                     >
                                         <div className="flex justify-between items-start mb-1">
                                             <span className={`text-sm font-bold ${isSelected ? 'text-quran-dark' : 'text-gray-700'}`}>
-                                                {edition.name}
+                                                {language === 'en' ? (edition.nameEn || edition.name) : edition.name}
                                             </span>
                                             {isSelected && <Check className="w-4 h-4 text-quran-gold" />}
                                         </div>
                                         <p className="text-[10px] text-gray-500 leading-tight">
-                                            {edition.description}
+                                            {language === 'en' ? (edition.descriptionEn || edition.description) : edition.description}
                                         </p>
                                         {isDownloaded && (
                                             <div className="mt-2 flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit">
-                                                <Download className="w-2 h-2" /> Offline Ready
+                                                <Download className="w-2 h-2" /> {t('mushaf_offline_ready')}
                                             </div>
                                         )}
                                     </button>

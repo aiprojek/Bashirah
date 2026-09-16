@@ -29,7 +29,9 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-stone-100 dark:border-slate-700 bg-stone-50/50 dark:bg-slate-700/30">
           <div className="flex items-center gap-2">
               <Globe className="w-5 h-5 text-quran-gold" />
-              <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif">Pilih Bahasa</h3>
+              <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif">
+                {currentAppLang === 'en' ? 'Select Language' : 'Pilih Bahasa'}
+              </h3>
           </div>
           <button 
             onClick={onClose}

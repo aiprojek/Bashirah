@@ -2,6 +2,7 @@
 import React from 'react';
 import { X, Type, CaseUpper, ChevronDown } from 'lucide-react';
 import { ArabicFontId, QURAN_ARABIC_FONT_OPTIONS, getArabicFontStack } from '../constants/quranFonts';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface FontSettingsModalProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
   translationFontSize,
   onTranslationFontSizeChange
 }) => {
+  const { language } = useLanguage();
   if (!isOpen) return null;
 
   const activeFont = QURAN_ARABIC_FONT_OPTIONS.find(option => option.id === arabicFontFamily) || QURAN_ARABIC_FONT_OPTIONS[0];
@@ -42,7 +44,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
             {/* Header */}
             <div className="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
                 <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg flex items-center gap-2">
-                    <Type className="w-5 h-5" /> Tampilan Ayat
+                    <Type className="w-5 h-5" /> {language === 'en' ? 'Verse Appearance' : 'Tampilan Ayat'}
                 </h3>
                 <button 
                     onClick={onClose}
@@ -59,7 +61,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                     <div className="flex justify-between items-center mb-3">
                         <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                             <span className="bg-quran-gold/10 p-1 rounded text-quran-dark dark:text-quran-gold"><Type className="w-3 h-3" /></span>
-                            Jenis Font Arab
+                            {language === 'en' ? 'Arabic Font Style' : 'Jenis Font Arab'}
                         </label>
                     </div>
                     <div className="relative">
@@ -83,11 +85,11 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                                     {activeFont.label}
                                 </div>
                                 <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                    {activeFont.description}
+                                    {language === 'en' && activeFont.descriptionEn ? activeFont.descriptionEn : activeFont.description}
                                 </div>
                             </div>
                             <span className="rounded-full bg-quran-gold/10 px-2 py-1 text-[10px] font-bold text-quran-dark dark:text-quran-gold">
-                                Dipilih
+                                {language === 'en' ? 'Selected' : 'Dipilih'}
                             </span>
                         </div>
                         <p
@@ -105,7 +107,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                     <div className="flex justify-between items-center mb-3">
                         <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                             <span className="bg-quran-gold/10 p-1 rounded text-quran-dark dark:text-quran-gold"><Type className="w-3 h-3" /></span>
-                            Ukuran Arab
+                            {language === 'en' ? 'Arabic Size' : 'Ukuran Arab'}
                         </label>
                         <span className="text-xs font-bold text-quran-gold bg-stone-50 dark:bg-slate-700 border border-stone-100 dark:border-slate-600 px-2 py-0.5 rounded">{arabicFontSize}px</span>
                     </div>
@@ -142,7 +144,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                     <div className="flex justify-between items-center mb-3">
                         <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                              <span className="bg-stone-100 dark:bg-slate-700 p-1 rounded text-gray-500 dark:text-gray-300"><Type className="w-3 h-3" /></span>
-                             Ukuran Terjemahan
+                             {language === 'en' ? 'Translation Size' : 'Ukuran Terjemahan'}
                         </label>
                         <span className="text-xs font-bold text-quran-gold bg-stone-50 dark:bg-slate-700 border border-stone-100 dark:border-slate-600 px-2 py-0.5 rounded">{translationFontSize}px</span>
                     </div>
@@ -163,7 +165,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                      {/* Live Preview */}
                      <div className="mt-3 p-4 bg-stone-50 dark:bg-slate-700/30 rounded-xl border border-stone-100 dark:border-slate-700 text-left shadow-inner">
                         <p className="text-gray-600 dark:text-gray-300 font-serif italic leading-relaxed transition-all duration-200" style={{ fontSize: `${translationFontSize}px` }}>
-                            Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang.
+                            {language === 'en' ? 'In the name of Allah, the Entirely Merciful, the Especially Merciful.' : 'Dengan menyebut nama Allah Yang Maha Pengasih lagi Maha Penyayang.'}
                         </p>
                     </div>
                 </div>
@@ -176,7 +178,7 @@ const FontSettingsModal: React.FC<FontSettingsModalProps> = ({
                     onClick={onClose}
                     className="w-full py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg"
                 >
-                    Selesai
+                    {language === 'en' ? 'Done' : 'Selesai'}
                 </button>
             </div>
         </div>

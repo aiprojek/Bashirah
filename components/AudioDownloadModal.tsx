@@ -4,8 +4,10 @@ import { useAudio } from '../contexts/AudioContext';
 import { Download, Wifi, X, Music, Loader2, Mic2, ChevronDown } from 'lucide-react';
 import { estimateSurahSize } from '../services/audioService';
 import { RECITERS } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 const AudioDownloadModal: React.FC = () => {
+  const { language, t } = useLanguage();
   const { 
     downloadPrompt, 
     isDownloading, 
@@ -34,10 +36,10 @@ const AudioDownloadModal: React.FC = () => {
                  {isDownloading ? <Loader2 className="w-8 h-8 animate-spin" /> : <Music className="w-8 h-8" />}
              </div>
              <h3 className="text-lg font-bold text-quran-dark dark:text-white font-serif mb-1">
-                 {isDownloading ? 'Mengunduh Audio...' : 'Putar Audio'}
+                 {isDownloading ? (language === 'en' ? 'Downloading Audio...' : 'Mengunduh Audio...') : (language === 'en' ? 'Play Audio' : 'Putar Audio')}
              </h3>
              <p className="text-sm text-gray-500 dark:text-gray-400">
-                 Surat {downloadPrompt.surahName}
+                 {t('surah')} {downloadPrompt.surahName}
              </p>
           </div>
 
@@ -54,13 +56,17 @@ const AudioDownloadModal: React.FC = () => {
                             style={{ width: `${downloadProgress}%` }}
                           ></div>
                       </div>
-                      <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-2">Mohon tunggu sebentar...</p>
+                      <p className="text-center text-xs text-gray-400 dark:text-gray-500 mt-2">
+                          {language === 'en' ? 'Please wait a moment...' : 'Mohon tunggu sebentar...'}
+                      </p>
                   </div>
               ) : (
                   <div className="space-y-4">
                       {/* Reciter Selector */}
                       <div className="bg-stone-50 dark:bg-slate-700 p-3 rounded-xl border border-stone-100 dark:border-slate-600">
-                          <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-400 block mb-2 tracking-wider">Pilih Qari (Pembaca)</label>
+                          <label className="text-[10px] uppercase font-bold text-gray-400 dark:text-gray-400 block mb-2 tracking-wider">
+                              {language === 'en' ? 'Select Reciter (Qari)' : 'Pilih Qari (Pembaca)'}
+                          </label>
                           <div className="relative">
                                 <Mic2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-quran-gold" />
                                 <select 
@@ -77,7 +83,7 @@ const AudioDownloadModal: React.FC = () => {
                       </div>
 
                       <p className="text-center text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
-                          Audio surat ini belum tersimpan.
+                          {language === 'en' ? 'Audio for this surah is not yet saved locally.' : 'Audio surat ini belum tersimpan.'}
                       </p>
 
                       <button 
@@ -87,8 +93,12 @@ const AudioDownloadModal: React.FC = () => {
                           <div className="flex items-center gap-3">
                               <div className="bg-white/10 dark:bg-black/10 p-2 rounded-lg"><Download className="w-5 h-5" /></div>
                               <div className="text-left">
-                                  <div className="font-bold text-sm">Unduh & Putar</div>
-                                  <div className="text-[10px] opacity-70">Simpan Offline (~{estimatedSize})</div>
+                                  <div className="font-bold text-sm">
+                                      {language === 'en' ? 'Download & Play' : 'Unduh & Putar'}
+                                  </div>
+                                  <div className="text-[10px] opacity-70">
+                                      {language === 'en' ? `Save Offline (~${estimatedSize})` : `Simpan Offline (~${estimatedSize})`}
+                                  </div>
                               </div>
                           </div>
                           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
@@ -96,7 +106,9 @@ const AudioDownloadModal: React.FC = () => {
 
                       <div className="relative flex py-2 items-center">
                           <div className="flex-grow border-t border-gray-200 dark:border-slate-700"></div>
-                          <span className="flex-shrink-0 mx-4 text-gray-400 dark:text-gray-500 text-xs font-bold uppercase">Atau</span>
+                          <span className="flex-shrink-0 mx-4 text-gray-400 dark:text-gray-500 text-xs font-bold uppercase">
+                              {language === 'en' ? 'Or' : 'Atau'}
+                          </span>
                           <div className="flex-grow border-t border-gray-200 dark:border-slate-700"></div>
                       </div>
 
@@ -107,8 +119,12 @@ const AudioDownloadModal: React.FC = () => {
                           <div className="flex items-center gap-3">
                               <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-lg text-gray-500 dark:text-gray-300"><Wifi className="w-5 h-5" /></div>
                               <div className="text-left">
-                                  <div className="font-bold text-sm">Stream Online</div>
-                                  <div className="text-[10px] text-gray-400 dark:text-gray-500">Gunakan Internet</div>
+                                  <div className="font-bold text-sm">
+                                      {language === 'en' ? 'Stream Online' : 'Stream Online'}
+                                  </div>
+                                  <div className="text-[10px] text-gray-400 dark:text-gray-500">
+                                      {language === 'en' ? 'Use Internet Data' : 'Gunakan Internet'}
+                                  </div>
                               </div>
                           </div>
                       </button>

@@ -6,7 +6,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { getVersesByPage, showToast } from '../services/quranService';
 import { getPageUrl, isMushafInitialized, setMushafInitialized } from '../services/mushafService';
 import * as StorageService from '../services/storageService';
-import { LastReadData } from '../types';
+import { LastReadData, LanguageCode } from '../types';
 import ConfirmationModal from './ConfirmationModal';
 import MushafSetupOverlay from './MushafSetupOverlay';
 
@@ -33,7 +33,8 @@ const MushafView: React.FC<MushafViewProps> = ({
   language = 'id'
 }) => {
   const navigate = useNavigate();
-  // const { language } = useLanguage(); // Removing local useLanguage to use prop
+  const { t, language: contextLang } = useLanguage();
+  const effectiveLang = language || contextLang;
   const [isInitialized, setIsInitialized] = useState(isMushafInitialized());
   const [currentPage, setCurrentPage] = useState(startPage);
   const [loadingImage, setLoadingImage] = useState(true);
@@ -111,6 +112,31 @@ const MushafView: React.FC<MushafViewProps> = ({
       window.addEventListener('storage-update', checkLastRead);
       return () => window.removeEventListener('storage-update', checkLastRead);
   }, []);
+
+  // Auto-save read verse when viewing Mushaf page (debounced)
+  useEffect(() => {
+    let isCancelled = false;
+    const timer = setTimeout(async () => {
+      try {
+        const verses = await getVersesByPage(currentPage, translationId, false, language, false);
+        if (!isCancelled && verses && verses.length > 0) {
+          const firstVerse = verses[0];
+          StorageService.saveAutoLastRead(
+            firstVerse.surah.number,
+            firstVerse.surah.englishName,
+            firstVerse.numberInSurah,
+            currentPage
+          );
+        }
+      } catch (e) {
+        // silent fail
+      }
+    }, 2000);
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
+  }, [currentPage, translationId, language]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -323,7 +349,7 @@ const MushafView: React.FC<MushafViewProps> = ({
           }
       } catch (e) {
           console.error("Gagal menandai halaman", e);
-          alert("Gagal menyimpan progres. Periksa koneksi internet.");
+          alert(effectiveLang === 'en' ? 'Failed to save progress. Please check your connection.' : 'Gagal menyimpan progres. Periksa koneksi internet.');
       } finally {
           setIsMarkingRead(false);
       }
@@ -435,32 +461,32 @@ const MushafView: React.FC<MushafViewProps> = ({
                                     onClick={() => { handlePrevPage(); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <ChevronLeft className="w-4 h-4" /> Halaman Sebelumnya
+                                    <ChevronLeft className="w-4 h-4" /> {t('page_prev')}
                                 </button>
                                 <button
                                     onClick={() => { handleNextPage(); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <ChevronRight className="w-4 h-4" /> Halaman Berikutnya
+                                    <ChevronRight className="w-4 h-4" /> {t('page_next')}
                                 </button>
                                 <div className="h-px bg-stone-100" />
                                 <button
                                     onClick={handleGoList}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <ScrollText className="w-4 h-4" /> Daftar
+                                    <ScrollText className="w-4 h-4" /> {effectiveLang === 'en' ? 'List' : 'Daftar'}
                                 </button>
                                 <button
                                     onClick={() => { onSwitchToText?.(currentPage); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <BookOpen className="w-4 h-4" /> Teks
+                                    <BookOpen className="w-4 h-4" /> {effectiveLang === 'en' ? 'Text' : 'Teks'}
                                 </button>
                                 <button
                                     onClick={() => { onOpenQuickJump?.(); setShowOptionsMenu(false); }}
                                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-stone-50"
                                 >
-                                    <Compass className="w-4 h-4" /> Pindah Cepat
+                                    <Compass className="w-4 h-4" /> {effectiveLang === 'en' ? 'Quick Jump' : 'Pindah Cepat'}
                                 </button>
                             </div>
                         )}
@@ -474,7 +500,7 @@ const MushafView: React.FC<MushafViewProps> = ({
                             ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
                             : 'bg-stone-50 text-stone-500 border-stone-100 hover:bg-stone-100'
                         }`}
-                        title="Update Progres Khatam"
+                        title={effectiveLang === 'en' ? 'Update Khatam Progress' : 'Update Progres Khatam'}
                     >
                         <Target className="w-4 h-4" />
                     </button>
@@ -488,19 +514,19 @@ const MushafView: React.FC<MushafViewProps> = ({
                             ? 'bg-green-100 text-green-700 border-green-200' 
                             : 'bg-white text-gray-600 border-stone-200 hover:bg-stone-50'
                         }`}
-                        title={isCurrentPageLastRead ? "Halaman Terakhir Dibaca" : "Tandai Selesai Dibaca"}
+                        title={isCurrentPageLastRead ? (effectiveLang === 'en' ? "Last Read Page" : "Halaman Terakhir Dibaca") : (effectiveLang === 'en' ? "Mark Page as Read" : "Tandai Selesai Dibaca")}
                     >
                         {isMarkingRead ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
                         ) : isCurrentPageLastRead ? (
                             <>
                                 <Check className="w-4 h-4" />
-                                <span className="hidden sm:inline">Tandai</span>
+                                <span className="hidden sm:inline">{effectiveLang === 'en' ? 'Mark' : 'Tandai'}</span>
                             </>
                         ) : (
                             <>
                                 <Bookmark className="w-4 h-4" />
-                                <span className="hidden sm:inline">Tandai</span>
+                                <span className="hidden sm:inline">{effectiveLang === 'en' ? 'Mark' : 'Tandai'}</span>
                             </>
                         )}
                     </button>
@@ -508,30 +534,30 @@ const MushafView: React.FC<MushafViewProps> = ({
                     <button 
                         onClick={() => setIsFullscreen(true)}
                         className="p-2 bg-stone-100 rounded-full hover:bg-stone-200 text-gray-600 hidden sm:block"
-                        title="Layar Penuh"
+                        title={effectiveLang === 'en' ? 'Fullscreen' : 'Layar Penuh'}
                     >
                         <Maximize2 className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => onOpenQuickJump?.()}
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-quran-gold/10 text-quran-dark rounded-lg text-xs font-bold hover:bg-quran-gold/20"
-                        title="Pindah Cepat"
+                        title={effectiveLang === 'en' ? 'Quick Jump' : 'Pindah Cepat'}
                     >
-                        <Compass className="w-3 h-3" /> <span className="hidden sm:inline">Pindah Cepat</span>
+                        <Compass className="w-3 h-3" /> <span className="hidden sm:inline">{effectiveLang === 'en' ? 'Quick Jump' : 'Pindah Cepat'}</span>
                     </button>
                     <button
                         onClick={handleGoList}
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
-                        title="Mode List"
+                        title={effectiveLang === 'en' ? 'List Mode' : 'Mode List'}
                     >
-                        <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">Daftar</span>
+                        <ScrollText className="w-3 h-3" /> <span className="hidden sm:inline">{effectiveLang === 'en' ? 'List' : 'Daftar'}</span>
                     </button>
                     <button
                         onClick={() => onSwitchToText?.(currentPage)}
                         className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 rounded-lg text-xs font-bold border border-stone-200 hover:bg-stone-50"
-                        title="Mushaf Teks"
+                        title={effectiveLang === 'en' ? 'Text Mushaf' : 'Mushaf Teks'}
                     >
-                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">Teks</span>
+                        <BookOpen className="w-3 h-3" /> <span className="hidden sm:inline">{effectiveLang === 'en' ? 'Text' : 'Teks'}</span>
                     </button>
                 </div>
             </div>
@@ -567,7 +593,7 @@ const MushafView: React.FC<MushafViewProps> = ({
                          onClick={(e) => { e.stopPropagation(); handlePrevPage(); }}
                          disabled={currentPage <= 1 || isTurning}
                          className="absolute left-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors disabled:opacity-30"
-                         title="Halaman Sebelumnya"
+                         title={t('page_prev')}
                      >
                          <ChevronLeft className="w-6 h-6" />
                      </button>
@@ -575,7 +601,7 @@ const MushafView: React.FC<MushafViewProps> = ({
                          onClick={(e) => { e.stopPropagation(); handleNextPage(); }}
                          disabled={currentPage >= 604 || isTurning}
                          className="absolute right-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-black/40 text-white hover:bg-black/60 backdrop-blur-sm transition-colors disabled:opacity-30"
-                         title="Halaman Berikutnya"
+                         title={t('page_next')}
                      >
                          <ChevronRight className="w-6 h-6" />
                      </button>
@@ -661,16 +687,16 @@ const MushafView: React.FC<MushafViewProps> = ({
              {/* Pan Indicator (Visual Hint when zoomed) */}
              {scale > 1 && (
                  <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 backdrop-blur-sm pointer-events-none z-30">
-                     <Move className="w-3 h-3" /> Geser untuk melihat
+                     <Move className="w-3 h-3" /> {effectiveLang === 'en' ? 'Pan to view' : 'Geser untuk melihat'}
                  </div>
              )}
 
              {/* Error Message */}
              {error && (
                  <div className="absolute inset-0 flex flex-col items-center justify-center z-10 text-center p-4 bg-[#f4f1ea]">
-                     <p className="text-gray-500 mb-4 text-sm">Gagal memuat gambar.</p>
+                     <p className="text-gray-500 mb-4 text-sm">{effectiveLang === 'en' ? 'Failed to load image.' : 'Gagal memuat gambar.'}</p>
                      <button onClick={handleRetry} className="flex items-center gap-2 px-4 py-2 bg-quran-dark text-white rounded-lg text-sm">
-                        <RefreshCw className="w-4 h-4" /> Coba Lagi
+                        <RefreshCw className="w-4 h-4" /> {effectiveLang === 'en' ? 'Try Again' : 'Coba Lagi'}
                      </button>
                  </div>
              )}
@@ -684,7 +710,7 @@ const MushafView: React.FC<MushafViewProps> = ({
                         onClick={handleNextPage} 
                         disabled={currentPage >= 604 || isTurning}
                         className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
-                        title="Halaman Selanjutnya"
+                        title={t('page_next')}
                      >
                          <ChevronLeft className="w-5 h-5" />
                      </button>
@@ -716,7 +742,7 @@ const MushafView: React.FC<MushafViewProps> = ({
                         onClick={handlePrevPage} 
                         disabled={currentPage <= 1 || isTurning}
                         className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
-                        title="Halaman Sebelumnya"
+                        title={t('page_prev')}
                      >
                          <ChevronRight className="w-5 h-5" />
                      </button>
@@ -740,7 +766,7 @@ const MushafView: React.FC<MushafViewProps> = ({
             <div className="px-6 py-3 flex items-center justify-between bg-white border-b border-stone-100">
                 <div className="flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-quran-gold" />
-                    <h3 className="font-bold text-quran-dark">Terjemahan Halaman {currentPage}</h3>
+                    <h3 className="font-bold text-quran-dark">{effectiveLang === 'en' ? 'Translation for Page' : 'Terjemahan Halaman'} {currentPage}</h3>
                 </div>
                 <button 
                     onClick={() => setShowTranslationSheet(false)} 

@@ -199,10 +199,73 @@ export const downloadSurahInfoPack = async (language: LanguageCode = 'id', url?:
   throw new Error('Format surah info pack tidak valid.');
 };
 
-export const getWordMorphologyDetails = async (surahId: number, verseId: number, wordPosition: number) => {
-  return DB.getWordMorphology(surahId, verseId, wordPosition);
+let inMemoryAyahMorphologyCache: Map<string, AyahMorphology> | null = null;
+let ayahMorphologyFetchPromise: Promise<Map<string, AyahMorphology>> | null = null;
+
+const loadAyahMorphologyMap = async (): Promise<Map<string, AyahMorphology>> => {
+  if (inMemoryAyahMorphologyCache) return inMemoryAyahMorphologyCache;
+  if (ayahMorphologyFetchPromise) return ayahMorphologyFetchPromise;
+
+  ayahMorphologyFetchPromise = (async () => {
+    try {
+      const response = await fetch(LOCAL_QUL_AYAH_MORPHOLOGY_PACK_URL);
+      if (!response.ok) return new Map();
+      const data: AyahMorphologyPackEntry[] = await response.json();
+      const map = new Map<string, AyahMorphology>();
+      for (const entry of data) {
+        map.set(`${entry.surahId}_${entry.verseId}`, normalizeAyahMorphologyEntry(entry));
+      }
+      inMemoryAyahMorphologyCache = map;
+      return map;
+    } catch (e) {
+      console.warn('Failed to fetch local ayah morphology pack:', e);
+      return new Map();
+    } finally {
+      ayahMorphologyFetchPromise = null;
+    }
+  })();
+
+  return ayahMorphologyFetchPromise;
 };
 
-export const getAyahMorphologyDetails = async (surahId: number, verseId: number) => {
-  return DB.getAyahMorphology(surahId, verseId);
+export const getAyahMorphologyDetails = async (surahId: number, verseId: number): Promise<AyahMorphology | undefined> => {
+  const local = await DB.getAyahMorphology(surahId, verseId);
+  if (local) return local;
+
+  const map = await loadAyahMorphologyMap();
+  return map.get(`${surahId}_${verseId}`);
+};
+
+export const getWordMorphologyDetails = async (surahId: number, verseId: number, wordPosition: number): Promise<WordMorphology | undefined> => {
+  const local = await DB.getWordMorphology(surahId, verseId, wordPosition);
+  if (local) return local;
+
+  // Fallback: derive root, lemma, stem from ayah morphology pack tokens
+  const ayah = await getAyahMorphologyDetails(surahId, verseId);
+  if (ayah) {
+    const splitTokens = (text?: string) => text ? text.trim().split(/\s+/) : [];
+    const roots = splitTokens(ayah.rootText);
+    const lemmas = splitTokens(ayah.lemmaText);
+    const stems = splitTokens(ayah.stemText);
+    const idx = wordPosition - 1;
+
+    const root = roots[idx] && roots[idx] !== '-' ? roots[idx] : undefined;
+    const lemma = lemmas[idx] && lemmas[idx] !== '-' ? lemmas[idx] : undefined;
+    const stem = stems[idx] && stems[idx] !== '-' ? stems[idx] : undefined;
+
+    if (root || lemma || stem) {
+      return {
+        surahId,
+        verseId,
+        wordPosition,
+        root,
+        lemma,
+        stem,
+        morphology: undefined,
+        source: 'QUL',
+      };
+    }
+  }
+
+  return undefined;
 };

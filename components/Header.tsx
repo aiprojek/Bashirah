@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSidebar }) => {
                     <button 
                         onClick={handleBack}
                         className="p-2 -ml-2 rounded-full hover:bg-stone-100 dark:hover:bg-slate-800 text-quran-dark dark:text-gray-100 transition-all group"
-                        aria-label="Kembali"
+                        aria-label={t('btn_back')}
                     >
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                     </button>

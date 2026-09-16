@@ -9,7 +9,7 @@ import ReadingHeatmap from '../components/ReadingHeatmap'; // New Import
 import { useLanguage } from '../contexts/LanguageContext';
 
 const LibraryPage: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [bookmarks, setBookmarks] = useState<BookmarkData[]>([]);
   const [notes, setNotes] = useState<NoteData[]>([]);
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'notes'>('bookmarks');
@@ -235,7 +235,7 @@ const LibraryPage: React.FC = () => {
                     </div>
                     
                     <div className="p-8 max-h-[60vh] overflow-y-auto bg-white dark:bg-slate-800">
-                         <div className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">Catatan Anda</div>
+                         <div className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">{language === 'en' ? 'Your Notes' : 'Catatan Anda'}</div>
                          <div className="text-gray-700 dark:text-gray-200 leading-loose font-serif text-lg italic whitespace-pre-wrap">
                              "{selectedNote.text}"
                          </div>

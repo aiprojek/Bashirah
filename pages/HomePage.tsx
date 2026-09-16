@@ -5,12 +5,15 @@ import SurahCard from '../components/SurahCard';
 import Search from '../components/Search';
 import Loading from '../components/Loading';
 import KhatamWidget from '../components/KhatamWidget';
+import AutoLastReadWidget from '../components/AutoLastReadWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
 import KhatamCelebrationModal from '../components/KhatamCelebrationModal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import { getAllSurahs, JUZ_START_MAPPING, SAJDAH_VERSES, getHizbList, getVersesByPage, getPageStartLocal } from '../services/quranService';
+import { getManzilList, ManzilItem } from '../services/manzilService';
 import * as StorageService from '../services/storageService';
 import { Surah, LastReadData, KhatamTarget } from '../types';
-import { Clock, ChevronRight, Sparkles, Bookmark, FileText, Loader2 } from 'lucide-react';
+import { Clock, ChevronRight, Sparkles, Bookmark, FileText, Loader2, Trash2, Calendar, BookOpen, Layers } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface HomePageProps {
@@ -27,6 +30,8 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const [khatamTarget, setKhatamTarget] = useState<KhatamTarget | null>(null);
   const [khatamLastRead, setKhatamLastRead] = useState<LastReadData | null>(null);
   const [showCelebration, setShowCelebration] = useState(false);
+  const [showDeleteManualConfirm, setShowDeleteManualConfirm] = useState(false);
+  const [manzils, setManzils] = useState<ManzilItem[]>([]);
   
   // State for Ayat of the Day Modal
   const [showAyatModal, setShowAyatModal] = useState(false);
@@ -36,7 +41,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const [isNavigatingPage, setIsNavigatingPage] = useState(false);
   
   // Tab State
-  const [activeTab, setActiveTab] = useState<'surah' | 'juz' | 'hizb' | 'sajdah' | 'halaman'>('surah');
+  const [activeTab, setActiveTab] = useState<'surah' | 'juz' | 'halaman' | 'manzil' | 'hizb' | 'sajdah'>('surah');
   
   const navigate = useNavigate();
 
@@ -80,8 +85,12 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
     const fetchSurahs = async () => {
       setLoading(true);
       try {
-        const data = await getAllSurahs(language);
+        const [data, manzilData] = await Promise.all([
+          getAllSurahs(language),
+          getManzilList(),
+        ]);
         setSurahs(data);
+        setManzils(manzilData);
       } catch (e) {
         console.error(e);
       } finally {
@@ -127,7 +136,9 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
           <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm flex items-center justify-center">
               <div className="bg-white p-6 rounded-2xl flex flex-col items-center gap-3 shadow-2xl">
                   <Loader2 className="w-8 h-8 text-quran-gold animate-spin" />
-                  <p className="text-sm font-bold text-gray-600">Membuka Halaman...</p>
+                  <p className="text-sm font-bold text-gray-600">
+                    {language === 'en' ? 'Opening Page...' : 'Membuka Halaman...'}
+                  </p>
               </div>
           </div>
       )}
@@ -183,72 +194,113 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
             {/* Khatam Tracker */}
             <KhatamWidget />
 
-            {/* Last Read Section - Now Dual Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-                {/* 1. Manual Last Read */}
-                {lastRead && (
-                    <div className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" onClick={handleContinueReading}>
-                        <div className="flex items-center gap-4">
-                            <div className="bg-quran-gold/10 p-3 rounded-full text-quran-gold">
-                                <Bookmark className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">{t('last_read')} (Manual)</p>
-                                <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
-                                    {lastRead.surahName} <span className="font-normal text-gray-400 text-sm">Ayat {lastRead.verseId}</span>
-                                </h3>
-                            </div>
+            {/* Manual Last Read (Compact, mobile-optimized, only shows if user has marked a verse) */}
+            {lastRead && (
+                <div 
+                    onClick={handleContinueReading}
+                    className="w-full bg-white dark:bg-slate-800 border border-stone-200/80 dark:border-slate-700/80 rounded-2xl p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-quran-gold/40 dark:hover:border-quran-gold/40 transition-all cursor-pointer mb-5 flex items-center justify-between group"
+                >
+                    <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-quran-gold/10 dark:bg-quran-gold/20 flex items-center justify-center text-quran-gold shrink-0">
+                            <Bookmark className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                         </div>
-                        <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-full text-gray-400 dark:text-gray-300 group-hover:bg-quran-dark group-hover:text-white transition-colors">
-                            <ChevronRight className="w-5 h-5" />
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 mb-0.5">
+                                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-quran-gold">
+                                    {language === 'en' ? 'Last Read (Manual)' : 'Tanda Baca Terakhir'}
+                                </span>
+                                {lastRead.pageNumber > 0 && (
+                                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-medium">
+                                        • {language === 'en' ? 'Page' : 'Hal.'} {lastRead.pageNumber}
+                                    </span>
+                                )}
+                            </div>
+                            <h3 className="font-bold text-sm sm:text-base text-quran-dark dark:text-gray-100 truncate group-hover:text-quran-gold transition-colors">
+                                {lastRead.surahName}{' '}
+                                <span className="font-semibold text-xs sm:text-sm text-gray-500 dark:text-gray-400 ml-1">
+                                    {language === 'en' ? 'Verse' : 'Ayat'} {lastRead.verseId}
+                                </span>
+                            </h3>
                         </div>
                     </div>
-                )}
 
-                {/* 2. Khatam Progress Card */}
-                {khatamTarget && khatamTarget.isActive && (
-                    <div 
-                        className="bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-center justify-between group cursor-pointer" 
-                        onClick={() => handlePageClick(khatamTarget.currentPage)}
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="bg-emerald-500/10 p-3 rounded-full text-emerald-600 dark:text-emerald-400">
-                                <FileText className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <p className="text-xs text-gray-400 font-bold uppercase tracking-wider mb-0.5">Progres Khatam</p>
-                                <h3 className="font-bold text-quran-dark dark:text-gray-100 text-lg">
-                                    Halaman {khatamTarget.currentPage}
-                                    <span className="font-normal text-gray-400 text-sm ml-2">({Math.round((khatamTarget.currentPage / 604) * 100)}%)</span>
-                                </h3>
-                            </div>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                        <span className="hidden sm:inline-block text-xs font-semibold text-quran-gold group-hover:underline">
+                            {language === 'en' ? 'Continue' : 'Lanjutkan'}
+                        </span>
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-stone-100 dark:bg-slate-700 group-hover:bg-quran-dark group-hover:text-white dark:group-hover:bg-quran-gold dark:group-hover:text-slate-900 flex items-center justify-center text-gray-400 transition-colors">
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                         </div>
-                        <div className="bg-stone-100 dark:bg-slate-700 p-2 rounded-full text-gray-400 dark:text-gray-300 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-                            <ChevronRight className="w-5 h-5" />
-                        </div>
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowDeleteManualConfirm(true);
+                            }}
+                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center transition-colors ml-0.5"
+                            title={language === 'en' ? 'Delete manual last read bookmark' : 'Hapus tanda baca terakhir'}
+                        >
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </button>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
+
+            {/* Delete Manual Last Read Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={showDeleteManualConfirm}
+                onClose={() => setShowDeleteManualConfirm(false)}
+                onConfirm={async () => {
+                    await StorageService.clearLastRead();
+                    setLastRead(null);
+                    setShowDeleteManualConfirm(false);
+                }}
+                title={language === 'en' ? 'Delete Last Read Bookmark?' : 'Hapus Tanda Baca Terakhir?'}
+                message={language === 'en' 
+                    ? `Remove manual bookmark for ${lastRead?.surahName} verse ${lastRead?.verseId}?`
+                    : `Hapus tanda baca terakhir untuk surat ${lastRead?.surahName} ayat ${lastRead?.verseId}?`}
+                confirmText={language === 'en' ? 'Delete' : 'Hapus'}
+                variant="danger"
+            />
+
+            {/* Auto-Save Last Read Verses (Menyamping, max 3 verses, hidden if none) */}
+            <AutoLastReadWidget />
         </>
       )}
 
       {/* TABS NAVIGATION */}
       {!searchTerm && (
-        <div className="flex justify-start sm:justify-center px-4 mb-6 overflow-x-auto no-scrollbar">
-            <div className="flex bg-stone-100 dark:bg-slate-800 p-1 rounded-xl whitespace-nowrap">
-                 {(['surah', 'juz', 'halaman', 'hizb', 'sajdah'] as const).map((tab) => (
-                    <button
-                        key={tab}
-                        onClick={() => setActiveTab(tab)}
-                        className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${
-                            activeTab === tab 
-                            ? 'bg-white dark:bg-slate-700 text-quran-dark dark:text-white shadow-sm' 
-                            : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                        }`}
-                    >
-                        {tab === 'surah' ? t('tab_surah') : tab === 'juz' ? t('tab_juz') : tab === 'halaman' ? t('tab_page') : tab === 'hizb' ? 'Hizb' : 'Sajdah'}
-                    </button>
-                 ))}
+        <div className="w-full max-w-2xl mx-auto px-2 sm:px-4 mb-6">
+            <div className="grid grid-cols-6 p-1 bg-stone-100 dark:bg-slate-800 rounded-2xl border border-stone-200/60 dark:border-slate-700/60 shadow-inner">
+                 {(['surah', 'juz', 'halaman', 'manzil', 'hizb', 'sajdah'] as const).map((tab) => {
+                    const getTabLabel = () => {
+                      if (tab === 'surah') return t('tab_surah');
+                      if (tab === 'juz') return t('tab_juz');
+                      if (tab === 'manzil') return t('tab_manzil');
+                      if (tab === 'hizb') return 'Hizb';
+                      if (tab === 'sajdah') return 'Sajdah';
+                      return (
+                        <>
+                          <span className="sm:hidden">{language === 'en' ? 'Page' : 'Hal'}</span>
+                          <span className="hidden sm:inline">{t('tab_page')}</span>
+                        </>
+                      );
+                    };
+
+                    return (
+                      <button
+                          key={tab}
+                          onClick={() => setActiveTab(tab)}
+                          className={`py-2 px-0.5 sm:px-1 text-[10px] xs:text-xs sm:text-sm font-semibold rounded-xl transition-all duration-200 text-center whitespace-nowrap ${
+                              activeTab === tab 
+                              ? 'bg-white dark:bg-slate-700 text-quran-dark dark:text-white shadow-sm ring-1 ring-black/5 dark:ring-white/10' 
+                              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                          }`}
+                      >
+                          {getTabLabel()}
+                      </button>
+                    );
+                 })}
             </div>
         </div>
       )}
@@ -267,7 +319,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
             ))}
             {filteredSurahs.length === 0 && (
               <div className="col-span-full text-center py-20 text-gray-400">
-                  <p>Tidak ada surat yang ditemukan.</p>
+                  <p>{t('no_surah_found')}</p>
               </div>
             )}
           </div>
@@ -313,7 +365,97 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
           </div>
       )}
 
-       {/* 4. Hizb Grid */}
+      {/* 4. Manzil Grid */}
+      {activeTab === 'manzil' && !searchTerm && (
+        <div className="space-y-5">
+          <div className="bg-white dark:bg-slate-800 border border-stone-200/80 dark:border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-sm">
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-quran-gold/10 dark:bg-quran-gold/20 text-quran-gold flex items-center justify-center shrink-0 mt-0.5">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-bold text-quran-dark dark:text-gray-100 text-sm sm:text-base font-serif">
+                  {language === 'en' ? 'Manzil — 7-Day Quran Completion' : 'Manzil — Khatam Al-Qur\'an 7 Hari'}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-serif italic">
+                  {language === 'en'
+                    ? "Traditional 7-part division (Fami bi-Shawq / فمي بشوق) practiced by the Companions of Prophet Muhammad ﷺ to read and complete the entire Quran in one week."
+                    : "Pembagian 7 Manzil (Fami bi-Shawq / فمي بشوق) yang diamalkan para Sahabat Nabi Muhammad ﷺ untuk menyelesaikan khatam Al-Qur'an dalam tempo sepekan (Jum'at hingga Kamis)."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {manzils.map((manzil) => (
+              <div
+                key={manzil.id}
+                className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-stone-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-quran-gold/40 dark:hover:border-quran-gold/40 transition-all flex flex-col justify-between group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-8 h-8 rounded-xl bg-stone-100 dark:bg-slate-700 text-quran-dark dark:text-gray-200 font-bold text-sm flex items-center justify-center border border-stone-200 dark:border-slate-600 group-hover:bg-quran-gold group-hover:text-white group-hover:border-quran-gold transition-colors">
+                        {manzil.id}
+                      </span>
+                      <div>
+                        <h4 className="font-bold text-quran-dark dark:text-gray-100 text-sm group-hover:text-quran-gold dark:group-hover:text-quran-gold transition-colors">
+                          Manzil {manzil.id}
+                        </h4>
+                        <span className="text-[11px] font-semibold text-quran-gold">
+                          {language === 'en' ? manzil.dayLabelEn : manzil.dayLabelId}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="font-arabic text-2xl text-quran-dark/80 dark:text-gray-300 group-hover:text-quran-gold dark:group-hover:text-quran-gold transition-colors">
+                      {manzil.mnemonic.letter}
+                    </span>
+                  </div>
+
+                  <div className="p-3 bg-stone-50 dark:bg-slate-700/40 rounded-xl border border-stone-100 dark:border-slate-700/50 space-y-1">
+                    <p className="text-xs font-medium text-gray-800 dark:text-gray-200">
+                      {manzil.surahRangeText}
+                    </p>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                      {manzil.versesCount} {language === 'en' ? 'verses' : 'ayat'} ({manzil.firstVerseKey} — {manzil.lastVerseKey})
+                    </p>
+                  </div>
+
+                  {/* Included Surahs tags */}
+                  <div className="flex flex-wrap gap-1">
+                    {manzil.surahIds.map((sId) => {
+                      const surahMeta = surahs.find((s) => s.id === sId);
+                      return (
+                        <button
+                          key={sId}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/surah/${sId}`);
+                          }}
+                          className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-stone-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-quran-dark hover:text-white dark:hover:bg-quran-gold dark:hover:text-slate-900 transition-colors"
+                        >
+                          {surahMeta ? surahMeta.transliteration : `QS. ${sId}`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => handleNavigateToVerse(manzil.startSurahId, manzil.startVerseId)}
+                  className="mt-4 w-full py-2.5 px-3 rounded-xl bg-stone-100 dark:bg-slate-700 hover:bg-quran-dark hover:text-white dark:hover:bg-quran-gold dark:hover:text-slate-900 text-quran-dark dark:text-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 border border-stone-200/60 dark:border-slate-600/60 group-hover:border-quran-gold/40"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>{language === 'en' ? `Read Manzil ${manzil.id}` : `Mulai Baca Manzil ${manzil.id}`}</span>
+                  <ChevronRight className="w-3.5 h-3.5 ml-auto" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+       {/* 5. Hizb Grid */}
        {activeTab === 'hizb' && !searchTerm && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {getHizbList().map((hizb) => (

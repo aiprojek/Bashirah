@@ -5,6 +5,8 @@ import * as DB from './db';
 import { ArabicFontId, DEFAULT_ARABIC_FONT_ID, getArabicFontStack } from "../constants/quranFonts";
 
 const LAST_READ_KEY = 'last_read';
+const AUTO_LAST_READ_KEY = 'auto_last_read_verses';
+const AUTO_SAVE_LAST_READ_ENABLED_KEY = 'auto_save_last_read_enabled';
 const BOOKMARKS_KEY = 'bookmarks';
 const NOTES_KEY = 'notes';
 const KHATAM_KEY = 'khatam_target';
@@ -90,16 +92,26 @@ export const applyArabicFontFamily = (fontId: ArabicFontId) => {
     document.documentElement.style.setProperty('--quran-arabic-font', getArabicFontStack(fontId));
 };
 
-// --- LAST READ & TRACKING ---
+// --- AUTO-SAVE SETTINGS ---
+export const isAutoSaveLastReadEnabled = async (): Promise<boolean> => {
+    const data = await DB.getSetting(AUTO_SAVE_LAST_READ_ENABLED_KEY);
+    return data === true; // Default is false (mati secara default)
+};
+
+export const setAutoSaveLastReadEnabled = async (enabled: boolean): Promise<void> => {
+    await DB.setSetting(AUTO_SAVE_LAST_READ_ENABLED_KEY, enabled);
+    notifyUpdate();
+};
+
+// --- MANUAL LAST READ & TRACKING (Tanda Baca Manual) ---
 export const getLastRead = async (): Promise<LastReadData | null> => {
     const data = await DB.getSetting(LAST_READ_KEY);
     return data || null;
 };
 
-// MODIFIED: This function now ONLY marks the position (Bookmark logic), it does NOT auto-update Khatam
+// Manual last read (e.g. from verse bookmark icon / tandai terakhir dibaca)
 export const setLastRead = async (surahId: number, surahName: string, verseId: number, pageNumber?: number) => {
     const actualPage = pageNumber || getSurahStartPage(surahId); 
-    
     const data: LastReadData = {
         surahId,
         surahName,
@@ -112,6 +124,53 @@ export const setLastRead = async (surahId: number, surahName: string, verseId: n
     return data;
 };
 
+export const clearLastRead = async (): Promise<void> => {
+    await DB.deleteSetting(LAST_READ_KEY);
+    notifyUpdate();
+};
+
+// --- AUTO-SAVED LAST READ VERSE (Otomatis saat membaca, menyimpan 1 ayat terakhir) ---
+export const getAutoSaveLastRead = async (): Promise<LastReadData | null> => {
+    const enabled = await isAutoSaveLastReadEnabled();
+    if (!enabled) return null;
+    const data = await DB.getSetting(AUTO_LAST_READ_KEY);
+    if (Array.isArray(data)) {
+        return data.length > 0 ? data[0] : null;
+    }
+    return data || null;
+};
+
+// Auto-save verse when user stops at it (overwrites previous auto-save point)
+export const saveAutoLastRead = async (
+    surahId: number, 
+    surahName: string, 
+    verseId: number, 
+    pageNumber?: number
+): Promise<LastReadData | null> => {
+    // Only execute if feature is enabled by user in settings
+    const enabled = await isAutoSaveLastReadEnabled();
+    if (!enabled) return null;
+
+    const actualPage = pageNumber || getSurahStartPage(surahId);
+    const newEntry: LastReadData = {
+        surahId,
+        surahName,
+        verseId,
+        pageNumber: actualPage,
+        timestamp: Date.now()
+    };
+
+    await DB.setSetting(AUTO_LAST_READ_KEY, newEntry);
+    // NOTICE: Never touch LAST_READ_KEY! Manual last read remains separate and intact.
+    notifyUpdate();
+    return newEntry;
+};
+
+export const clearAutoLastRead = async (): Promise<void> => {
+    await DB.deleteSetting(AUTO_LAST_READ_KEY);
+    notifyUpdate();
+};
+
 // --- BOOKMARKS ---
 export const getBookmarks = async (): Promise<BookmarkData[]> => {
     const data = await DB.getAllBookmarks();
@@ -121,6 +180,25 @@ export const getBookmarks = async (): Promise<BookmarkData[]> => {
 export const isBookmarked = async (surahId: number, verseId: number): Promise<boolean> => {
     const bookmarks = await getBookmarks();
     return bookmarks.some(b => b.surahId === surahId && b.verseId === verseId);
+};
+
+export const addBookmark = async (surahId: number, verseId: number, surahName: string = ''): Promise<void> => {
+    const bookmarks = await getBookmarks();
+    const exists = bookmarks.some(b => b.surahId === surahId && b.verseId === verseId);
+    if (!exists) {
+        await DB.saveBookmark({
+            surahId,
+            surahName: surahName || `QS. ${surahId}`,
+            verseId,
+            timestamp: Date.now()
+        });
+        notifyUpdate();
+    }
+};
+
+export const removeBookmark = async (surahId: number, verseId: number): Promise<void> => {
+    await DB.deleteBookmark(surahId, verseId);
+    notifyUpdate();
 };
 
 export const toggleBookmark = async (surahId: number, surahName: string, verseId: number): Promise<boolean> => {

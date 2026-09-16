@@ -38,7 +38,7 @@ interface QuranDB extends DBSchema {
     indexes: { "by-score": number };
   };
   surah_info: {
-    key: number; // surahId
+    key: string; // surahId:language
     value: SurahInfo;
   };
   word_morphology: {
@@ -265,6 +265,11 @@ export const setSetting = async (key: string, value: any) => {
   await db.put("user_settings", value, key);
 };
 
+export const deleteSetting = async (key: string) => {
+  const db = await getDB();
+  await db.delete("user_settings", key);
+};
+
 // --- BOOKMARKS ---
 export const getAllBookmarks = async () => {
   const db = await getDB();
@@ -363,7 +368,7 @@ export const bulkSaveWordMorphology = async (entries: WordMorphology[]) => {
   const store = tx.objectStore("word_morphology");
   for (const entry of entries) {
     const id = `${entry.surahId}_${entry.verseId}_${entry.wordPosition}`;
-    await store.put({ ...entry, id });
+    await store.put({ ...entry, id } as any);
   }
   await tx.done;
 };
@@ -385,7 +390,7 @@ export const bulkSaveAyahMorphology = async (entries: AyahMorphology[]) => {
   const store = tx.objectStore("ayah_morphology");
   for (const entry of entries) {
     const id = `${entry.surahId}_${entry.verseId}`;
-    await store.put({ ...entry, id });
+    await store.put({ ...entry, id } as any);
   }
   await tx.done;
 };

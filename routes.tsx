@@ -11,6 +11,7 @@ import TadabburPage from './pages/TadabburPage';
 import AboutPage from './pages/AboutPage';
 import AsmaulHusnaPage from './pages/AsmaulHusnaPage';
 import TajweedLearnPage from './pages/TajweedLearnPage';
+import MutashabihatPage from './pages/MutashabihatPage';
 import SurahDetailPage from './pages/SurahDetailPage';
 import SettingsPage from './pages/SettingsPage';
 import { TranslationOption } from './types';
@@ -65,6 +66,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
       <Route path="/tadabbur" element={<TadabburPage />} />
       <Route path="/asmaul-husna" element={<AsmaulHusnaPage />} />
       <Route path="/tajweed-learn" element={<TajweedLearnPage />} />
+      <Route path="/mutashabihat" element={<MutashabihatPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route 
         path="/surah/:id" 

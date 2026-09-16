@@ -2,6 +2,7 @@
 import React from 'react';
 import { X, EyeOff, AlignCenter, Ghost, Zap, Check, BrainCircuit, Repeat, Infinity as InfinityIcon } from 'lucide-react';
 import { MemorizationLevel, RepeatSettings } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface MemorizationSettingsModalProps {
   isOpen: boolean;
@@ -26,13 +27,34 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
   onRepeatSettingsChange,
   currentTotalVerses
 }) => {
+  const { language } = useLanguage();
   if (!isOpen) return null;
 
   const levels: {id: MemorizationLevel, label: string, desc: string, icon: any}[] = [
-      { id: 'normal', label: 'Blur (Kabur)', desc: 'Teks Arab dikaburkan, ketuk untuk mengintip.', icon: EyeOff },
-      { id: 'first-last', label: 'Awal & Akhir', desc: 'Hanya kata pertama dan terakhir yang terlihat.', icon: AlignCenter },
-      { id: 'ghost', label: 'Samar (Ghost)', desc: 'Teks sangat transparan, hampir tidak terlihat.', icon: Ghost },
-      { id: 'random', label: 'Acak (Random)', desc: 'Sebagian kata dihilangkan secara acak.', icon: Zap },
+      { 
+        id: 'normal', 
+        label: language === 'en' ? 'Blur' : 'Blur (Kabur)', 
+        desc: language === 'en' ? 'Arabic text is blurred, tap to peek.' : 'Teks Arab dikaburkan, ketuk untuk mengintip.', 
+        icon: EyeOff 
+      },
+      { 
+        id: 'first-last', 
+        label: language === 'en' ? 'First & Last' : 'Awal & Akhir', 
+        desc: language === 'en' ? 'Only the first and last words are visible.' : 'Hanya kata pertama dan terakhir yang terlihat.', 
+        icon: AlignCenter 
+      },
+      { 
+        id: 'ghost', 
+        label: language === 'en' ? 'Ghost (Faint)' : 'Samar (Ghost)', 
+        desc: language === 'en' ? 'Text is very faint, barely visible.' : 'Teks sangat transparan, hampir tidak terlihat.', 
+        icon: Ghost 
+      },
+      { 
+        id: 'random', 
+        label: language === 'en' ? 'Random' : 'Acak (Random)', 
+        desc: language === 'en' ? 'Some words are hidden randomly.' : 'Sebagian kata dihilangkan secara acak.', 
+        icon: Zap 
+      },
   ];
 
   return (
@@ -48,7 +70,7 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
             {/* Header */}
             <div className="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
                 <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg flex items-center gap-2">
-                    <BrainCircuit className="w-5 h-5 text-quran-gold" /> Hafalan & Muraja'ah
+                    <BrainCircuit className="w-5 h-5 text-quran-gold" /> {language === 'en' ? "Hifz & Muraja'ah" : "Hafalan & Muraja'ah"}
                 </h3>
                 <button 
                     onClick={onClose}
@@ -71,8 +93,12 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                     }`}
                 >
                     <div className="min-w-0 pr-2">
-                        <span className="font-bold text-gray-800 dark:text-white block text-sm">Mode Hafalan</span>
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">Sembunyikan teks untuk menguji hafalan.</span>
+                        <span className="font-bold text-gray-800 dark:text-white block text-sm">
+                            {language === 'en' ? 'Memorization Mode' : 'Mode Hafalan'}
+                        </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                            {language === 'en' ? 'Hide text to test and strengthen memorization.' : 'Sembunyikan teks untuk menguji hafalan.'}
+                        </span>
                     </div>
                     <div className={`w-10 h-5 rounded-full relative transition-colors overflow-hidden flex-shrink-0 ${isActive ? 'bg-quran-gold' : 'bg-gray-300 dark:bg-gray-500'}`}>
                         <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-300 ${isActive ? 'translate-x-5' : 'translate-x-0'}`}></div>
@@ -82,7 +108,9 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                 {/* Level Selection */}
                 {isActive && (
                     <div className="space-y-2 animate-fade-in border-l-2 border-quran-gold/20 pl-3">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">Tingkat Kesulitan</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
+                            {language === 'en' ? 'Difficulty Level' : 'Tingkat Kesulitan'}
+                        </label>
                         {levels.map((lvl) => (
                             <button
                                 key={lvl.id}
@@ -111,7 +139,9 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                 <div className="space-y-3">
                     <div className="flex items-center gap-2 mb-1">
                         <Repeat className="w-4 h-4 text-quran-gold" />
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pengulangan Audio (Hifzh)</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                            {language === 'en' ? 'Audio Loop (Hifz)' : 'Pengulangan Audio (Hifzh)'}
+                        </span>
                     </div>
 
                     <div className="flex bg-stone-100 dark:bg-slate-700 p-1 rounded-xl">
@@ -121,7 +151,11 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                                 onClick={() => onRepeatSettingsChange({ ...repeatSettings, mode: m })}
                                 className={`flex-1 py-2 text-[10px] font-bold rounded-lg transition-all ${repeatSettings.mode === m ? 'bg-white dark:bg-slate-600 text-quran-dark dark:text-white shadow-sm' : 'text-gray-400'}`}
                             >
-                                {m === 'none' ? 'Mati' : m === 'verse' ? 'Ayat' : 'Rentang'}
+                                {m === 'none' 
+                                  ? (language === 'en' ? 'Off' : 'Mati') 
+                                  : m === 'verse' 
+                                  ? (language === 'en' ? 'Verse' : 'Ayat') 
+                                  : (language === 'en' ? 'Range' : 'Rentang')}
                             </button>
                         ))}
                     </div>
@@ -136,7 +170,7 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                                             value={repeatSettings.rangeStart}
                                             onChange={(e) => onRepeatSettingsChange({ ...repeatSettings, rangeStart: Math.max(1, parseInt(e.target.value) || 1) })}
                                             className="w-full text-center text-xs font-bold p-1.5 rounded-lg border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800"
-                                            placeholder="Dari"
+                                            placeholder={language === 'en' ? 'From' : 'Dari'}
                                         />
                                     </div>
                                     <span className="text-gray-400">-</span>
@@ -146,14 +180,16 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                                             value={repeatSettings.rangeEnd}
                                             onChange={(e) => onRepeatSettingsChange({ ...repeatSettings, rangeEnd: Math.min(currentTotalVerses, Math.max(repeatSettings.rangeStart, parseInt(e.target.value) || repeatSettings.rangeStart)) })}
                                             className="w-full text-center text-xs font-bold p-1.5 rounded-lg border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800"
-                                            placeholder="Ke"
+                                            placeholder={language === 'en' ? 'To' : 'Ke'}
                                         />
                                     </div>
                                 </div>
                             )}
 
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-gray-500 font-bold uppercase">Ulangi Ayat</span>
+                                <span className="text-[10px] text-gray-500 font-bold uppercase">
+                                    {language === 'en' ? 'Repeat Verse' : 'Ulangi Ayat'}
+                                </span>
                                 <div className="flex items-center gap-2">
                                     <button 
                                         onClick={() => onRepeatSettingsChange({ ...repeatSettings, count: Infinity })}
@@ -162,14 +198,16 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                                         <InfinityIcon className="w-3.5 h-3.5" />
                                     </button>
                                     <input 
-                                        type="number"
+                                        type="number" 
                                         value={repeatSettings.count === Infinity ? '' : repeatSettings.count}
                                         onChange={(e) => onRepeatSettingsChange({ ...repeatSettings, count: Math.max(1, parseInt(e.target.value) || 1) })}
                                         disabled={repeatSettings.count === Infinity}
                                         className="w-12 text-center text-xs font-bold p-1.5 rounded-lg border border-stone-200 dark:border-slate-600 bg-white dark:bg-slate-800"
                                         placeholder="1"
                                     />
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase">Kali</span>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase">
+                                        {language === 'en' ? 'Times' : 'Kali'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -183,7 +221,7 @@ const MemorizationSettingsModal: React.FC<MemorizationSettingsModalProps> = ({
                     onClick={onClose}
                     className="w-full py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all shadow-lg"
                 >
-                    Selesai
+                    {language === 'en' ? 'Done' : 'Selesai'}
                 </button>
             </div>
         </div>

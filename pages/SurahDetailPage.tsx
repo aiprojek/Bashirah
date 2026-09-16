@@ -14,6 +14,9 @@ import MemorizationSettingsModal from '../components/MemorizationSettingsModal';
 import MushafView from '../components/MushafView';
 import MushafTextView from '../components/MushafTextView';
 import ConfirmationModal from '../components/ConfirmationModal';
+import MatchingAyahModal from '../components/MatchingAyahModal';
+import AyahThemeTopicModal from '../components/AyahThemeTopicModal';
+import BackToTopFAB from '../components/BackToTopFAB';
 import * as DB from '../services/db';
 import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse } from '../services/quranService';
 import * as StorageService from '../services/storageService';
@@ -83,16 +86,26 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [shareData, setShareData] = useState<{surahName: string, verse: Verse} | null>(null);
   const [showKhatamConfirm, setShowKhatamConfirm] = useState(false);
   const [pendingKhatamVerse, setPendingKhatamVerse] = useState<{id: number, page: number} | null>(null);
+  const [matchingAyahModalVerse, setMatchingAyahModalVerse] = useState<number | null>(null);
+  const [selectedVerseForAction, setSelectedVerseForAction] = useState<Verse | null>(null);
   const [mobileNavVisible, setMobileNavVisible] = useState(true);
   const [showMobileHeaderMenu, setShowMobileHeaderMenu] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const { 
     currentSurah: audioSurah, 
     currentVerse: audioVerse, 
     playVerse, 
     stop, 
     repeatSettings, 
-    setRepeatSettings 
+    setRepeatSettings,
+    selectSurah
   } = useAudio();
+
+  useEffect(() => {
+    if (surah && audioSurah && audioSurah !== surah.id) {
+      selectSurah(surah.id, surah.total_verses, surah.transliteration);
+    }
+  }, [surah?.id]);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const listSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -100,6 +113,67 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const stopRef = useRef(stop);
   const lastListScrollTopRef = useRef(0);
   const mobileNavVisibleRef = useRef(true);
+  const lastAutoSavedVerseRef = useRef<number | null>(null);
+  const autoSaveScrollTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Auto-save verse while user scrolls through the list (debounced)
+  const handleRangeChanged = (range: { startIndex: number; endIndex: number }) => {
+    if (!surah || !surah.verses || !surah.verses[range.startIndex]) return;
+    const verse = surah.verses[range.startIndex];
+    if (lastAutoSavedVerseRef.current === verse.id) return;
+
+    if (autoSaveScrollTimerRef.current) {
+      clearTimeout(autoSaveScrollTimerRef.current);
+    }
+
+    autoSaveScrollTimerRef.current = setTimeout(() => {
+      lastAutoSavedVerseRef.current = verse.id;
+      StorageService.saveAutoLastRead(
+        surah.id,
+        surah.transliteration,
+        verse.id,
+        verse.page_number
+      );
+    }, 900);
+  };
+
+  // Auto-save verse when audio reciter plays a verse
+  useEffect(() => {
+    if (surah && audioSurah === surah.id && audioVerse) {
+      const verseObj = surah.verses.find(v => v.id === audioVerse);
+      if (verseObj) {
+        lastAutoSavedVerseRef.current = verseObj.id;
+        StorageService.saveAutoLastRead(
+          surah.id,
+          surah.transliteration,
+          verseObj.id,
+          verseObj.page_number
+        );
+      }
+    }
+  }, [audioSurah, audioVerse, surah]);
+
+  // Auto-save initial verse on surah open
+  useEffect(() => {
+    if (surah && surah.verses && surah.verses.length > 0) {
+      let targetVerseId = 1;
+      if (location.hash && location.hash.startsWith('#verse-')) {
+        const parsed = parseInt(location.hash.replace('#verse-', ''));
+        if (!isNaN(parsed)) targetVerseId = parsed;
+      }
+      const initialVerse = surah.verses.find(v => v.id === targetVerseId) || surah.verses[0];
+      const timer = setTimeout(() => {
+        lastAutoSavedVerseRef.current = initialVerse.id;
+        StorageService.saveAutoLastRead(
+          surah.id,
+          surah.transliteration,
+          initialVerse.id,
+          initialVerse.page_number
+        );
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [surah?.id]);
 
   useEffect(() => {
       stopRef.current = stop;
@@ -212,6 +286,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           const lr = await StorageService.getLastRead();
           if (lr && lr.surahId === surahIdInt) {
               setLastReadVerse(lr.verseId);
+          } else {
+              setLastReadVerse(null);
           }
           const bms = await StorageService.getBookmarks();
           setBookmarkedVerses(bms.filter(b => b.surahId === surahIdInt).map(b => b.verseId));
@@ -220,6 +296,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       }
     };
     loadStorageData();
+    const handleStorageUpdate = () => loadStorageData();
+    window.addEventListener('storage-update', handleStorageUpdate);
+    return () => window.removeEventListener('storage-update', handleStorageUpdate);
   }, [id]);
 
   useEffect(() => {
@@ -334,6 +413,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       const pageNum = verseObj ? verseObj.page_number : undefined;
       await StorageService.setLastRead(surah.id, surah.transliteration, verseId, pageNum);
       setLastReadVerse(verseId);
+      showToast(language === 'en' ? `Marked ${surah.transliteration}:${verseId} as last read.` : `Ditandai: ${surah.transliteration} ayat ${verseId} sebagai tanda baca terakhir.`, 'success');
   };
   const handleUpdateKhatam = (verseId: number) => {
       if(!surah) return;
@@ -343,7 +423,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           setPendingKhatamVerse({ id: verseId, page: pageNum });
           setShowKhatamConfirm(true);
       } else { 
-          showToast("Gagal memuat data halaman.", "error");
+          showToast(language === 'en' ? "Failed to load page data." : "Gagal memuat data halaman.", "error");
       }
   };
 
@@ -351,9 +431,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       if (!surah || !pendingKhatamVerse) return;
       try {
           await StorageService.updateKhatamProgress(pendingKhatamVerse.page);
-          showToast(`Target Khatam diperbarui ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}).`, "success");
+          showToast(language === 'en' ? `Khatam target updated to page ${pendingKhatamVerse.page} (Surah ${surah.transliteration}, Verse ${pendingKhatamVerse.id}).` : `Target Khatam diperbarui ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}).`, "success");
       } catch (e) {
-          showToast("Gagal memperbarui progres khatam.", "error");
+          showToast(language === 'en' ? "Failed to update khatam progress." : "Gagal memperbarui progres khatam.", "error");
       } finally {
           setShowKhatamConfirm(false);
           setPendingKhatamVerse(null);
@@ -423,6 +503,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                           }
                       }
 
+                      setShowBackToTop(nextTop > 320);
                       lastListScrollTopRef.current = nextTop;
                   }}
               />
@@ -430,8 +511,12 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       []
   );
 
+  const handleScrollToTop = () => {
+      virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start', behavior: 'smooth' });
+  };
+
   if (loading) return <Loading />;
-  if (!surah) return <div className="text-center py-20 text-gray-500 dark:text-gray-400">Surat tidak ditemukan.</div>;
+  if (!surah) return <div className="text-center py-20 text-gray-500 dark:text-gray-400">{t('no_surah_found')}</div>;
 
   if (viewMode === 'mushaf') {
       const startPage = getSurahStartPage(surah.id);
@@ -495,7 +580,17 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     StorageService.setTranslationFontSize(size);
                 }}
               />
-              <MemorizationSettingsModal isOpen={showMemModal} onClose={() => setShowMemModal(false)} level={memLevel} onLevelChange={setMemLevel} isActive={isMemMode} onToggleActive={setIsMemMode} />
+              <MemorizationSettingsModal 
+                isOpen={showMemModal} 
+                onClose={() => setShowMemModal(false)} 
+                level={memLevel} 
+                onLevelChange={setMemLevel} 
+                isActive={isMemMode} 
+                onToggleActive={setIsMemMode}
+                repeatSettings={repeatSettings}
+                onRepeatSettingsChange={setRepeatSettings}
+                currentTotalVerses={surah?.total_verses || 1}
+              />
           </div>
       );
   }
@@ -506,7 +601,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
         {/* Surah Banner */}
         <div className="relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-br from-quran-dark to-[#142924] px-5 py-5 sm:px-7 sm:py-6 text-white shadow-lg">
             <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')]"></div>
-            <button onClick={handleOpenInfo} className="absolute top-3 right-3 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors z-20 group" title="Info & Asbabun Nuzul"><Info className="w-4 h-4 text-white" /></button>
+            <button onClick={() => handleOpenInfo()} className="absolute top-3 right-3 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors z-20 group" title="Info & Asbabun Nuzul"><Info className="w-4 h-4 text-white" /></button>
             <div className="relative z-10 text-center">
                 {surah && getQcfSurahNameGlyphCandidate(surah.id) && (
                     <div
@@ -529,7 +624,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                 <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[11px] sm:text-xs text-white/70 font-sans tracking-[0.16em] uppercase">
                     <span>{surah?.type}</span>
                     <span className="hidden sm:inline w-1 h-1 rounded-full bg-quran-gold"></span>
-                    <span>{surah?.total_verses} Ayat</span>
+                    <span>{surah?.total_verses} {t('verses')}</span>
                 </div>
                 {surah.id !== 1 && surah.id !== 9 && (
                     <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5 sm:px-5 sm:py-4 text-center backdrop-blur-[2px]">
@@ -590,7 +685,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     onClick={() => { setShowQuickJump(true); setShowMobileHeaderMenu(false); }}
                     className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-stone-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700"
                   >
-                    <Compass className="h-4 w-4" /> Pindah Cepat
+                    <Compass className="h-4 w-4" /> {t('quick_jump')}
                   </button>
                 </div>
               )}
@@ -609,7 +704,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
             </span>
             {showTajweed && (
               <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
-                Tajwid Aktif
+                {language === 'en' ? 'Tajweed Active' : 'Tajwid Aktif'}
               </span>
             )}
           </div>
@@ -639,7 +734,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
               <button
                 onClick={() => navigate('/')}
                 className="flex items-center gap-2 rounded-xl bg-white dark:bg-slate-800 px-3 py-2 text-gray-600 dark:text-gray-200 shadow-sm border border-stone-200/50 dark:border-slate-700/50 hover:text-quran-gold transition-all"
-                title="Daftar surat"
+                title={t('surah_list')}
               >
                 <BookOpen className="w-4 h-4" />
                 <span className="hidden xl:inline text-xs font-bold">{surah.transliteration}</span>
@@ -705,6 +800,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
             ref={virtuosoRef}
             style={{ height: '100%' }}
             data={surah.verses}
+            rangeChanged={handleRangeChanged}
             components={{
                 Scroller: virtuosoScroller,
                 Header: VirtualizedHeader
@@ -775,7 +871,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                                 arabicFontSize={arabicFontSize} 
                                 translationFontSize={translationFontSize} 
                                 arabicFontFamily={arabicFontFamily}
-                                isTajweedMode={showTajweed} 
+                                isTajweedMode={showTajweed}
+                                onOpenMatchingAyah={(vId) => setMatchingAyahModalVerse(vId)}
+                                onOpenVerseAction={(v) => setSelectedVerseForAction(v)}
                             />
                         </div>
                     </div>
@@ -783,6 +881,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
             }}
           />
       </div>
+
+      <BackToTopFAB show={showBackToTop} onClick={handleScrollToTop} />
 
       <div className={`sm:hidden fixed bottom-4 left-4 right-4 z-20 transition-all duration-300 ${mobileNavVisible ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0 pointer-events-none'}`}>
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-2 rounded-2xl border border-stone-200/80 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 px-2 py-2 shadow-[0_-8px_24px_rgba(15,23,42,0.12)] backdrop-blur-md">
@@ -875,7 +975,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
             <div className="absolute inset-0 bg-quran-dark/80 dark:bg-black/80 backdrop-blur-sm" onClick={() => setShowMushafModeModal(false)} />
             <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-white/10">
                 <div className="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
-                    <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg">Pilih Mode Mushaf</h3>
+                    <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg">{t('mushaf_mode_modal_title')}</h3>
                     <button onClick={() => setShowMushafModeModal(false)} className="p-1 rounded-full hover:bg-stone-200 dark:hover:bg-slate-600 text-gray-400 transition-colors">
                         <X className="w-5 h-5" />
                     </button>
@@ -890,10 +990,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="font-bold text-gray-800 dark:text-gray-100">Mushaf Teks (Offline)</div>
+                            <div className="font-bold text-gray-800 dark:text-gray-100">{t('mushaf_mode_text')}</div>
                             {defaultMushafMode === 'text' && <span className="text-[10px] font-bold text-quran-gold">Default</span>}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Ringan, bisa tanpa internet, cocok untuk navigasi cepat.</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('mushaf_mode_text_desc')}</p>
                     </button>
                     <button
                         onClick={() => openMushafMode('mushaf')}
@@ -904,10 +1004,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                         }`}
                     >
                         <div className="flex items-center justify-between">
-                            <div className="font-bold text-gray-800 dark:text-gray-100">Mushaf Gambar</div>
+                            <div className="font-bold text-gray-800 dark:text-gray-100">{t('mushaf_mode_image')}</div>
                             {defaultMushafMode === 'image' && <span className="text-[10px] font-bold text-quran-gold">Default</span>}
                         </div>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Tampilan mushaf asli. Wajib unduh data mushaf terlebih dahulu.</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t('mushaf_mode_image_desc')}</p>
                     </button>
                 </div>
             </div>
@@ -918,11 +1018,39 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
           isOpen={showKhatamConfirm}
           onClose={() => { setShowKhatamConfirm(false); setPendingKhatamVerse(null); }}
           onConfirm={performKhatamUpdate}
-          title="Update Khatam?"
-          message={pendingKhatamVerse ? `Anda akan memperbarui progres khatam Anda ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}). Lanjutkan?` : ''}
-          confirmText="Ya, Update"
+          title={language === 'en' ? 'Update Khatam?' : 'Update Khatam?'}
+          message={pendingKhatamVerse ? (language === 'en' ? `You will update your Khatam progress to page ${pendingKhatamVerse.page} (Surah ${surah.transliteration}, Verse ${pendingKhatamVerse.id}). Continue?` : `Anda akan memperbarui progres khatam Anda ke halaman ${pendingKhatamVerse.page} (Surat ${surah.transliteration} Ayat ${pendingKhatamVerse.id}). Lanjutkan?`) : ''}
+          confirmText={language === 'en' ? 'Yes, Update' : 'Ya, Update'}
           variant="primary"
       />
+
+      {matchingAyahModalVerse !== null && surah && (
+          <MatchingAyahModal
+              isOpen={matchingAyahModalVerse !== null}
+              onClose={() => setMatchingAyahModalVerse(null)}
+              surahId={surah.id}
+              surahName={surah.transliteration}
+              verseId={matchingAyahModalVerse}
+          />
+      )}
+
+      {selectedVerseForAction && surah && (
+        <AyahThemeTopicModal
+          isOpen={selectedVerseForAction !== null}
+          onClose={() => setSelectedVerseForAction(null)}
+          surahId={surah.id}
+          surahName={surah.transliteration}
+          verse={{
+            ...selectedVerseForAction,
+            numberInSurah: selectedVerseForAction.id,
+          }}
+          arabicFontFamilyStyle={getArabicFontOption(arabicFontFamily)?.fontFamily}
+          onOpenMatchingAyah={(vId) => {
+            setSelectedVerseForAction(null);
+            setMatchingAyahModalVerse(vId);
+          }}
+        />
+      )}
     </div>
   );
 };

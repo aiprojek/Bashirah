@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, ArrowRight, BookOpen, Hash } from 'lucide-react';
 import { Surah } from '../types';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface QuickJumpModalProps {
     isOpen: boolean;
@@ -18,6 +19,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
     currentSurahId,
     onNavigate
 }) => {
+    const { language, t } = useLanguage();
     const [selectedSurahId, setSelectedSurahId] = useState<number>(currentSurahId);
     const [selectedVerseId, setSelectedVerseId] = useState<number>(1);
     const [verseInput, setVerseInput] = useState<string>('1');
@@ -66,7 +68,9 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-stone-100 dark:border-slate-700 flex items-center justify-between bg-stone-50 dark:bg-slate-700/50">
-                    <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg">Pindah Cepat</h3>
+                    <h3 className="font-bold text-quran-dark dark:text-white font-serif text-lg">
+                        {language === 'en' ? 'Quick Jump' : 'Pindah Cepat'}
+                    </h3>
                     <button 
                         onClick={onClose}
                         className="p-1 rounded-full hover:bg-stone-200 dark:hover:bg-slate-600 text-gray-400 transition-colors"
@@ -80,7 +84,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                     {/* Surah Selector */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <BookOpen className="w-4 h-4 text-quran-gold" /> Pilih Surat
+                            <BookOpen className="w-4 h-4 text-quran-gold" /> {language === 'en' ? 'Select Surah' : 'Pilih Surat'}
                         </label>
                         <div className="relative">
                             <select 
@@ -103,7 +107,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                     {/* Verse Selector */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                            <Hash className="w-4 h-4 text-quran-gold" /> Pilih Ayat (1 - {selectedSurah?.total_verses})
+                            <Hash className="w-4 h-4 text-quran-gold" /> {language === 'en' ? `Select Verse (1 - ${selectedSurah?.total_verses})` : `Pilih Ayat (1 - ${selectedSurah?.total_verses})`}
                         </label>
                         <input 
                             type="number" 
@@ -148,7 +152,7 @@ const QuickJumpModal: React.FC<QuickJumpModalProps> = ({
                         onClick={handleGo}
                         className="w-full py-3 bg-quran-dark dark:bg-quran-gold text-white dark:text-quran-dark rounded-xl font-bold hover:bg-quran-dark/90 dark:hover:bg-quran-gold/90 transition-all flex items-center justify-center gap-2 shadow-lg"
                     >
-                        Buka Ayat <ArrowRight className="w-4 h-4" />
+                        {language === 'en' ? 'Go to Verse' : 'Buka Ayat'} <ArrowRight className="w-4 h-4" />
                     </button>
                 </div>
             </div>
