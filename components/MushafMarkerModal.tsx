@@ -61,7 +61,7 @@ const MushafMarkerModal: React.FC<MushafMarkerModalProps> = ({
                 onClose();
                 onOpenVerseActions(verse);
               }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-quran-gold/15 text-quran-dark hover:bg-quran-gold/25 active:scale-95 transition-all flex items-center gap-1.5"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-quran-gold/15 dark:bg-quran-gold/20 text-quran-dark dark:text-amber-300 hover:bg-quran-gold/25 dark:hover:bg-quran-gold/30 active:scale-95 transition-all flex items-center gap-1.5"
             >
               <Bookmark className="w-3.5 h-3.5" />
               <span>{language === 'en' ? 'Verse Actions' : 'Aksi Ayat'}</span>

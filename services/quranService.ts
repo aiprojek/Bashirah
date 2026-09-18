@@ -569,7 +569,15 @@ export const getVersesByPage = async (
                 translationVerses = await DB.getSurahContent(translationId, sId);
             }
             
-            const wordByWordMap = await fetchWordByWordForSurah(sId);
+            // Only attempt online word-by-word fetching if translations are enabled and device is online
+            let wordByWordMap: Record<number, Word[]> = {};
+            if (showTranslation && navigator.onLine) {
+                try {
+                    wordByWordMap = await fetchWordByWordForSurah(sId);
+                } catch {
+                    // Fallback to offline tokens silently
+                }
+            }
             
             return arabicVerses
                 .filter(v => {
@@ -907,10 +915,7 @@ const fetchContentForSurah = async (editionId: string, surahId: number): Promise
             return verses;
         }
     } catch (e) {
-        console.error(`API fetch failed for ${editionId}`, e);
-        if (navigator.onLine) {
-            showToast("Gagal mengambil teks dari server. Periksa jaringan Anda.");
-        }
+        console.warn(`API fetch failed for ${editionId}`, e);
     }
     return [];
 };
@@ -932,10 +937,7 @@ export const fetchWordByWordForSurah = async (surahId: number): Promise<Record<n
             return wordsMap;
         }
     } catch (e) {
-        console.error("Failed to fetch Word-By-Word data", e);
-        if (navigator.onLine) {
-            showToast("Gagal memuat terjemahan per kata.", "warning");
-        }
+        console.warn("Failed to fetch Word-By-Word data (offline fallback will be used)", e);
     }
     return {};
 }

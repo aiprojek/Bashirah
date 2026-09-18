@@ -91,8 +91,8 @@ const VerseItem: React.FC<VerseItemProps> = ({
   const [copied, setCopied] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
-  const responsiveArabicFontSize = `clamp(22px, 4.4vw, ${arabicFontSize}px)`;
-  const responsiveTranslationFontSize = `clamp(13px, 2.7vw, ${translationFontSize}px)`;
+  const responsiveArabicFontSize = `${arabicFontSize}px`;
+  const responsiveTranslationFontSize = `${translationFontSize}px`;
   const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
   const showCustomVerseOrnament = arabicFontFamily === 'indopak';
   const verseOrnamentClassName = showCustomVerseOrnament ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline';
@@ -171,6 +171,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
               onWordClick(word);
             }}
             className="inline-block rounded-md px-1 py-0.5 text-quran-dark dark:text-white transition-colors hover:bg-quran-gold/20 hover:text-quran-dark dark:hover:text-quran-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40 cursor-pointer"
+            style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
             title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
           >
             {isTajweedMode ? <TajweedText text={word.text_uthmani} /> : word.text_uthmani}
@@ -347,7 +348,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
       {/* Action Bar / Meta */}
       <div className="flex justify-between items-start mb-6 relative">
         <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
                 <span className={`text-xs font-bold px-3 py-1 rounded-full border transition-colors ${
                     isAudioPlaying ? 'bg-quran-gold text-white border-quran-gold' : 'bg-stone-100 dark:bg-slate-700 text-quran-dark dark:text-gray-200 border-stone-200 dark:border-slate-600'
                 }`}>

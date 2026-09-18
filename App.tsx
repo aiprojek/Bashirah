@@ -18,12 +18,49 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
 
 const AppContent: React.FC = () => {
-  const [translationEdition, setTranslationEdition] = useState<string>('id.indonesian');
-  const [tafsirEdition, setTafsirEdition] = useState<string>('id.jalalayn');
-  const [showTranslation, setShowTranslation] = useState(false);
-  const [showTafsir, setShowTafsir] = useState(false);
-  const [showWordByWord, setShowWordByWord] = useState(false);
-  const [showTajweed, setShowTajweed] = useState(false);
+  const [translationEdition, setTranslationEdition] = useState<string>(() => {
+    return localStorage.getItem('quran_translation_edition') || 'id.indonesian';
+  });
+  const [tafsirEdition, setTafsirEdition] = useState<string>(() => {
+    return localStorage.getItem('quran_tafsir_edition') || 'id.jalalayn';
+  });
+  const [showTranslation, setShowTranslation] = useState<boolean>(() => {
+    const saved = localStorage.getItem('show_translation');
+    return saved !== null ? saved === 'true' : true;
+  });
+  const [showTafsir, setShowTafsir] = useState<boolean>(() => {
+    return localStorage.getItem('show_tafsir') === 'true';
+  });
+  const [showWordByWord, setShowWordByWord] = useState<boolean>(() => {
+    return localStorage.getItem('show_word_by_word') === 'true';
+  });
+  const [showTajweed, setShowTajweed] = useState<boolean>(() => {
+    return localStorage.getItem('show_tajweed') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('show_translation', String(showTranslation));
+  }, [showTranslation]);
+
+  useEffect(() => {
+    localStorage.setItem('show_tafsir', String(showTafsir));
+  }, [showTafsir]);
+
+  useEffect(() => {
+    localStorage.setItem('show_word_by_word', String(showWordByWord));
+  }, [showWordByWord]);
+
+  useEffect(() => {
+    localStorage.setItem('show_tajweed', String(showTajweed));
+  }, [showTajweed]);
+
+  useEffect(() => {
+    localStorage.setItem('quran_translation_edition', translationEdition);
+  }, [translationEdition]);
+
+  useEffect(() => {
+    localStorage.setItem('quran_tafsir_edition', tafsirEdition);
+  }, [tafsirEdition]);
 
   const [availableEditions, setAvailableEditions] = useState<TranslationOption[]>(DEFAULT_EDITIONS);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

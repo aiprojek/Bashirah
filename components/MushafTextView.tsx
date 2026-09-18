@@ -32,6 +32,7 @@ interface MushafTextViewProps {
   memLevelLabel?: string;
   memLevel?: 'normal' | 'first-last' | 'ghost' | 'random';
   arabicFontSize?: number;
+  translationFontSize?: number;
   arabicFontFamily?: ArabicFontId;
   hideTranslation?: boolean;
 }
@@ -69,10 +70,35 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   memLevelLabel,
   memLevel = 'normal',
   arabicFontSize = 30,
+  translationFontSize = 16,
   arabicFontFamily = 'uthmani-hafs',
   hideTranslation = false
 }) => {
   const { language, t } = useLanguage();
+  const [internalArabicFontSize, setInternalArabicFontSize] = useState(arabicFontSize);
+  const [internalTranslationFontSize, setInternalTranslationFontSize] = useState(translationFontSize);
+
+  useEffect(() => {
+    setInternalArabicFontSize(arabicFontSize);
+  }, [arabicFontSize]);
+
+  useEffect(() => {
+    setInternalTranslationFontSize(translationFontSize);
+  }, [translationFontSize]);
+
+  useEffect(() => {
+    const handleStorageUpdate = async () => {
+      const [aSize, tSize] = await Promise.all([
+        StorageService.getArabicFontSize(),
+        StorageService.getTranslationFontSize()
+      ]);
+      if (typeof aSize === 'number') setInternalArabicFontSize(aSize);
+      if (typeof tSize === 'number') setInternalTranslationFontSize(tSize);
+    };
+    window.addEventListener('storage-update', handleStorageUpdate);
+    return () => window.removeEventListener('storage-update', handleStorageUpdate);
+  }, []);
+
   const [currentPage, setCurrentPage] = useState(startPage);
   const [verses, setVerses] = useState<PageVerse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,7 +122,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const { playVerse, setRepeatSettings, isPlaying, currentSurah, currentVerse, stop, pause, resume, downloadPrompt } = useAudio();
   const [matchingAyahTarget, setMatchingAyahTarget] = useState<{ surahId: number; surahName: string; verseId: number } | null>(null);
   const [bookmarkedVerses, setBookmarkedVerses] = useState<string[]>([]);
-  const responsiveTranslationFontSize = `clamp(13px, 2.8vw, 16px)`;
+  const responsiveTranslationFontSize = `${internalTranslationFontSize}px`;
+  const responsiveArabicFontSize = `${internalArabicFontSize}px`;
   const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
   const showCustomVerseOrnament = arabicFontFamily === 'indopak';
   const verseOrnamentClassName = showCustomVerseOrnament ? 'verse-ornament verse-ornament--indopak' : 'verse-ornament-inline';
@@ -446,7 +473,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               e.stopPropagation();
               setSelectedWord({ word, verseId: verse.numberInSurah, surahId: verse.surah.number });
             }}
-            className="inline rounded-md px-0.5 text-quran-dark transition-colors hover:bg-quran-gold/10 hover:text-quran-dark/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
+            className="inline rounded-md px-0.5 text-quran-dark dark:text-stone-100 transition-colors hover:bg-quran-gold/10 dark:hover:bg-quran-gold/20 hover:text-quran-dark/80 dark:hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
+            style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
             title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
           >
             {word.text_uthmani}
@@ -494,7 +522,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             const isVisible = words.length <= 4 ? idx === 0 || idx === words.length - 1 : idx < 2 || idx >= words.length - 2;
             if (isVisible) return renderWord(word, idx);
             return (
-              <span key={`${key}-h-${idx}`} className="inline-block bg-stone-200/50 rounded-md text-transparent select-none ml-1.5 min-w-[26px] h-4 align-middle opacity-50">
+              <span key={`${key}-h-${idx}`} className="inline-block bg-stone-200/50 dark:bg-slate-700/50 rounded-md text-transparent select-none ml-1.5 min-w-[26px] h-4 align-middle opacity-50">
                 ....{' '}
               </span>
             );
@@ -511,7 +539,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             const shouldHide = pseudoRandom < 4;
             if (!shouldHide) return renderWord(word, idx);
             return (
-              <span key={`${key}-r-${idx}`} className="inline-block bg-stone-200/50 rounded-md text-transparent select-none ml-1.5 min-w-[20px] h-4 align-middle opacity-50">
+              <span key={`${key}-r-${idx}`} className="inline-block bg-stone-200/50 dark:bg-slate-700/50 rounded-md text-transparent select-none ml-1.5 min-w-[20px] h-4 align-middle opacity-50">
                 ...{' '}
               </span>
             );
@@ -648,7 +676,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           e.stopPropagation();
           setActiveMarkerVerse(verse);
         }}
-        className="inline-flex items-center justify-center mx-2 select-none align-middle p-1.5 rounded-full hover:bg-stone-200/50 transition-colors cursor-pointer group" 
+        className="inline-flex items-center justify-center mx-2 select-none align-middle p-1.5 rounded-full hover:bg-stone-200/50 dark:hover:bg-slate-800 transition-colors cursor-pointer group" 
         dir="ltr"
         title={t('mushaf_nav_info')}
       >
@@ -664,16 +692,16 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
   return (
     <div 
-      className="flex flex-col h-full bg-[#f9f6ef]"
+      className="flex flex-col h-full bg-[#f9f6ef] dark:bg-slate-950 text-gray-900 dark:text-gray-100 transition-colors"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="bg-white border-b border-stone-200 px-4 py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-sm z-20 shrink-0">
+      <div className="bg-white dark:bg-slate-900 border-b border-stone-200 dark:border-slate-800 px-4 py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 shadow-sm z-20 shrink-0">
         <div className="flex items-center gap-3">
-          <span className="bg-quran-dark text-white text-xs font-bold px-2 py-1 rounded hidden sm:inline-flex">
+          <span className="bg-quran-dark dark:bg-slate-800 dark:border dark:border-slate-700 text-white dark:text-amber-200 text-xs font-bold px-2 py-1 rounded hidden sm:inline-flex">
             {t('page')} {currentPage}
           </span>
-          <span className="text-xs sm:text-sm font-bold text-gray-700 hidden sm:inline">
+          <span className="text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-200 hidden sm:inline">
             {t('mushaf_mode_text_clean')}
           </span>
         </div>
@@ -682,37 +710,37 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           <div className="relative sm:hidden">
             <button
               onClick={() => setShowActionsMenu(prev => !prev)}
-              className="p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
+              className="p-2 rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-slate-600 transition-colors"
               title={t('mushaf_page_actions')}
             >
               <MoreVertical className="w-4 h-4" />
             </button>
             {showActionsMenu && (
-              <div className="absolute left-0 mt-2 w-52 max-w-[calc(100vw-1.5rem)] bg-white border border-stone-200 rounded-lg shadow-lg z-30 overflow-hidden">
-                <button onClick={handleCopyPage} className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2">
+              <div className="absolute left-0 mt-2 w-52 max-w-[calc(100vw-1.5rem)] bg-white dark:bg-slate-800 border border-stone-200 dark:border-slate-700 rounded-lg shadow-lg z-30 overflow-hidden text-gray-700 dark:text-gray-200">
+                <button onClick={handleCopyPage} className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 dark:hover:bg-slate-700/80 flex items-center gap-2">
                   <Copy className="w-4 h-4" /> {t('mushaf_copy_page_verses')}
                 </button>
                 <button
                   onClick={() => { setIsTajweedOn(prev => !prev); setShowActionsMenu(false); }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 dark:hover:bg-slate-700/80 flex items-center gap-2"
                 >
                   Tajwid {isTajweedOn ? 'On' : 'Off'}
                 </button>
                 <button
                   onClick={() => { onOpenFontSettings?.(); setShowActionsMenu(false); }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 dark:hover:bg-slate-700/80 flex items-center gap-2"
                 >
                   <Type className="w-4 h-4" /> {t('font_size')}
                 </button>
                 <button
                   onClick={() => { onOpenMemorization?.(); setShowActionsMenu(false); }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 dark:hover:bg-slate-700/80 flex items-center gap-2"
                 >
                   <BrainCircuit className="w-4 h-4" /> {t('memorize')}
                 </button>
                 <button
                   onClick={() => { onOpenQuickJump?.(); setShowActionsMenu(false); }}
-                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 flex items-center gap-2"
+                  className="w-full px-3 py-2 text-left text-sm hover:bg-stone-50 dark:hover:bg-slate-700/80 flex items-center gap-2"
                 >
                   <Compass className="w-4 h-4" /> {t('quick_jump')}
                 </button>
@@ -721,7 +749,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           </div>
           <button
             onClick={handleCopyPage}
-            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
+            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-slate-600 transition-colors"
             title={t('mushaf_copy_page_verses')}
           >
             <Copy className="w-4 h-4" />
@@ -730,8 +758,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             onClick={handlePlayPage}
             className={`inline-flex items-center gap-1.5 p-2 rounded-lg border transition-colors ${
               isPlayingThisPage
-                ? 'bg-quran-gold/20 border-quran-gold text-quran-dark font-semibold shadow-sm'
-                : 'border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark'
+                ? 'bg-quran-gold/20 dark:bg-quran-gold/20 border-quran-gold dark:border-quran-gold/60 text-quran-dark dark:text-amber-300 font-semibold shadow-sm'
+                : 'border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-slate-600'
             }`}
             title={isPlayingThisPage ? (language === 'en' ? 'Pause Murottal' : 'Jeda Murottal') : t('mushaf_page_murottal')}
           >
@@ -741,8 +769,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             onClick={() => setIsTajweedOn(prev => !prev)}
             className={`hidden sm:inline-flex px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
               isTajweedOn
-                ? 'bg-quran-gold/10 text-quran-dark border-quran-gold/40'
-                : 'bg-white text-gray-600 border-stone-200 hover:bg-stone-50'
+                ? 'bg-quran-gold/10 dark:bg-quran-gold/20 text-quran-dark dark:text-amber-300 border-quran-gold/40 dark:border-quran-gold/50'
+                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'
             }`}
             title="Tajwid"
           >
@@ -750,14 +778,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           </button>
           <button
             onClick={() => onOpenQuickJump?.()}
-            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
+            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-slate-600 transition-colors"
             title={t('quick_jump')}
           >
             <Compass className="w-4 h-4" />
           </button>
           <button
             onClick={() => onOpenFontSettings?.()}
-            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
+            className="hidden sm:inline-flex p-2 rounded-lg border border-stone-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-gray-500 dark:text-gray-300 hover:text-quran-dark dark:hover:text-quran-gold hover:border-quran-dark dark:hover:border-slate-600 transition-colors"
             title={t('font_size')}
           >
             <Type className="w-4 h-4" />
@@ -766,8 +794,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             onClick={() => onOpenMemorization?.()}
             className={`hidden sm:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
               isMemMode
-                ? 'bg-quran-dark text-white border-quran-dark'
-                : 'bg-white text-gray-600 border-stone-200 hover:bg-stone-50'
+                ? 'bg-quran-dark dark:bg-amber-500/20 text-white dark:text-amber-300 border-quran-dark dark:border-amber-500/40'
+                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'
             }`}
             title={t('memorize')}
           >
@@ -780,8 +808,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             disabled={isMarkingRead}
             className={`p-2 rounded-lg transition-colors border ${
               hasKhatamTarget
-                ? 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
-                : 'bg-stone-50 text-stone-500 border-stone-100 hover:bg-stone-100'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-100 dark:border-emerald-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/60'
+                : 'bg-stone-50 dark:bg-slate-800 text-stone-500 dark:text-gray-400 border-stone-100 dark:border-slate-700 hover:bg-stone-100 dark:hover:bg-slate-700'
             }`}
             title={t('mushaf_khatam_progress')}
           >
@@ -792,8 +820,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             disabled={isMarkingRead || isCurrentPageLastRead}
             className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
               isCurrentPageLastRead
-                ? 'bg-green-100 text-green-700 border-green-200'
-                : 'bg-white text-gray-600 border-stone-200 hover:bg-stone-50'
+                ? 'bg-green-100 dark:bg-emerald-950/50 text-green-700 dark:text-emerald-300 border-green-200 dark:border-emerald-800'
+                : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border-stone-200 dark:border-slate-700 hover:bg-stone-50 dark:hover:bg-slate-700'
             }`}
             title={isCurrentPageLastRead ? t('mushaf_last_read_page') : t('mushaf_mark_page_read')}
           >
@@ -814,7 +842,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           {onSwitchToImage && (
             <button
               onClick={onSwitchToImage}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-quran-gold/10 text-quran-dark hover:bg-quran-gold/20"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-quran-gold/10 dark:bg-quran-gold/20 text-quran-dark dark:text-amber-200 hover:bg-quran-gold/20 dark:hover:bg-quran-gold/30 transition-colors"
               title={t('mushaf_mode_image')}
             >
               <ImageIcon className="w-3 h-3" />
@@ -824,7 +852,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           {onClose && (
             <button
               onClick={onClose}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 hover:bg-stone-100"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-800 transition-colors"
               title={t('mushaf_list_mode')}
             >
               <ScrollText className="w-3 h-3" />
@@ -845,22 +873,22 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             <Loader2 className="w-8 h-8 text-quran-gold animate-spin" />
           </div>
         ) : groupedVerses.length === 0 ? (
-          <div className="text-center text-gray-500 py-12">
+          <div className="text-center text-gray-500 dark:text-gray-400 py-12">
             {language === 'en' ? 'Failed to load page.' : 'Gagal memuat halaman.'}
           </div>
         ) : (
           <div className="relative">
             <div
               key={slideKey}
-              className={`bg-white/80 rounded-2xl border border-stone-200 p-4 sm:p-6 shadow-sm ${slideDirection === 'next' ? 'mushaf-text-slide-next' : 'mushaf-text-slide-prev'}`}
+              className={`bg-white/90 dark:bg-slate-900/95 rounded-2xl border border-stone-200 dark:border-slate-800 p-4 sm:p-6 shadow-sm dark:shadow-slate-950/50 ${slideDirection === 'next' ? 'mushaf-text-slide-next' : 'mushaf-text-slide-prev'}`}
             >
             <div
               dir="rtl"
-              className="font-arabic arabic-justify leading-[2.8] text-quran-dark relative"
+              className="font-arabic arabic-justify leading-[2.8] text-quran-dark dark:text-stone-100 relative"
               style={{
                 textAlign: 'justify',
                 textAlignLast: 'right',
-                fontSize: `clamp(24px, 4.2vw, ${arabicFontSize}px)`,
+                fontSize: responsiveArabicFontSize,
                 fontFamily: arabicFontFamilyStyle,
                 letterSpacing: 'normal'
               }}
@@ -878,11 +906,11 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                     <div className="block w-full my-7 text-center" style={{ textAlign: 'center', textAlignLast: 'center' }}>
                       {idx !== 0 && (
                         <div className="mb-6 flex items-center justify-center gap-3">
-                          <span className="h-px w-8 bg-quran-dark/20" />
+                          <span className="h-px w-8 bg-quran-dark/20 dark:bg-slate-700" />
                           <span className="w-2 h-2 rotate-45 bg-quran-gold/70" />
                           <span className="h-px w-28 bg-quran-gold/40" />
                           <span className="w-2 h-2 rotate-45 bg-quran-gold/70" />
-                          <span className="h-px w-8 bg-quran-dark/20" />
+                          <span className="h-px w-8 bg-quran-dark/20 dark:bg-slate-700" />
                         </div>
                       )}
                         <div className="w-full text-center">
@@ -894,7 +922,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                             aria-hidden="true"
                           >
                             <span
-                              className="absolute left-1/2 top-1/2 block w-max -translate-x-1/2 -translate-y-1/2 text-center text-[88px] sm:text-[116px] md:text-[126px] lg:text-[136px] leading-none"
+                              className="absolute left-1/2 top-1/2 block w-max -translate-x-1/2 -translate-y-1/2 text-center text-[88px] sm:text-[116px] md:text-[126px] lg:text-[136px] leading-none text-quran-dark dark:text-amber-200"
                               style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
                             >
                               {surahHeaderGlyph}
@@ -902,7 +930,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                           </div>
                         )}
                         {showFallbackArabicSurahName && (
-                          <div className="text-2xl sm:text-4xl font-bold font-arabic font-surah-name text-quran-dark text-center group-hover:text-quran-dark/80 transition-colors" style={{ fontFamily: 'var(--quran-surah-name-font)' }}>
+                          <div className="text-2xl sm:text-4xl font-bold font-arabic font-surah-name text-quran-dark dark:text-amber-200 text-center group-hover:text-quran-dark/80 dark:group-hover:text-amber-100 transition-colors" style={{ fontFamily: 'var(--quran-surah-name-font)' }}>
                             {verse.surah.name}
                           </div>
                         )}
@@ -911,14 +939,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                   )}
                   {isNewSurah && verse.surah.number !== 1 && verse.numberInSurah === 1 && (
                     <div className="block w-full my-5">
-                      <div className="block w-full text-quran-dark font-arabic mushaf-center" style={{ fontSize: `clamp(22px, 3.2vw, ${Math.max(24, arabicFontSize - 2)}px)`, fontFamily: arabicFontFamilyStyle }}>
+                      <div className="block w-full text-quran-dark dark:text-amber-200 font-arabic mushaf-center" style={{ fontSize: `${Math.max(18, internalArabicFontSize - 2)}px`, fontFamily: arabicFontFamilyStyle }}>
                         بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ
                       </div>
                     </div>
                   )}
                   <span
                     id={`mushaf-verse-${verse.surah.number}-${verse.numberInSurah}`}
-                    className={isActiveVerse ? 'bg-quran-gold/20 rounded px-1' : ''}
+                    className={isActiveVerse ? 'bg-quran-gold/20 dark:bg-quran-gold/30 rounded px-1' : ''}
                   >
                     {renderMushafVerse(verse)}
                     {'\u00A0'}
@@ -929,30 +957,6 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                 </React.Fragment>
               )})}
             </div>
-
-            {showTranslation && !(isMemMode && hideTranslation) && (
-              <div className="mt-6 space-y-3">
-                {groupedVerses.map(({ verse }, idx) => {
-                  const isTrActive = isPlaying && currentSurah === verse.surah.number && currentVerse === verse.numberInSurah;
-                  return (
-                    <div
-                      key={`tr-${verse.surah.number}-${verse.numberInSurah}-${idx}`}
-                      className={`leading-relaxed transition-colors ${
-                        isTrActive
-                          ? 'text-quran-dark bg-quran-gold/15 rounded-lg p-2.5 font-medium border-l-2 border-quran-gold shadow-sm'
-                          : 'text-gray-600'
-                      }`}
-                      style={{ fontSize: responsiveTranslationFontSize }}
-                    >
-                      <span className="font-semibold text-gray-700">
-                        {verse.surah.englishName} {verse.numberInSurah}
-                      </span>
-                      : {verse.translation || t('mushaf_download_translation_offline')}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
             </div>
           </div>
         )}
@@ -1052,12 +1056,12 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       )}
 
 
-      <div className="bg-white border-t border-stone-200 p-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-20 shrink-0 safe-area-bottom">
+      <div className="bg-white dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 p-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)] z-20 shrink-0 safe-area-bottom">
         <div className="flex items-center gap-2 max-w-lg mx-auto">
           <button
             onClick={handleNextPage}
             disabled={currentPage >= 604}
-            className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+            className="p-3 rounded-xl bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 text-quran-dark dark:text-gray-200 disabled:opacity-30 transition-colors"
             title={t('mushaf_next_page')}
           >
             <ChevronLeft className="w-5 h-5" />
@@ -1069,18 +1073,18 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
               max="604"
               value={currentPage}
               onChange={handleSliderChange}
-              className="w-full h-2 bg-stone-200 rounded-lg appearance-none cursor-pointer accent-quran-gold"
+              className="w-full h-2 bg-stone-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-quran-gold"
             />
-            <div className="flex justify-between text-[10px] text-gray-500 mt-1 font-bold font-sans">
+            <div className="flex justify-between text-[10px] text-gray-500 dark:text-gray-400 mt-1 font-bold font-sans">
               <span>1</span>
-              <span className="text-quran-gold text-xs">{currentPage}</span>
+              <span className="text-quran-gold dark:text-amber-400 text-xs">{currentPage}</span>
               <span>604</span>
             </div>
           </div>
           <button
             onClick={handlePrevPage}
             disabled={currentPage <= 1}
-            className="p-3 rounded-xl bg-stone-50 hover:bg-stone-100 text-quran-dark disabled:opacity-30 transition-colors"
+            className="p-3 rounded-xl bg-stone-50 dark:bg-slate-800 hover:bg-stone-100 dark:hover:bg-slate-700 text-quran-dark dark:text-gray-200 disabled:opacity-30 transition-colors"
             title={t('mushaf_prev_page')}
           >
             <ChevronRight className="w-5 h-5" />

@@ -581,6 +581,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                 memLevel={memLevel}
                 memLevelLabel={getMemLevelLabel(memLevel)}
                 arabicFontSize={arabicFontSize}
+                translationFontSize={translationFontSize}
                 arabicFontFamily={arabicFontFamily}
                 hideTranslation={hideTranslation}
                 onPageChange={handleMushafTextPageChange}
@@ -841,33 +842,31 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     <div className="mx-4 sm:mx-6 lg:mx-8 mb-4">
                         {/* Boundaries Dividers */}
                         {(isNewPage || isNewJuz || isNewHizb || isNewRuku) && (
-                            <div className="mb-6 flex flex-col gap-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-stone-200 dark:via-slate-700 to-stone-200 dark:to-slate-700"></div>
-                                    <div className="flex flex-wrap gap-2 justify-center">
-                                        {isNewJuz && (
-                                            <span className="px-3 py-1 bg-quran-dark text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
-                                                Juz {verse.juz_number}
-                                            </span>
-                                        )}
-                                        {isNewHizb && (
-                                            <span className="px-3 py-1 bg-emerald-600 text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
-                                                Hizb {verse.hizb_number}
-                                            </span>
-                                        )}
-                                        {isNewPage && (
-                                            <span className="px-3 py-1 bg-quran-gold text-white text-[10px] font-bold rounded-full uppercase tracking-widest shadow-sm">
-                                                Hal {verse.page_number}
-                                            </span>
-                                        )}
-                                        {isNewRuku && (
-                                            <span className="px-3 py-1 bg-stone-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300 text-[10px] font-bold border border-stone-200 dark:border-slate-600 rounded-full uppercase tracking-widest">
-                                                Ruku {verse.ruku_number}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div className="h-px flex-1 bg-gradient-to-l from-transparent via-stone-200 dark:via-slate-700 to-stone-200 dark:to-slate-700"></div>
+                            <div className="mb-4 sm:mb-6 flex items-center gap-1.5 sm:gap-3">
+                                <div className="h-px flex-1 min-w-[8px] sm:min-w-[16px] bg-gradient-to-r from-transparent via-stone-200 dark:via-slate-700 to-stone-200/80 dark:to-slate-700/80"></div>
+                                <div className="inline-flex items-center gap-1 sm:gap-1.5 p-0.5 sm:p-1 rounded-full bg-stone-100/90 dark:bg-slate-800/90 border border-stone-200/80 dark:border-slate-700/80 shadow-xs flex-nowrap shrink-0 max-w-full">
+                                    {isNewJuz && (
+                                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-quran-dark dark:bg-slate-900 text-white dark:text-amber-200 text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-tight sm:tracking-wide shadow-xs border border-transparent dark:border-amber-500/20 whitespace-nowrap">
+                                            Juz {verse.juz_number}
+                                        </span>
+                                    )}
+                                    {isNewHizb && (
+                                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-emerald-600 dark:bg-emerald-900/80 text-white dark:text-emerald-200 text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-tight sm:tracking-wide shadow-xs border border-transparent dark:border-emerald-700/30 whitespace-nowrap">
+                                            Hizb {verse.hizb_number}
+                                        </span>
+                                    )}
+                                    {isNewPage && (
+                                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-quran-gold dark:bg-amber-600/90 text-white dark:text-amber-100 text-[10px] sm:text-[11px] font-bold rounded-full uppercase tracking-tight sm:tracking-wide shadow-xs border border-transparent dark:border-amber-500/30 whitespace-nowrap">
+                                            {language === 'en' ? 'Page' : 'Hal'} {verse.page_number}
+                                        </span>
+                                    )}
+                                    {isNewRuku && (
+                                        <span className="px-2 py-0.5 sm:px-2.5 sm:py-0.5 bg-white dark:bg-slate-700 text-stone-600 dark:text-slate-200 text-[10px] sm:text-[11px] font-bold border border-stone-200/90 dark:border-slate-600 rounded-full uppercase tracking-tight sm:tracking-wide shadow-xs whitespace-nowrap">
+                                            Ruku {verse.ruku_number}
+                                        </span>
+                                    )}
                                 </div>
+                                <div className="h-px flex-1 min-w-[8px] sm:min-w-[16px] bg-gradient-to-l from-transparent via-stone-200 dark:via-slate-700 to-stone-200/80 dark:to-slate-700/80"></div>
                             </div>
                         )}
 
