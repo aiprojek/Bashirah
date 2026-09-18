@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { RECITERS, Reciter } from '../types';
 import { getAudioUrl, isSurahDownloaded, downloadSurahAudio } from '../services/audioService';
-import { showToast } from '../services/quranService';
+import { showToast, getAllSurahs } from '../services/quranService';
 import * as DB from '../services/db';
 
 interface PendingPlay {
@@ -181,8 +181,27 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         if (currentVerse && currentVerse < currentTotalVerses) {
              setCurrentVerse(currentVerse + 1);
         } else {
-            setIsPlaying(false); // End of Surah
-            setCurrentVerse(1); // Reset to start
+            // End of Surah -> Move to Next Surah
+            const currentState = stateRef.current;
+            const currentS = currentState.currentSurah;
+            if (currentS && currentS < 114) {
+                const nextSurahId = currentS + 1;
+                getAllSurahs().then(surahs => {
+                    const nextSurah = surahs.find(s => s.id === nextSurahId);
+                    if (nextSurah) {
+                        playVerse(nextSurahId, 1, nextSurah.total_verses, nextSurah.transliteration);
+                    } else {
+                        setIsPlaying(false);
+                        setCurrentVerse(1);
+                    }
+                }).catch(() => {
+                    setIsPlaying(false);
+                    setCurrentVerse(1);
+                });
+            } else {
+                setIsPlaying(false); // End of Quran
+                setCurrentVerse(1);
+            }
         }
     };
 

@@ -104,9 +104,9 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   useEffect(() => {
     if (surah && audioSurah && audioSurah !== surah.id) {
-      selectSurah(surah.id, surah.total_verses, surah.transliteration);
+      navigate(`/surah/${audioSurah}`);
     }
-  }, [surah?.id]);
+  }, [audioSurah]);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const listSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
