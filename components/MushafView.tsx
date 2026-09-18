@@ -15,6 +15,7 @@ interface MushafViewProps {
   onClose?: () => void;
   onSwitchToText?: (page: number) => void;
   onOpenQuickJump?: () => void;
+  onPageChange?: (page: number) => void;
   translationId: string;
   showTranslation: boolean;
   language?: LanguageCode;
@@ -28,6 +29,7 @@ const MushafView: React.FC<MushafViewProps> = ({
   onClose, 
   onSwitchToText, 
   onOpenQuickJump, 
+  onPageChange,
   translationId,
   showTranslation,
   language = 'id'
@@ -95,6 +97,10 @@ const MushafView: React.FC<MushafViewProps> = ({
   useEffect(() => {
     setCurrentPage(startPage);
   }, [startPage]);
+
+  useEffect(() => {
+    onPageChange?.(currentPage);
+  }, [currentPage, onPageChange]);
 
   // Check Last Read Status
   const checkLastRead = async () => {

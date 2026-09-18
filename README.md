@@ -34,7 +34,7 @@
 Fokus utama Bashirah adalah:
 1. **Offline-First**: Semua data esensial (teks ayat, tajwid, navigasi halaman/juz/hizb, dan catatan) dapat diakses tanpa koneksi internet.
 2. **Kenyamanan Visual & Tipografi**: Dilengkapi pilihan font mushaf klasik hingga modern (Uthmani Hafs, IndoPak, Nastaleeq, ME Quran) serta ukuran teks yang dapat disesuaikan.
-3. **Mendalam & Berbobot**: Tidak hanya sekadar membaca, melainkan memfasilitasi tadabbur ayat, tafsir, pemahaman per kata, hingga murottal berulang (hifz/muraja'ah).
+3. **Mendalam**: Tidak hanya sekadar membaca, melainkan memfasilitasi tadabbur ayat, tafsir, pemahaman per kata, hingga murottal berulang (hifz/muraja'ah).
 
 ---
 
@@ -146,7 +146,7 @@ Bashirah dirancang dengan prinsip modularitas tinggi, pemisahan dependensi yang 
 
 Kami berterima kasih kepada penyedia data terbuka Al-Quran yang memungkinkan aplikasi ini terwujud:
 
-- **Teks Al-Quran & Terjemahan**: [quran-json oleh Risan](https://github.com/risan/quran-json).
+- **Teks Al-Quran**: [quran-json oleh Risan](https://github.com/risan/quran-json).
 - **Murottal Audio, Lembar Mushaf, & Tajwid**: [Al-Quran Cloud API](https://alquran.cloud/api).
 - **Morfologi & Data Pengayaan Quran**: [Quranic Universal Library (QUL)](https://qul.tarteel.ai/) oleh Tarteel.
 

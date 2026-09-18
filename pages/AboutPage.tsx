@@ -4,7 +4,7 @@ import {
     Info, List, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
     ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
-    Smartphone, Moon, Download, Tag, BookOpen, ArrowUp
+    Smartphone, Moon, Download, Tag, BookOpen
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -42,7 +42,6 @@ const AboutPage: React.FC = () => {
         { title: t('feature_tadabbur_title'), desc: t('feature_tadabbur_desc'), icon: PenTool },
         { title: t('feature_feelings_title'), desc: t('feature_feelings_desc'), icon: Heart },
         { title: t('feature_topics_title'), desc: t('feature_topics_desc'), icon: LayoutGrid },
-        { title: t('feature_back_to_top_title'), desc: t('feature_back_to_top_desc'), icon: ArrowUp },
         { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
         { title: t('feature_names_title'), desc: t('feature_names_desc'), icon: Sparkles },
         { title: t('feature_khatam_title'), desc: t('feature_khatam_desc'), icon: Target },

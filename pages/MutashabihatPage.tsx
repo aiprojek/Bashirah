@@ -254,21 +254,24 @@ const MutashabihatPage: React.FC = () => {
                 </div>
 
                 {/* Quick Info & Expand Toggle */}
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 truncate">
                     {language === 'en'
-                      ? `Found across ${phrase.matchedAyahKeys.length} distinct Quranic verses`
-                      : `Ditemukan pada ${phrase.matchedAyahKeys.length} ayat Al-Qur'an`}
+                      ? `Found across ${phrase.matchedAyahKeys.length} verses`
+                      : `Ditemukan pada ${phrase.matchedAyahKeys.length} ayat`}
                   </span>
 
                   <button
                     onClick={() => toggleExpand(phrase.id)}
-                    className="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-slate-700 hover:bg-quran-dark hover:text-white dark:hover:bg-quran-gold dark:hover:text-slate-900 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1.5"
+                    className="px-3 py-1.5 rounded-xl bg-stone-100 dark:bg-slate-700 hover:bg-quran-dark hover:text-white dark:hover:bg-quran-gold dark:hover:text-slate-900 text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors flex items-center gap-1.5 shrink-0 whitespace-nowrap"
                   >
-                    <span>
+                    <span className="hidden sm:inline">
                       {isExpanded
                         ? (language === 'en' ? 'Hide Verses' : 'Tutup Daftar')
                         : (language === 'en' ? `View All ${phrase.matchedAyahKeys.length} Verses` : `Lihat Semua ${phrase.matchedAyahKeys.length} Ayat`)}
+                    </span>
+                    <span className="sm:hidden">
+                      {isExpanded ? (language === 'en' ? 'Hide' : 'Tutup') : `${phrase.matchedAyahKeys.length} ${language === 'en' ? 'Verses' : 'Ayat'}`}
                     </span>
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                   </button>

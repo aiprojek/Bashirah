@@ -27,6 +27,7 @@ interface MushafTextViewProps {
   onOpenQuickJump?: () => void;
   onOpenFontSettings?: () => void;
   onOpenMemorization?: () => void;
+  onPageChange?: (page: number) => void;
   isMemMode?: boolean;
   memLevelLabel?: string;
   memLevel?: 'normal' | 'first-last' | 'ghost' | 'random';
@@ -63,6 +64,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   onOpenQuickJump,
   onOpenFontSettings,
   onOpenMemorization,
+  onPageChange,
   isMemMode = false,
   memLevelLabel,
   memLevel = 'normal',
@@ -139,6 +141,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   useEffect(() => {
     setCurrentPage(startPage);
   }, [startPage]);
+
+  useEffect(() => {
+    onPageChange?.(currentPage);
+  }, [currentPage, onPageChange]);
 
   useEffect(() => {
     setIsTajweedOn(showTajweed);
@@ -629,16 +635,21 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       setPagePlaybackIndex(nextIndex);
     } else {
       // Completed all segments for this page
-      stop();
-      setPagePlaybackQueue(null);
-      setPagePlaybackIndex(0);
-      setAutoPlayNextPage(false);
-      showToast(
-        language === 'en'
-          ? `Finished playing page ${currentPage}.`
-          : `Selesai memutar murottal halaman ${currentPage}.`,
-        'info'
-      );
+      if (currentPage < 604) {
+        setAutoPlayNextPage(true);
+        handleNextPage();
+      } else {
+        stop();
+        setPagePlaybackQueue(null);
+        setPagePlaybackIndex(0);
+        setAutoPlayNextPage(false);
+        showToast(
+          language === 'en'
+            ? `Finished playing page ${currentPage}.`
+            : `Selesai memutar murottal halaman ${currentPage}.`,
+          'info'
+        );
+      }
     }
     lastPlayingRef.current = isPlaying;
   }, [isPlaying, pagePlaybackQueue, pagePlaybackIndex, currentPage, playVerse, setRepeatSettings]);
@@ -725,7 +736,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             {t('page')} {currentPage}
           </span>
           <span className="text-xs sm:text-sm font-bold text-gray-700 hidden sm:inline">
-            {t('mushaf_mode_text')}
+            {t('mushaf_mode_text_clean')}
           </span>
         </div>
 

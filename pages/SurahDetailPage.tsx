@@ -59,6 +59,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const [showMushafModeModal, setShowMushafModeModal] = useState(false);
   const [defaultMushafMode, setDefaultMushafMode] = useState<'text' | 'image'>('text');
   
+  const [currentVisiblePage, setCurrentVisiblePage] = useState<number>(1);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [surahInfo, setSurahInfo] = useState<SurahInfo | null>(null);
   const [loadingInfo, setLoadingInfo] = useState(false);
@@ -120,6 +121,12 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const handleRangeChanged = (range: { startIndex: number; endIndex: number }) => {
     if (!surah || !surah.verses || !surah.verses[range.startIndex]) return;
     const verse = surah.verses[range.startIndex];
+    
+    // Sync current visible page
+    if (verse.page_number && verse.page_number !== currentVisiblePage) {
+      setCurrentVisiblePage(verse.page_number);
+    }
+
     if (lastAutoSavedVerseRef.current === verse.id) return;
 
     if (autoSaveScrollTimerRef.current) {
@@ -332,6 +339,12 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   useEffect(() => {
     setMushafTextStartPage(null);
+    setCurrentVisiblePage(1);
+    
+    // Reset scroll to top when surah changes, unless there is a hash
+    if (!location.hash) {
+      virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
+    }
   }, [id]);
 
   // Scroll Handling for Virtualized List
@@ -369,7 +382,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
 
   const openMushafMode = (mode: 'mushaf' | 'mushaf-text', pageOverride?: number) => {
       if (mode === 'mushaf-text') {
-          setMushafTextStartPage(pageOverride || mushafTextStartPage || getSurahStartPage(surah?.id || 1));
+          setMushafTextStartPage(pageOverride || currentVisiblePage || mushafTextStartPage || getSurahStartPage(surah?.id || 1));
       }
       setViewMode(mode);
       setShowMushafModeModal(false);
@@ -459,13 +472,6 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
       setShowInfoModal(true);
       
       setLoadingInfo(true);
-      const packMeta = await DB.getSetting(`qul_surah_info_pack_meta_${language}`);
-      if (!packMeta && !forceDownload) {
-          setSurahInfo(null);
-          setLoadingInfo(false);
-          return;
-      }
-
       const info = await getSurahInfo(surah.id, language, forceDownload);
       setSurahInfo(info);
       setLoadingInfo(false);
@@ -519,7 +525,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   if (!surah) return <div className="text-center py-20 text-gray-500 dark:text-gray-400">{t('no_surah_found')}</div>;
 
   if (viewMode === 'mushaf') {
-      const startPage = getSurahStartPage(surah.id);
+      const startPage = currentVisiblePage || getSurahStartPage(surah.id);
       return (
           <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
               <div className="flex-1 relative overflow-hidden">
@@ -531,6 +537,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                     onClose={closeMushafMode}
                     onSwitchToText={(page) => openMushafMode('mushaf-text', page)}
                     onOpenQuickJump={() => setShowQuickJump(true)}
+                    onPageChange={(page) => setCurrentVisiblePage(page)}
                   />
               </div>
                <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJump} />
@@ -539,7 +546,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   }
 
   if (viewMode === 'mushaf-text') {
-      const startPage = mushafTextStartPage || getSurahStartPage(surah.id);
+      const startPage = mushafTextStartPage || currentVisiblePage || getSurahStartPage(surah.id);
       return (
           <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-white dark:bg-slate-900">
               <MushafTextView
@@ -559,6 +566,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                 arabicFontSize={arabicFontSize}
                 arabicFontFamily={arabicFontFamily}
                 hideTranslation={hideTranslation}
+                onPageChange={(page) => {
+                    setMushafTextStartPage(page);
+                    setCurrentVisiblePage(page);
+                }}
               />
               <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJumpMushafText} />
               <FontSettingsModal

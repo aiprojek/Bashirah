@@ -1,6 +1,7 @@
 import { Surah, SurahDetail, Verse, LanguageCode, TranslationOption, CURATED_EDITIONS, Word, SurahInfo } from '../types';
 import * as DB from './db';
 import { PAGE_START_MAPPING } from './pageMapping';
+import { downloadSurahInfoPack } from './qulService';
 
 const QURAN_LOCAL_URL = 'quran-json/quran.json';
 const QURAN_VERSE_META_LOCAL_URL = 'quran-json/verse-meta.json';
@@ -711,12 +712,6 @@ export const getAllSurahs = async (lang: LanguageCode = 'id'): Promise<Surah[]> 
 export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id', forceDownload: boolean = false): Promise<SurahInfo | null> => {
     const cacheKey = `${surahId}:${language}`;
     
-    // If pack is not downloaded in settings and not forcing download, return null
-    const packMeta = await DB.getSetting(`qul_surah_info_pack_meta_${language}`);
-    if (!packMeta && !forceDownload) {
-        return null;
-    }
-
     // 1. Check Memory Cache
     if (cachedSurahInfo[cacheKey] && !forceDownload) return cachedSurahInfo[cacheKey];
 
@@ -727,25 +722,27 @@ export const getSurahInfo = async (surahId: number, language: LanguageCode = 'id
         return dbInfo;
     }
 
-    if (!forceDownload) return null;
-
+    // 3. Automatically load from local JSON pack if not in DB
     try {
-        if (!navigator.onLine) return null; // Simple offline check
-        const fallbackLang = language === 'en' ? 'en' : 'id';
-        const data = await fetchOnlineJson(`${QURAN_COM_API_URL}/chapters/${surahId}/info?language=${fallbackLang}`);
-        if (data && data.chapter_info) {
-            const info = { ...(data.chapter_info as SurahInfo), language: fallbackLang };
-            // Save to both caches
-            cachedSurahInfo[cacheKey] = info;
-            await DB.saveSurahInfo(surahId, info, fallbackLang);
-            return info;
+        const targetLang = language === 'en' ? 'en' : 'id';
+        await downloadSurahInfoPack(targetLang);
+        const freshDbInfo = await DB.getSurahInfo(surahId, targetLang);
+        if (freshDbInfo) {
+            cachedSurahInfo[cacheKey] = freshDbInfo;
+            return freshDbInfo;
+        }
+        if (targetLang === 'en') {
+            await downloadSurahInfoPack('id');
+            const fallbackDbInfo = await DB.getSurahInfo(surahId, 'id');
+            if (fallbackDbInfo) {
+                cachedSurahInfo[cacheKey] = fallbackDbInfo;
+                return fallbackDbInfo;
+            }
         }
     } catch (e) {
-        console.error("Failed to fetch Surah Info", e);
-        if (navigator.onLine && forceDownload) {
-            showToast("Gagal mengambil info Surah dari server.", "warning");
-        }
+        console.error("Failed to load local Surah Info pack", e);
     }
+
     return null;
 };
 

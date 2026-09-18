@@ -547,6 +547,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     // Mushaf Modes & Navigation
     mushaf_mode_modal_title: "Pilih Mode Mushaf",
     mushaf_mode_text: "Mushaf Teks (Offline)",
+    mushaf_mode_text_clean: "Mushaf Teks",
     mushaf_mode_text_desc: "Ringan, bisa tanpa internet, cocok untuk navigasi cepat.",
     mushaf_mode_image: "Mushaf Gambar",
     mushaf_mode_image_desc: "Tampilan mushaf asli. Wajib unduh data mushaf terlebih dahulu.",
@@ -1125,6 +1126,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     // Mushaf Modes & Navigation
     mushaf_mode_modal_title: "Choose Mushaf Mode",
     mushaf_mode_text: "Text Mushaf (Offline)",
+    mushaf_mode_text_clean: "Text Mushaf",
     mushaf_mode_text_desc: "Lightweight, works offline, suitable for fast navigation.",
     mushaf_mode_image: "Image Mushaf",
     mushaf_mode_image_desc: "Original printed layout. Requires mushaf data download first.",
