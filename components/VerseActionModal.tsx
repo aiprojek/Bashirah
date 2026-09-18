@@ -340,7 +340,7 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
         {/* Play Audio */}
         <button
           onClick={() => {
-            playVerse(surahId, verseNumber, 1, 1, surahName, verse.text);
+            playVerse(surahId, verseNumber, undefined, surahName);
             onClose();
           }}
           className="w-full text-left px-4 py-3 rounded-xl text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 flex items-center justify-between transition-colors shadow-2xs active:scale-[0.99]"

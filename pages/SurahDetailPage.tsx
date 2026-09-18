@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Virtuoso, VirtuosoHandle } from 'react-virtuoso';
 import VerseItem from '../components/VerseItem';
@@ -18,7 +18,7 @@ import MatchingAyahModal from '../components/MatchingAyahModal';
 import AyahThemeTopicModal from '../components/AyahThemeTopicModal';
 import BackToTopFAB from '../components/BackToTopFAB';
 import * as DB from '../services/db';
-import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse } from '../services/quranService';
+import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse, getPageStartLocal } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
 import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass, X, MoreVertical } from 'lucide-react';
@@ -103,10 +103,10 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   } = useAudio();
 
   useEffect(() => {
-    if (surah && audioSurah && audioSurah !== surah.id) {
+    if (viewMode === 'list' && surah && audioSurah && audioSurah !== surah.id) {
       navigate(`/surah/${audioSurah}`);
     }
-  }, [audioSurah]);
+  }, [audioSurah, viewMode, surah]);
 
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const listSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -338,14 +338,20 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   }, [id, language, translationId, tafsirId, showTranslation, showTafsir, showWordByWord, showTajweed]);
 
   useEffect(() => {
-    setMushafTextStartPage(null);
-    setCurrentVisiblePage(1);
+    if (id) {
+      const sId = parseInt(id, 10);
+      const surahStartPage = getSurahStartPage(sId);
+      if (viewMode === 'list') {
+        setMushafTextStartPage(surahStartPage);
+        setCurrentVisiblePage(surahStartPage);
+      }
+    }
     
     // Reset scroll to top when surah changes, unless there is a hash
     if (!location.hash) {
       virtuosoRef.current?.scrollToIndex({ index: 0, align: 'start' });
     }
-  }, [id]);
+  }, [id, viewMode]);
 
   // Scroll Handling for Virtualized List
   useEffect(() => {
@@ -372,13 +378,24 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
   const handleQuickJumpMushafText = async (surahId: number, verseId: number) => {
       const page = await getPageForVerse(surahId, verseId);
       setMushafTextStartPage(page);
+      setCurrentVisiblePage(page);
       if (surahId !== surah?.id) {
           navigate(`/surah/${surahId}#verse-${verseId}`);
       }
   };
   const closeMushafMode = () => {
+      const activePage = currentVisiblePage || mushafTextStartPage || (surah ? getSurahStartPage(surah.id) : 1);
+      const { surahId, verseId } = getPageStartLocal(activePage);
       setViewMode('list');
+      if (surah && surah.id !== surahId) {
+          navigate(`/surah/${surahId}#verse-${verseId}`);
+      }
   };
+
+  const handleMushafTextPageChange = useCallback((page: number) => {
+      setMushafTextStartPage(page);
+      setCurrentVisiblePage(page);
+  }, []);
 
   const openMushafMode = (mode: 'mushaf' | 'mushaf-text', pageOverride?: number) => {
       if (mode === 'mushaf-text') {
@@ -566,10 +583,7 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                 arabicFontSize={arabicFontSize}
                 arabicFontFamily={arabicFontFamily}
                 hideTranslation={hideTranslation}
-                onPageChange={(page) => {
-                    setMushafTextStartPage(page);
-                    setCurrentVisiblePage(page);
-                }}
+                onPageChange={handleMushafTextPageChange}
               />
               <QuickJumpModal isOpen={showQuickJump} onClose={() => setShowQuickJump(false)} surahs={allSurahs} currentSurahId={surah.id} onNavigate={handleQuickJumpMushafText} />
               <FontSettingsModal

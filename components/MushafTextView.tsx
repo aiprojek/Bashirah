@@ -98,7 +98,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [bookmarkedVerses, setBookmarkedVerses] = useState<string[]>([]);
   const [pagePlaybackQueue, setPagePlaybackQueue] = useState<Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> | null>(null);
   const [pagePlaybackIndex, setPagePlaybackIndex] = useState(0);
-  const [autoPlayNextPage, setAutoPlayNextPage] = useState(false);
+  const pendingAutoPlayPageRef = useRef<number | null>(null);
   const lastPlayingRef = useRef(false);
   const rangeEndReachedRef = useRef(false);
   const responsiveTranslationFontSize = `clamp(13px, 2.8vw, 16px)`;
@@ -132,6 +132,9 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
   };
 
+  const currentPageRef = useRef(currentPage);
+  currentPageRef.current = currentPage;
+
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
@@ -139,12 +142,39 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   }, [currentPage]);
 
   useEffect(() => {
-    setCurrentPage(startPage);
+    if (startPage && startPage !== currentPageRef.current) {
+      setCurrentPage(startPage);
+    }
   }, [startPage]);
 
   useEffect(() => {
     onPageChange?.(currentPage);
   }, [currentPage, onPageChange]);
+
+  // Scroll active verse into view during playback
+  useEffect(() => {
+    if (isPlaying && currentSurah && currentVerse) {
+      const el = document.getElementById(`mushaf-verse-${currentSurah}-${currentVerse}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  }, [isPlaying, currentSurah, currentVerse]);
+
+  // Auto-follow active audio verse across pages if verse belongs to another page
+  useEffect(() => {
+    if (!isPlaying || !currentSurah || !currentVerse) return;
+    const hasVerse = verses.some(
+      v => v.surah.number === currentSurah && v.numberInSurah === currentVerse
+    );
+    if (!hasVerse && verses.length > 0 && !pendingAutoPlayPageRef.current) {
+      getPageForVerse(currentSurah, currentVerse).then(targetPage => {
+        if (targetPage && targetPage !== currentPageRef.current) {
+          changePageWithAnimation(targetPage, targetPage > currentPageRef.current ? 'next' : 'prev');
+        }
+      }).catch(console.error);
+    }
+  }, [isPlaying, currentSurah, currentVerse, verses]);
 
   useEffect(() => {
     setIsTajweedOn(showTajweed);
@@ -162,6 +192,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   }, [isMemMode, memLevel, currentPage]);
 
   useEffect(() => {
+    let isCancelled = false;
     const loadPage = async () => {
       setLoading(true);
       try {
@@ -173,15 +204,27 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           showTranslation && !hideTranslation, 
           !!tafsirId // Passing flag for future tafsir support in page view if needed
         );
-        setVerses(data || []);
+        if (isCancelled) return;
+        const pageVerses = data || [];
+        setVerses(pageVerses);
+
+        if (pendingAutoPlayPageRef.current === currentPage) {
+          pendingAutoPlayPageRef.current = null;
+          if (pageVerses.length > 0) {
+            handlePlayPage(pageVerses);
+          }
+        }
       } catch (e) {
         console.error('Failed to load mushaf text page', e);
-        setVerses([]);
+        if (!isCancelled) setVerses([]);
       } finally {
-        setLoading(false);
+        if (!isCancelled) setLoading(false);
       }
     };
     loadPage();
+    return () => {
+      isCancelled = true;
+    };
   }, [currentPage, translationId, isTajweedOn, language]);
 
   useEffect(() => {
@@ -240,7 +283,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
   const changePageWithAnimation = (nextPage: number, direction: 'next' | 'prev') => {
     if (nextPage < 1 || nextPage > 604) return;
-    if (!autoPlayNextPage) {
+    if (pendingAutoPlayPageRef.current !== nextPage) {
+      pendingAutoPlayPageRef.current = null;
       if (isPlaying) {
         stop();
       }
@@ -257,6 +301,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value, 10);
     if (val >= 1 && val <= 604) {
+      pendingAutoPlayPageRef.current = null;
       if (isPlaying) {
         stop();
       }
@@ -524,25 +569,26 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
   };
 
-  const handlePlayPage = async () => {
-    if (verses.length === 0) return;
+  const handlePlayPage = async (targetVerses?: Verse[]) => {
+    const list = (targetVerses && targetVerses.length > 0) ? targetVerses : verses;
+    if (!list || list.length === 0) return;
     const all = await getAllSurahs('id');
     const segments: Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> = [];
     const fallbackSurahName = (surahId: number) =>
-      verses.find(v => v.surah.number === surahId)?.surah.englishName || `Surat ${surahId}`;
+      list.find(v => v.surah.number === surahId)?.surah.englishName || `Surat ${surahId}`;
     const resolveTotalVerses = async (surahId: number) => {
       const meta = all.find(s => s.id === surahId);
       if (meta?.total_verses) return meta.total_verses;
       const localTotal = await getSurahTotalVersesLocal(surahId);
       return localTotal || 0;
     };
-    let currentSegmentSurah = verses[0].surah.number;
-    let segmentStart = verses[0].numberInSurah;
+    let currentSegmentSurah = list[0].surah.number;
+    let segmentStart = list[0].numberInSurah;
     let lastSurah = currentSegmentSurah;
-    let lastVerse = verses[0].numberInSurah;
+    let lastVerse = list[0].numberInSurah;
 
-    for (let idx = 0; idx < verses.length; idx++) {
-      const v = verses[idx];
+    for (let idx = 0; idx < list.length; idx++) {
+      const v = list[idx];
       if (v.surah.number !== currentSegmentSurah) {
         const totalVerses = await resolveTotalVerses(currentSegmentSurah);
         segments.push({
@@ -558,7 +604,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       lastSurah = v.surah.number;
       lastVerse = v.numberInSurah;
 
-      if (idx === verses.length - 1) {
+      if (idx === list.length - 1) {
         const totalVerses = await resolveTotalVerses(lastSurah);
         segments.push({
           surahId: lastSurah,
@@ -571,13 +617,13 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
 
     if (segments.length === 0) {
-      const firstVerse = verses[0];
+      const firstVerse = list[0];
       if (!firstVerse) return;
       const total = (await getSurahTotalVersesLocal(firstVerse.surah.number)) || Math.max(1, firstVerse.numberInSurah || 1);
       const start = Math.max(1, firstVerse.numberInSurah || 1);
       setRepeatSettings({ mode: 'none', rangeStart: start, rangeEnd: start, count: 1 });
       playVerse(firstVerse.surah.number, start, total, firstVerse.surah.englishName || `Surat ${firstVerse.surah.number}`);
-      setAutoPlayNextPage(false);
+      pendingAutoPlayPageRef.current = null;
       return;
     }
 
@@ -636,13 +682,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     } else {
       // Completed all segments for this page
       if (currentPage < 604) {
-        setAutoPlayNextPage(true);
-        handleNextPage();
+        const nextPage = currentPage + 1;
+        pendingAutoPlayPageRef.current = nextPage;
+        changePageWithAnimation(nextPage, 'next');
       } else {
         stop();
         setPagePlaybackQueue(null);
         setPagePlaybackIndex(0);
-        setAutoPlayNextPage(false);
+        pendingAutoPlayPageRef.current = null;
         showToast(
           language === 'en'
             ? `Finished playing page ${currentPage}.`
@@ -653,16 +700,6 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
     lastPlayingRef.current = isPlaying;
   }, [isPlaying, pagePlaybackQueue, pagePlaybackIndex, currentPage, playVerse, setRepeatSettings]);
-
-  useEffect(() => {
-    if (!autoPlayNextPage || loading) return;
-    if (verses.length === 0) return;
-    const timer = setTimeout(() => {
-      handlePlayPage();
-    }, 300);
-    setAutoPlayNextPage(false);
-    return () => clearTimeout(timer);
-  }, [autoPlayNextPage, loading, verses, currentPage]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -975,7 +1012,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                       </div>
                     </div>
                   )}
-                  <span className={isActiveVerse ? 'bg-quran-gold/20 rounded px-1' : ''}>
+                  <span
+                    id={`mushaf-verse-${verse.surah.number}-${verse.numberInSurah}`}
+                    className={isActiveVerse ? 'bg-quran-gold/20 rounded px-1' : ''}
+                  >
                     {renderMushafVerse(verse)}
                     {'\u00A0'}
                     {renderVerseOrnament(verse)}
@@ -1082,10 +1122,8 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             playVerse(
               v.surah.number,
               v.numberInSurah,
-              1,
-              1,
-              v.surah.englishName,
-              v.text
+              undefined,
+              v.surah.englishName
             );
           }}
         />

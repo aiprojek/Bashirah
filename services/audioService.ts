@@ -7,6 +7,13 @@ const getLegacyCacheName = (reciterId: string) => `quran-audio-${reciterId}`;
 const getCacheNames = (reciterId: string) => [getCurrentCacheName(reciterId), getLegacyCacheName(reciterId)];
 const getAudioTaskId = (reciterId: string, surahId: number) => `audio:${reciterId}:${surahId}`;
 
+export const getRemoteAudioUrl = (reciter: Reciter, surahId: number, verseId: number): string => {
+    const surahStr = surahId.toString().padStart(3, '0');
+    const verseStr = verseId.toString().padStart(3, '0');
+    const fileName = `${surahStr}${verseStr}.mp3`;
+    return `https://everyayah.com/data/${reciter.path}/${fileName}`;
+};
+
 export const getAudioUrl = async (reciter: Reciter, surahId: number, verseId: number): Promise<string> => {
     const surahStr = surahId.toString().padStart(3, '0');
     const verseStr = verseId.toString().padStart(3, '0');

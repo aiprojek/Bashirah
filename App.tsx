@@ -35,7 +35,7 @@ const AppContent: React.FC = () => {
 
   const { isLoading: isThemeLoading } = useTheme();
   const { isLoading: isLangLoading } = useLanguage();
-  const { isLoading: isAudioLoading } = useAudio();
+  const { isInitialized: isAudioInitialized } = useAudio();
 
   useEffect(() => {
     const initData = async () => {
@@ -81,7 +81,7 @@ const AppContent: React.FC = () => {
     };
   }, [isSidebarOpen, location.pathname, navigate]);
 
-  if (isMigrating || isThemeLoading || isLangLoading || isAudioLoading) {
+  if (isMigrating || isThemeLoading || isLangLoading || !isAudioInitialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
         <div className="flex flex-col items-center gap-4">
