@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Bookmark, Check, Target, ScrollText, Image as ImageIcon, Loader2, Copy, Volume2, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Bookmark, Check, Target, ScrollText, Image as ImageIcon, Loader2, Copy, Volume2, Pause, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
 import { getAllSurahs, getSurahTotalVersesLocal, getVersesByPage, showToast, getPageForVerse } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import * as DB from '../services/db';
@@ -93,14 +93,9 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [tafsirText, setTafsirText] = useState<string | null>(null);
   const [isLoadingTafsir, setIsLoadingTafsir] = useState(false);
   const [revealedVerses, setRevealedVerses] = useState<Record<string, boolean>>({});
-  const { playVerse, setRepeatSettings, isPlaying, currentSurah, currentVerse, stop } = useAudio();
+  const { playVerse, setRepeatSettings, isPlaying, currentSurah, currentVerse, stop, pause, resume, downloadPrompt } = useAudio();
   const [matchingAyahTarget, setMatchingAyahTarget] = useState<{ surahId: number; surahName: string; verseId: number } | null>(null);
   const [bookmarkedVerses, setBookmarkedVerses] = useState<string[]>([]);
-  const [pagePlaybackQueue, setPagePlaybackQueue] = useState<Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> | null>(null);
-  const [pagePlaybackIndex, setPagePlaybackIndex] = useState(0);
-  const pendingAutoPlayPageRef = useRef<number | null>(null);
-  const lastPlayingRef = useRef(false);
-  const rangeEndReachedRef = useRef(false);
   const responsiveTranslationFontSize = `clamp(13px, 2.8vw, 16px)`;
   const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
   const showCustomVerseOrnament = arabicFontFamily === 'indopak';
@@ -154,27 +149,36 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   // Scroll active verse into view during playback
   useEffect(() => {
     if (isPlaying && currentSurah && currentVerse) {
-      const el = document.getElementById(`mushaf-verse-${currentSurah}-${currentVerse}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      const timer = setTimeout(() => {
+        const el = document.getElementById(`mushaf-verse-${currentSurah}-${currentVerse}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }, 80);
+      return () => clearTimeout(timer);
     }
-  }, [isPlaying, currentSurah, currentVerse]);
+  }, [isPlaying, currentSurah, currentVerse, verses]);
 
-  // Auto-follow active audio verse across pages if verse belongs to another page
+  // Auto-follow active audio verse across pages (whether playing or awaiting offline download/stream prompt)
   useEffect(() => {
-    if (!isPlaying || !currentSurah || !currentVerse) return;
+    const targetSurah = downloadPrompt ? downloadPrompt.surahId : currentSurah;
+    const targetVerse = downloadPrompt ? downloadPrompt.verseId : currentVerse;
+    const hasActiveAudio = isPlaying || !!downloadPrompt;
+
+    if (!hasActiveAudio || !targetSurah || !targetVerse) return;
+
     const hasVerse = verses.some(
-      v => v.surah.number === currentSurah && v.numberInSurah === currentVerse
+      v => v.surah.number === targetSurah && v.numberInSurah === targetVerse
     );
-    if (!hasVerse && verses.length > 0 && !pendingAutoPlayPageRef.current) {
-      getPageForVerse(currentSurah, currentVerse).then(targetPage => {
+
+    if (!hasVerse && verses.length > 0) {
+      getPageForVerse(targetSurah, targetVerse).then(targetPage => {
         if (targetPage && targetPage !== currentPageRef.current) {
-          changePageWithAnimation(targetPage, targetPage > currentPageRef.current ? 'next' : 'prev');
+          changePageWithAnimation(targetPage, targetPage > currentPageRef.current ? 'next' : 'prev', true);
         }
       }).catch(console.error);
     }
-  }, [isPlaying, currentSurah, currentVerse, verses]);
+  }, [isPlaying, currentSurah, currentVerse, downloadPrompt, verses]);
 
   useEffect(() => {
     setIsTajweedOn(showTajweed);
@@ -207,13 +211,6 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
         if (isCancelled) return;
         const pageVerses = data || [];
         setVerses(pageVerses);
-
-        if (pendingAutoPlayPageRef.current === currentPage) {
-          pendingAutoPlayPageRef.current = null;
-          if (pageVerses.length > 0) {
-            handlePlayPage(pageVerses);
-          }
-        }
       } catch (e) {
         console.error('Failed to load mushaf text page', e);
         if (!isCancelled) setVerses([]);
@@ -225,7 +222,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     return () => {
       isCancelled = true;
     };
-  }, [currentPage, translationId, isTajweedOn, language]);
+  }, [currentPage, translationId, isTajweedOn, language, showTranslation, hideTranslation, tafsirId]);
 
   useEffect(() => {
     const checkLastRead = async () => {
@@ -281,15 +278,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
   };
 
-  const changePageWithAnimation = (nextPage: number, direction: 'next' | 'prev') => {
+  const changePageWithAnimation = (nextPage: number, direction: 'next' | 'prev', isAutoFollow: boolean = false) => {
     if (nextPage < 1 || nextPage > 604) return;
-    if (pendingAutoPlayPageRef.current !== nextPage) {
-      pendingAutoPlayPageRef.current = null;
+    if (currentPageRef.current === nextPage) return;
+    currentPageRef.current = nextPage;
+    if (!isAutoFollow) {
       if (isPlaying) {
         stop();
       }
-      setPagePlaybackQueue(null);
-      setPagePlaybackIndex(0);
     }
     setSlideDirection(direction);
     setSlideKey(prev => prev + 1);
@@ -301,12 +297,10 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseInt(e.target.value, 10);
     if (val >= 1 && val <= 604) {
-      pendingAutoPlayPageRef.current = null;
       if (isPlaying) {
         stop();
       }
-      setPagePlaybackQueue(null);
-      setPagePlaybackIndex(0);
+      currentPageRef.current = val;
       setCurrentPage(val);
     }
   };
@@ -569,137 +563,43 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     }
   };
 
-  const handlePlayPage = async (targetVerses?: Verse[]) => {
-    const list = (targetVerses && targetVerses.length > 0) ? targetVerses : verses;
-    if (!list || list.length === 0) return;
-    const all = await getAllSurahs('id');
-    const segments: Array<{ surahId: number; start: number; end: number; totalVerses: number; transliteration: string }> = [];
-    const fallbackSurahName = (surahId: number) =>
-      list.find(v => v.surah.number === surahId)?.surah.englishName || `Surat ${surahId}`;
-    const resolveTotalVerses = async (surahId: number) => {
-      const meta = all.find(s => s.id === surahId);
-      if (meta?.total_verses) return meta.total_verses;
-      const localTotal = await getSurahTotalVersesLocal(surahId);
-      return localTotal || 0;
-    };
-    let currentSegmentSurah = list[0].surah.number;
-    let segmentStart = list[0].numberInSurah;
-    let lastSurah = currentSegmentSurah;
-    let lastVerse = list[0].numberInSurah;
+  const isPlayingThisPage = Boolean(
+    isPlaying && currentSurah && currentVerse && verses.some(
+      v => v.surah.number === currentSurah && v.numberInSurah === currentVerse
+    )
+  );
 
-    for (let idx = 0; idx < list.length; idx++) {
-      const v = list[idx];
-      if (v.surah.number !== currentSegmentSurah) {
-        const totalVerses = await resolveTotalVerses(currentSegmentSurah);
-        segments.push({
-          surahId: currentSegmentSurah,
-          start: segmentStart,
-          end: lastVerse,
-          totalVerses: totalVerses || lastVerse,
-          transliteration: all.find(s => s.id === currentSegmentSurah)?.transliteration || fallbackSurahName(currentSegmentSurah)
-        });
-        currentSegmentSurah = v.surah.number;
-        segmentStart = v.numberInSurah;
-      }
-      lastSurah = v.surah.number;
-      lastVerse = v.numberInSurah;
+  const handlePlayPage = async () => {
+    if (!verses || verses.length === 0) return;
+    const firstVerse = verses[0];
+    if (!firstVerse) return;
 
-      if (idx === list.length - 1) {
-        const totalVerses = await resolveTotalVerses(lastSurah);
-        segments.push({
-          surahId: lastSurah,
-          start: segmentStart,
-          end: lastVerse,
-          totalVerses: totalVerses || lastVerse,
-          transliteration: all.find(s => s.id === lastSurah)?.transliteration || fallbackSurahName(lastSurah)
-        });
-      }
-    }
-
-    if (segments.length === 0) {
-      const firstVerse = list[0];
-      if (!firstVerse) return;
-      const total = (await getSurahTotalVersesLocal(firstVerse.surah.number)) || Math.max(1, firstVerse.numberInSurah || 1);
-      const start = Math.max(1, firstVerse.numberInSurah || 1);
-      setRepeatSettings({ mode: 'none', rangeStart: start, rangeEnd: start, count: 1 });
-      playVerse(firstVerse.surah.number, start, total, firstVerse.surah.englishName || `Surat ${firstVerse.surah.number}`);
-      pendingAutoPlayPageRef.current = null;
+    if (isPlayingThisPage) {
+      pause();
       return;
     }
 
-    const firstSegment = segments[0];
-    const safeStart = Math.max(1, firstSegment.start || 1);
-    const safeEnd = Math.max(safeStart, firstSegment.end || safeStart);
-    rangeEndReachedRef.current = false;
+    if (!isPlaying && currentSurah && currentVerse && verses.some(v => v.surah.number === currentSurah && v.numberInSurah === currentVerse)) {
+      resume();
+      return;
+    }
+
+    // Set normal continuous playback so audio flows seamlessly from verse to verse and page to page
     setRepeatSettings({
-      mode: 'range',
-      rangeStart: safeStart,
-      rangeEnd: safeEnd,
-      count: 1
+      mode: 'none',
+      count: 1,
+      rangeStart: 1,
+      rangeEnd: 1
     });
-    playVerse(firstSegment.surahId, safeStart, firstSegment.totalVerses || safeEnd, firstSegment.transliteration);
-    setPagePlaybackQueue(segments);
-    setPagePlaybackIndex(0);
+
+    const all = await getAllSurahs('id');
+    const surahMeta = all.find(s => s.id === firstVerse.surah.number);
+    const totalVerses = surahMeta?.total_verses || (await getSurahTotalVersesLocal(firstVerse.surah.number)) || 1;
+    const transliteration = surahMeta?.transliteration || firstVerse.surah.englishName || `Surat ${firstVerse.surah.number}`;
+
+    playVerse(firstVerse.surah.number, firstVerse.numberInSurah, totalVerses, transliteration);
     setShowActionsMenu(false);
   };
-
-  useEffect(() => {
-    if (!pagePlaybackQueue) return;
-    const currentSegment = pagePlaybackQueue[pagePlaybackIndex];
-    if (!currentSegment) return;
-    if (
-      isPlaying &&
-      currentSurah === currentSegment.surahId &&
-      currentVerse === currentSegment.end
-    ) {
-      rangeEndReachedRef.current = true;
-    }
-  }, [isPlaying, currentSurah, currentVerse, pagePlaybackQueue, pagePlaybackIndex]);
-
-  useEffect(() => {
-    const justStopped = lastPlayingRef.current && !isPlaying;
-    if (!justStopped || !pagePlaybackQueue) {
-      lastPlayingRef.current = isPlaying;
-      return;
-    }
-    if (!rangeEndReachedRef.current) {
-      lastPlayingRef.current = isPlaying;
-      return;
-    }
-    rangeEndReachedRef.current = false;
-    const nextIndex = pagePlaybackIndex + 1;
-    if (nextIndex < pagePlaybackQueue.length) {
-      const next = pagePlaybackQueue[nextIndex];
-      rangeEndReachedRef.current = false;
-      setRepeatSettings({
-        mode: 'range',
-        rangeStart: next.start,
-        rangeEnd: next.end,
-        count: 1
-      });
-      playVerse(next.surahId, next.start, next.totalVerses, next.transliteration);
-      setPagePlaybackIndex(nextIndex);
-    } else {
-      // Completed all segments for this page
-      if (currentPage < 604) {
-        const nextPage = currentPage + 1;
-        pendingAutoPlayPageRef.current = nextPage;
-        changePageWithAnimation(nextPage, 'next');
-      } else {
-        stop();
-        setPagePlaybackQueue(null);
-        setPagePlaybackIndex(0);
-        pendingAutoPlayPageRef.current = null;
-        showToast(
-          language === 'en'
-            ? `Finished playing page ${currentPage}.`
-            : `Selesai memutar murottal halaman ${currentPage}.`,
-          'info'
-        );
-      }
-    }
-    lastPlayingRef.current = isPlaying;
-  }, [isPlaying, pagePlaybackQueue, pagePlaybackIndex, currentPage, playVerse, setRepeatSettings]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -828,10 +728,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           </button>
           <button
             onClick={handlePlayPage}
-            className="inline-flex p-2 rounded-lg border border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark transition-colors"
-            title={t('mushaf_page_murottal')}
+            className={`inline-flex items-center gap-1.5 p-2 rounded-lg border transition-colors ${
+              isPlayingThisPage
+                ? 'bg-quran-gold/20 border-quran-gold text-quran-dark font-semibold shadow-sm'
+                : 'border-stone-200 text-gray-500 hover:text-quran-dark hover:border-quran-dark'
+            }`}
+            title={isPlayingThisPage ? (language === 'en' ? 'Pause Murottal' : 'Jeda Murottal') : t('mushaf_page_murottal')}
           >
-            <Volume2 className="w-4 h-4" />
+            {isPlayingThisPage ? <Pause className="w-4 h-4 text-quran-gold fill-quran-gold" /> : <Volume2 className="w-4 h-4" />}
           </button>
           <button
             onClick={() => setIsTajweedOn(prev => !prev)}
@@ -1028,18 +932,25 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
             {showTranslation && !(isMemMode && hideTranslation) && (
               <div className="mt-6 space-y-3">
-                {groupedVerses.map(({ verse }, idx) => (
-                  <div
-                    key={`tr-${verse.surah.number}-${verse.numberInSurah}-${idx}`}
-                    className="text-gray-600 leading-relaxed"
-                    style={{ fontSize: responsiveTranslationFontSize }}
-                  >
-                    <span className="font-semibold text-gray-700">
-                      {verse.surah.englishName} {verse.numberInSurah}
-                    </span>
-                    : {verse.translation || t('mushaf_download_translation_offline')}
-                  </div>
-                ))}
+                {groupedVerses.map(({ verse }, idx) => {
+                  const isTrActive = isPlaying && currentSurah === verse.surah.number && currentVerse === verse.numberInSurah;
+                  return (
+                    <div
+                      key={`tr-${verse.surah.number}-${verse.numberInSurah}-${idx}`}
+                      className={`leading-relaxed transition-colors ${
+                        isTrActive
+                          ? 'text-quran-dark bg-quran-gold/15 rounded-lg p-2.5 font-medium border-l-2 border-quran-gold shadow-sm'
+                          : 'text-gray-600'
+                      }`}
+                      style={{ fontSize: responsiveTranslationFontSize }}
+                    >
+                      <span className="font-semibold text-gray-700">
+                        {verse.surah.englishName} {verse.numberInSurah}
+                      </span>
+                      : {verse.translation || t('mushaf_download_translation_offline')}
+                    </div>
+                  );
+                })}
               </div>
             )}
             </div>
@@ -1119,6 +1030,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
             handleOpenVerseActions(v as PageVerse);
           }}
           onPlayVerse={(v) => {
+            setRepeatSettings({ mode: 'none', count: 1, rangeStart: 1, rangeEnd: 1 });
             playVerse(
               v.surah.number,
               v.numberInSurah,
