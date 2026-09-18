@@ -655,13 +655,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   }, [isPlaying, pagePlaybackQueue, pagePlaybackIndex, currentPage, playVerse, setRepeatSettings]);
 
   useEffect(() => {
-    if (!autoPlayNextPage) return;
+    if (!autoPlayNextPage || loading) return;
     if (verses.length === 0) return;
-    const pageNum = verses[0]?.page_number;
-    if (pageNum !== currentPage) return;
-    handlePlayPage();
+    const timer = setTimeout(() => {
+      handlePlayPage();
+    }, 300);
     setAutoPlayNextPage(false);
-  }, [autoPlayNextPage, verses, currentPage]);
+    return () => clearTimeout(timer);
+  }, [autoPlayNextPage, loading, verses, currentPage]);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {

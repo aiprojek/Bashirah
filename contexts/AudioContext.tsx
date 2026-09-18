@@ -178,30 +178,34 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }
 
         // 3. Mode: Normal
-        if (currentVerse && currentVerse < currentTotalVerses) {
-             setCurrentVerse(currentVerse + 1);
-        } else {
-            // End of Surah -> Move to Next Surah
-            const currentState = stateRef.current;
-            const currentS = currentState.currentSurah;
-            if (currentS && currentS < 114) {
-                const nextSurahId = currentS + 1;
-                getAllSurahs().then(surahs => {
-                    const nextSurah = surahs.find(s => s.id === nextSurahId);
-                    if (nextSurah) {
-                        playVerse(nextSurahId, 1, nextSurah.total_verses, nextSurah.transliteration);
-                    } else {
+        if (mode === 'none') {
+            if (currentVerse && currentVerse < currentTotalVerses) {
+                 setCurrentVerse(currentVerse + 1);
+            } else {
+                // End of Surah -> Move to Next Surah
+                const currentState = stateRef.current;
+                const currentS = currentState.currentSurah;
+                if (currentS && currentS < 114) {
+                    const nextSurahId = currentS + 1;
+                    getAllSurahs().then(surahs => {
+                        const nextSurah = surahs.find(s => s.id === nextSurahId);
+                        if (nextSurah) {
+                            playVerse(nextSurahId, 1, nextSurah.total_verses, nextSurah.transliteration);
+                        } else {
+                            setIsPlaying(false);
+                            setCurrentVerse(1);
+                        }
+                    }).catch(() => {
                         setIsPlaying(false);
                         setCurrentVerse(1);
-                    }
-                }).catch(() => {
-                    setIsPlaying(false);
+                    });
+                } else {
+                    setIsPlaying(false); // End of Quran
                     setCurrentVerse(1);
-                });
-            } else {
-                setIsPlaying(false); // End of Quran
-                setCurrentVerse(1);
+                }
             }
+        } else {
+            setIsPlaying(false);
         }
     };
 
