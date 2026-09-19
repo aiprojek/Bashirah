@@ -4,7 +4,8 @@ import {
     Info, List, Mail, Coffee, Github, Send, 
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
     ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
-    Smartphone, Moon, Download, Tag, BookOpen
+    Smartphone, Moon, Download, Tag, BookOpen,
+    Compass, BookmarkCheck, HeartHandshake, GraduationCap, CalendarCheck
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -32,7 +33,10 @@ const AboutPage: React.FC = () => {
 
     const featuresList = [
         { title: t('feature_mushaf_title'), desc: t('feature_mushaf_desc'), icon: BookMarked },
+        { title: t('feature_mushaf_structure_title'), desc: t('feature_mushaf_structure_desc'), icon: Compass },
+        { title: t('feature_sajdah_title'), desc: t('feature_sajdah_desc'), icon: BookmarkCheck },
         { title: t('feature_tajweed_title'), desc: t('feature_tajweed_desc'), icon: Palette },
+        { title: t('feature_tajweed_learn_title'), desc: t('feature_tajweed_learn_desc'), icon: GraduationCap },
         { title: t('feature_ayah_topics_title'), desc: t('feature_ayah_topics_desc'), icon: Tag },
         { title: t('feature_mutashabihat_title'), desc: t('feature_mutashabihat_desc'), icon: Sparkles },
         { title: t('feature_verse_action_title'), desc: t('feature_verse_action_desc'), icon: BookOpen },
@@ -42,9 +46,11 @@ const AboutPage: React.FC = () => {
         { title: t('feature_tadabbur_title'), desc: t('feature_tadabbur_desc'), icon: PenTool },
         { title: t('feature_feelings_title'), desc: t('feature_feelings_desc'), icon: Heart },
         { title: t('feature_topics_title'), desc: t('feature_topics_desc'), icon: LayoutGrid },
-        { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
+        { title: t('feature_dua_dhikr_title'), desc: t('feature_dua_dhikr_desc'), icon: HeartHandshake },
         { title: t('feature_names_title'), desc: t('feature_names_desc'), icon: Sparkles },
+        { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
         { title: t('feature_khatam_title'), desc: t('feature_khatam_desc'), icon: Target },
+        { title: t('feature_heatmap_title'), desc: t('feature_heatmap_desc'), icon: CalendarCheck },
         { title: t('feature_pwa_title'), desc: t('feature_pwa_desc'), icon: Smartphone },
         { title: t('feature_dark_title'), desc: t('feature_dark_desc'), icon: Moon },
         { title: t('feature_search_title'), desc: t('feature_search_desc'), icon: Search },

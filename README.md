@@ -42,10 +42,14 @@ Fokus utama Bashirah adalah:
 
 ### 📖 Membaca & Belajar
 - **Al-Quran 30 Juz (114 Surat)**: Teks Rasm Utsmani dan IndoPak yang jernih dan nyaman di mata.
-- **Mode Mushaf Halaman**: Tampilan per halaman fisik menyerupai mushaf cetak dengan pilihan riwayat (Madani, IndoPak, Warsh, Qaloon).
-- **Tajwid Berwarna**: Pewarnaan tajwid interaktif dengan panduan kaidah bacaan untuk memfasilitasi tilawah yang tartil.
+- **Mode Ganda (Mushaf Halaman & Mode List)**: Tampilan per halaman fisik menyerupai mushaf cetak 604 halaman atau mode daftar per ayat yang fleksibel.
+- **Pembagian Struktural Lengkap**: Navigasi presisi berdasarkan **30 Juz**, **604 Halaman**, **7 Manzil** (untuk khatam mingguan), **60 Hizb & Rub'ul Hizb**, serta penanda batas tema **Ruku' (Rukuk)**.
+- **Penanda Ayat Sajdah & Panduan Sujud Tilawah**: Indikator visual pada 15 ayat sajdah yang dilengkapi anjuran dan bacaan doa sujud tilawah.
+- **Tajwid Berwarna Interaktif**: Pewarnaan hukum tajwid dinamis dengan panduan kaidah bacaan untuk tilawah yang tartil.
+- **Modul & Kuis Edukasi Tajwid**: Pelajari kaidah tajwid (Nun Sukun, Mim Sukun, Mad, Qalqalah) lengkap dengan contoh audio dan kuis interaktif.
+- **Detektor Ayat Mutasyabihat**: Deteksi kemiripan redaksi dan lafaz ayat antar surat untuk membantu para penghafal (*hafizh/hafizhah*) menguatkan hafalan.
 - **Terjemahan & Tafsir Lengkap**: Terjemahan bahasa Indonesia & Inggris, dilengkapi tafsir terpercaya (Kemenag RI, Jalalayn, Ibnu Katsir).
-- **Terjemahan Per Kata (Word-by-Word)**: Dilengkapi morfologi akar kata (root words) dan frekuensi kemunculan lafaz di dalam Al-Quran.
+- **Terjemahan Per Kata (Word-by-Word)**: Dilengkapi morfologi akar kata (root words), transliterasi latin, dan frekuensi kemunculan lafaz di dalam Al-Quran.
 
 ### 🎧 Audio & Murottal
 - **Gapless Audio Player**: Pemutaran audio ayat berkesinambungan tanpa jeda yang mengganggu.
@@ -53,17 +57,18 @@ Fokus utama Bashirah adalah:
 - **Mode Muraja'ah & Hifz**: Pengulangan fleksibel (per ayat atau rentang ayat) dengan hitungan pengulangan kustom atau tanpa batas (*infinite loop*).
 - **Manajer Unduhan Offline**: Unduh audio per surat atau seluruh juz dengan dukungan *task-based resume* jika koneksi terputus.
 
-### 🧠 Tadabbur & Refleksi
-- **Jurnal Tadabbur Pribadi**: Catat perenungan dan hikmah ayat langsung ke ruang catatan yang terenkripsi lokal.
-- **Ayat Pelipur Lara (Kondisi Hati)**: Temukan bimbingan dan penawar dari Al-Quran saat merasakan sedih, cemas, ragu, atau bersyukur.
-- **Indeks Tematik**: Telusuri ayat-ayat pilihan berdasarkan tema ibadah, akhlak, muamalah, akidah, dan kisah para nabi.
-- **Asmaul Husna**: 99 Nama Allah lengkap dengan makna, dalil ayat rujukan, dan penjelasan.
-- **Kuis Al-Quran**: Asah dan uji wawasan seputar isi dan sejarah Al-Quran secara interaktif.
+### 🧠 Tadabbur, Ibadah & Doa
+- **Jurnal Tadabbur Pribadi**: Catat perenungan dan hikmah ayat langsung ke ruang catatan yang tersimpan aman secara lokal.
+- **Al-Qur'an Berdasarkan Emosi / Suasana Hati**: Temukan bimbingan dan ayat penawar dari Al-Quran saat merasakan sedih, cemas, ragu, lelah, atau bersyukur.
+- **Indeks Tematik Komprehensif**: Telusuri ayat-ayat pilihan berdasarkan tema ibadah, akhlak, muamalah, akidah, sains, dan kisah para nabi.
+- **Koleksi Doa & Dzikir Harian**: Kumpulan doa mustajab para Nabi dari Al-Qur'an, Dzikir Pagi & Petang, serta Asmaul Husna (99 Nama Allah beserta arti, dalil rujukan, dan audio).
+- **Kuis Wawasan Al-Quran**: Asah dan uji wawasan seputar nama surat, arti, jumlah ayat, dan sejarah Al-Quran secara interaktif.
 
-### 🛠️ Produktivitas & Kesiapan Offline
+### 🛠️ Produktivitas & Pustaka Saya
 - **Target Khatam Terukur**: Kalkulasi target halaman harian, estimasi tanggal khatam, dan tren kecepatan tilawah.
-- **Heatmap Aktivitas Ibadah**: Visualisasi kalender tilawah harian untuk menjaga konsistensi (*istiqamah*).
-- **Mode Hafalan**: Sembunyikan sebagian atau seluruh lafaz ayat (blur, ghost, first & last word) untuk menguji kekuatan hafalan.
+- **Riwayat Tilawah & Statistik Istiqamah (Tilawah Heatmap)**: Visualisasi kalender kontribusi tilawah harian di menu *Pustaka Saya* untuk memantau konsistensi tilawah.
+- **Mode Hafalan / Muraja'ah Mandiri**: Sembunyikan sebagian atau seluruh lafaz ayat (blur, ghost, first & last word) untuk menguji kekuatan hafalan secara mandiri.
+- **Penanda Bacaan & Auto-Save Last Read**: Bookmark fleksibel, riwayat bacaan, dan penyimpanan otomatis posisi bacaan terakhir.
 - **Pencarian Cepat & Global**: Cari surat, nama surat, nomor ayat, atau kata kunci terjemahan secara instan.
 - **Cadangkan & Pulihkan (Backup/Restore)**: Ekspor dan impor catatan, bookmark, serta progres khatam dalam format JSON.
 
