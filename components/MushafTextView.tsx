@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Bookmark, Check, Target, ScrollText, Image as ImageIcon, Loader2, Copy, Volume2, Pause, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Bookmark, BookOpen, Check, Target, ScrollText, Image as ImageIcon, Loader2, Copy, Volume2, Pause, MoreVertical, Compass, Type, BrainCircuit, ChevronDown, EyeOff, Eye } from 'lucide-react';
 import { getAllSurahs, getSurahTotalVersesLocal, getVersesByPage, showToast, getPageForVerse } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import * as DB from '../services/db';
@@ -13,8 +13,10 @@ import { useAudio } from '../contexts/AudioContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ArabicFontId, getArabicFontStack } from '../constants/quranFonts';
 import { getQcfSurahHeaderGlyph } from '../constants/qcfGlyphs';
-import { Word } from '../types';
+import { Word, LastReadData } from '../types';
 import WordDetailModal from './WordDetailModal';
+import WaqafDetailModal from './WaqafDetailModal';
+import { getWaqafItemByChar, WAQAF_REGEX, WaqafItem } from '../constants/waqafData';
 
 interface MushafTextViewProps {
   startPage: number;
@@ -107,6 +109,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const [slideKey, setSlideKey] = useState(0);
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [lastReadPage, setLastReadPage] = useState<number | null>(null);
+  const [lastReadData, setLastReadData] = useState<LastReadData | null>(null);
   const [hasKhatamTarget, setHasKhatamTarget] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [selectedVerse, setSelectedVerse] = useState<PageVerse | null>(null);
@@ -122,6 +125,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   const { playVerse, setRepeatSettings, isPlaying, currentSurah, currentVerse, stop, pause, resume, downloadPrompt } = useAudio();
   const [matchingAyahTarget, setMatchingAyahTarget] = useState<{ surahId: number; surahName: string; verseId: number } | null>(null);
   const [bookmarkedVerses, setBookmarkedVerses] = useState<string[]>([]);
+  const [selectedWaqaf, setSelectedWaqaf] = useState<WaqafItem | null>(null);
   const responsiveTranslationFontSize = `${internalTranslationFontSize}px`;
   const responsiveArabicFontSize = `${internalArabicFontSize}px`;
   const arabicFontFamilyStyle = getArabicFontStack(arabicFontFamily);
@@ -254,7 +258,9 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   useEffect(() => {
     const checkLastRead = async () => {
       const lr = await StorageService.getLastRead();
+      setLastReadData(lr);
       if (lr) setLastReadPage(lr.pageNumber || null);
+      else setLastReadPage(null);
       const target = await StorageService.getKhatamTarget();
       setHasKhatamTarget(!!(target && target.isActive));
     };
@@ -338,12 +344,13 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       const lastVerse = verses[verses.length - 1];
       if (lastVerse) {
         await StorageService.updateKhatamProgress(currentPage);
-        await StorageService.setLastRead(
+        const lr = await StorageService.setLastRead(
           lastVerse.surah.number,
           lastVerse.surah.englishName,
           lastVerse.numberInSurah,
           currentPage
         );
+        setLastReadData(lr);
         setLastReadPage(currentPage);
       }
     } catch (e) {
@@ -351,6 +358,28 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
       showToast(language === 'en' ? 'Failed to save progress.' : 'Gagal menyimpan progres.', 'error');
     } finally {
       setIsMarkingRead(false);
+    }
+  };
+
+  const handleSetLastReadVerse = async (verse: PageVerse) => {
+    try {
+      const lr = await StorageService.setLastRead(
+        verse.surah.number,
+        verse.surah.englishName,
+        verse.numberInSurah,
+        currentPage
+      );
+      setLastReadData(lr);
+      setLastReadPage(currentPage);
+      showToast(
+        language === 'en'
+          ? `Marked ${verse.surah.englishName}:${verse.numberInSurah} as last read.`
+          : `Ditandai: ${verse.surah.englishName} ayat ${verse.numberInSurah} sebagai tanda baca terakhir.`,
+        'success'
+      );
+    } catch (e) {
+      console.error('Gagal menandai ayat terakhir dibaca', e);
+      showToast(language === 'en' ? 'Failed to save last read.' : 'Gagal menyimpan tanda baca terakhir.', 'error');
     }
   };
 
@@ -458,35 +487,143 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     const rawText = verse.text || '';
     const words = rawText.trim().split(/\s+/).filter(Boolean);
     const interactiveWords = verse.words?.filter(word => word.char_type_name !== 'end') || [];
+
+    const renderWithWaqaf = (str: string, prefix: string): React.ReactNode => {
+      if (!str) return null;
+      const segments = str.split(WAQAF_REGEX);
+      if (segments.length === 1) return str;
+      return (
+        <>
+          {segments.map((seg, sIdx) => {
+            const waqaf = getWaqafItemByChar(seg);
+            if (waqaf) {
+              const cleanChar = seg.replace(/[\u200C\u200D\s]/g, '');
+              return (
+                <button
+                  key={`${prefix}-wq-${sIdx}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedWaqaf(waqaf);
+                  }}
+                  className="waqaf-mark-btn inline-flex items-center justify-center mx-0.5 px-1 py-0.5 rounded text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15 hover:bg-amber-500/30 active:scale-125 transition-all cursor-pointer align-baseline select-none"
+                  title={`${waqaf.name} (${waqaf.hukum})`}
+                >
+                  {cleanChar || seg}
+                </button>
+              );
+            }
+            return seg;
+          })}
+        </>
+      );
+    };
+
     const renderWord = (word: string, idx: number) => (
       <span key={`${key}-w-${idx}`} className="ml-1.5">
-        {isTajweedOn ? <TajweedText text={word} /> : word}{' '}
+        {isTajweedOn ? (
+          <TajweedText text={word} onWaqafClick={(wq) => setSelectedWaqaf(wq)} />
+        ) : (
+          renderWithWaqaf(word, `${key}-w-${idx}`)
+        )}{' '}
       </span>
     );
+
     const renderInteractiveWordByWord = () => (
       <>
-        {interactiveWords.map((word, idx) => (
-          <button
-            key={`${key}-iw-${word.position || idx}`}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedWord({ word, verseId: verse.numberInSurah, surahId: verse.surah.number });
-            }}
-            className="inline rounded-md px-0.5 text-quran-dark dark:text-stone-100 transition-colors hover:bg-quran-gold/10 dark:hover:bg-quran-gold/20 hover:text-quran-dark/80 dark:hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
-            style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
-            title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
-          >
-            {word.text_uthmani}
-          </button>
-        ))}
+        {interactiveWords.map((word, idx) => {
+          const isWaqafWord = getWaqafItemByChar(word.text_uthmani.trim());
+          if (isWaqafWord) {
+            const cleanChar = word.text_uthmani.replace(/[\u200C\u200D\s]/g, '');
+            return (
+              <button
+                key={`${key}-iw-wq-${word.position || idx}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedWaqaf(isWaqafWord);
+                }}
+                className="waqaf-mark-btn inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded-md text-amber-600 dark:text-amber-400 font-bold bg-amber-500/20 hover:bg-amber-500/35 hover:scale-110 active:scale-125 transition-all cursor-pointer select-none align-middle"
+                title={`${isWaqafWord.name}: ${isWaqafWord.hukum}`}
+              >
+                {cleanChar || word.text_uthmani}
+              </button>
+            );
+          }
+
+          const segments = word.text_uthmani.split(WAQAF_REGEX);
+          if (segments.length === 1) {
+            return (
+              <button
+                key={`${key}-iw-${word.position || idx}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedWord({ word, verseId: verse.numberInSurah, surahId: verse.surah.number });
+                }}
+                className="inline rounded-md px-0.5 text-quran-dark dark:text-stone-100 transition-colors hover:bg-quran-gold/10 dark:hover:bg-quran-gold/20 hover:text-quran-dark/80 dark:hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
+                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
+              >
+                {word.text_uthmani}
+              </button>
+            );
+          }
+
+          return (
+            <span key={`${key}-iw-${word.position || idx}`} className="inline-flex items-center">
+              {segments.map((seg, sIdx) => {
+                const waqaf = getWaqafItemByChar(seg);
+                if (waqaf) {
+                  const cleanChar = seg.replace(/[\u200C\u200D\s]/g, '');
+                  return (
+                    <button
+                      key={`${key}-iw-wq-${word.position || idx}-${sIdx}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedWaqaf(waqaf);
+                      }}
+                      className="waqaf-mark-btn inline-flex items-center justify-center mx-0.5 px-1 py-0.5 rounded text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15 hover:bg-amber-500/30 active:scale-125 transition-all cursor-pointer align-baseline select-none"
+                      title={`${waqaf.name} (${waqaf.hukum})`}
+                    >
+                      {cleanChar || seg}
+                    </button>
+                  );
+                }
+                if (!seg) return null;
+                return (
+                  <button
+                    key={`${key}-iw-txt-${word.position || idx}-${sIdx}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedWord({ word, verseId: verse.numberInSurah, surahId: verse.surah.number });
+                    }}
+                    className="inline rounded-md px-0.5 text-quran-dark dark:text-stone-100 transition-colors hover:bg-quran-gold/10 dark:hover:bg-quran-gold/20 hover:text-quran-dark/80 dark:hover:text-amber-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40"
+                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                    title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
+                  >
+                    {seg}
+                  </button>
+                );
+              })}
+            </span>
+          );
+        })}
       </>
     );
 
     if (!isMemMode) {
       return (
         <>
-          {isTajweedOn ? <TajweedText text={rawText} /> : interactiveWords.length > 0 ? renderInteractiveWordByWord() : rawText}
+          {isTajweedOn ? (
+            <TajweedText text={rawText} onWaqafClick={(wq) => setSelectedWaqaf(wq)} />
+          ) : interactiveWords.length > 0 ? (
+            renderInteractiveWordByWord()
+          ) : (
+            renderWithWaqaf(rawText, key)
+          )}
         </>
       );
     }
@@ -494,7 +631,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (isRevealed) {
       return (
         <span className="cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
+          {isTajweedOn ? <TajweedText text={rawText} onWaqafClick={(wq) => setSelectedWaqaf(wq)} /> : renderWithWaqaf(rawText, key)}
         </span>
       );
     }
@@ -502,7 +639,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (memLevel === 'normal') {
       return (
         <span className="blur-md opacity-40 select-none cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
+          {isTajweedOn ? <TajweedText text={rawText} onWaqafClick={(wq) => setSelectedWaqaf(wq)} /> : renderWithWaqaf(rawText, key)}
         </span>
       );
     }
@@ -510,7 +647,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
     if (memLevel === 'ghost') {
       return (
         <span className="opacity-10 select-none cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-          {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
+          {isTajweedOn ? <TajweedText text={rawText} onWaqafClick={(wq) => setSelectedWaqaf(wq)} /> : renderWithWaqaf(rawText, key)}
         </span>
       );
     }
@@ -550,7 +687,7 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
 
     return (
       <span className="cursor-pointer" onClick={() => toggleRevealVerse(verse)}>
-        {isTajweedOn ? <TajweedText text={rawText} /> : rawText}
+        {isTajweedOn ? <TajweedText text={rawText} onWaqafClick={(wq) => setSelectedWaqaf(wq)} /> : renderWithWaqaf(rawText, key)}
       </span>
     );
   };
@@ -657,16 +794,24 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
   }, [currentPage]);
 
   const toArabicNumerals = (n: number) => n.toString().replace(/\d/g, d => '٠١٢٣٤٥٦٧٨٩'[parseInt(d, 10)]);
-  const renderVerseOrnament = (verse: PageVerse) => (
-    <button
-      type="button"
-      className={verseOrnamentClassName}
-      onClick={(e) => { e.stopPropagation(); handleOpenVerseActions(verse); }}
-      aria-label={`Aksi ayat ${verse.surah.englishName} ${verse.numberInSurah}`}
-    >
-      <span className="verse-ornament-number">{toArabicNumerals(verse.numberInSurah)}</span>
-    </button>
-  );
+  const renderVerseOrnament = (verse: PageVerse) => {
+    const isLastRead = lastReadData?.surahId === verse.surah.number && lastReadData?.verseId === verse.numberInSurah;
+    return (
+      <button
+        type="button"
+        className={`${verseOrnamentClassName} ${
+          isLastRead
+            ? 'ring-2 ring-amber-500 ring-offset-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 font-bold shadow-xs'
+            : ''
+        }`}
+        onClick={(e) => { e.stopPropagation(); handleOpenVerseActions(verse); }}
+        aria-label={`Aksi ayat ${verse.surah.englishName} ${verse.numberInSurah}`}
+        title={isLastRead ? (language === 'en' ? 'Last Read Verse (Tap for actions)' : 'Tanda Baca Terakhir (Ketuk untuk aksi)') : undefined}
+      >
+        <span className="verse-ornament-number">{toArabicNumerals(verse.numberInSurah)}</span>
+      </button>
+    );
+  };
   const renderPageMarkers = (verse: PageVerse, isNewJuz: boolean, isNewHizb: boolean, isNewRuku: boolean) => {
     if (!isNewJuz && !isNewHizb && !isNewRuku) return null;
 
@@ -944,15 +1089,39 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
                       </div>
                     </div>
                   )}
-                  <span
-                    id={`mushaf-verse-${verse.surah.number}-${verse.numberInSurah}`}
-                    className={isActiveVerse ? 'bg-quran-gold/20 dark:bg-quran-gold/30 rounded px-1' : ''}
-                  >
-                    {renderMushafVerse(verse)}
-                    {'\u00A0'}
-                    {renderVerseOrnament(verse)}
-                    {renderPageMarkers(verse, isNewJuz, isNewHizb, isNewRuku)}
-                  </span>
+                  {(() => {
+                    const isLastReadVerse = !!(
+                      lastReadData &&
+                      lastReadData.surahId === verse.surah.number &&
+                      lastReadData.verseId === verse.numberInSurah
+                    );
+                    return (
+                      <span
+                        id={`mushaf-verse-${verse.surah.number}-${verse.numberInSurah}`}
+                        className={
+                          isActiveVerse
+                            ? 'bg-quran-gold/20 dark:bg-quran-gold/30 rounded px-1'
+                            : isLastReadVerse
+                              ? 'bg-amber-500/10 dark:bg-amber-500/20 rounded px-1 border-b-2 border-amber-500/50'
+                              : ''
+                        }
+                      >
+                        {renderMushafVerse(verse)}
+                        {'\u00A0'}
+                        {renderVerseOrnament(verse)}
+                        {isLastReadVerse && (
+                          <span
+                            className="inline-flex items-center gap-1 text-[10px] font-sans font-bold text-amber-700 dark:text-amber-300 bg-amber-500/15 dark:bg-amber-500/25 border border-amber-500/30 px-1.5 py-0.5 rounded-md align-middle mx-1 shadow-2xs select-none"
+                            title={language === 'en' ? 'Last Read Bookmark' : 'Tanda Baca Terakhir'}
+                          >
+                            <BookOpen className="w-2.5 h-2.5 fill-current text-amber-600 dark:text-amber-400" />
+                            <span className="text-[9px]">{language === 'en' ? 'Last Read' : 'Terakhir Dibaca'}</span>
+                          </span>
+                        )}
+                        {renderPageMarkers(verse, isNewJuz, isNewHizb, isNewRuku)}
+                      </span>
+                    );
+                  })()}
                   {' '}
                 </React.Fragment>
               )})}
@@ -971,6 +1140,14 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           surahName={selectedVerse.surah.englishName}
           arabicFontFamilyStyle={arabicFontFamilyStyle}
           isBookmarked={bookmarkedVerses.includes(`${selectedVerse.surah.number}:${selectedVerse.numberInSurah}`)}
+          isLastRead={
+            !!(
+              lastReadData &&
+              lastReadData.surahId === selectedVerse.surah.number &&
+              lastReadData.verseId === selectedVerse.numberInSurah
+            )
+          }
+          onSetLastRead={() => handleSetLastReadVerse(selectedVerse)}
           onBookmark={(verseId) => handleToggleBookmark(selectedVerse.surah.number, verseId)}
           onOpenMatchingAyah={(verseId) => {
             setMatchingAyahTarget({
@@ -1054,6 +1231,12 @@ const MushafTextView: React.FC<MushafTextViewProps> = ({
           onClose={() => setSelectedWord(null)}
         />
       )}
+
+      <WaqafDetailModal
+        isOpen={!!selectedWaqaf}
+        onClose={() => setSelectedWaqaf(null)}
+        waqafItem={selectedWaqaf}
+      />
 
 
       <div className="bg-white dark:bg-slate-900 border-t border-stone-200 dark:border-slate-800 p-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.3)] z-20 shrink-0 safe-area-bottom">

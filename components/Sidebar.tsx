@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap, Repeat } from 'lucide-react';
+import { X, Bookmark, Settings, Home, LayoutGrid, HeartHandshake, Heart, Trophy, BookHeart, Info, Sparkles, GraduationCap, Repeat, Clock, Coins, Compass } from 'lucide-react';
 import Logo from './Logo';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -13,7 +13,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const handleNavigation = (path: string) => {
     navigate(path);
@@ -101,6 +101,42 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 >
                     <Repeat className={`w-5 h-5 ${isActive('/mutashabihat') ? 'text-[#d4af37]' : ''}`} />
                     <span>{t('nav_mutashabihat')}</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/waqaf')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/waqaf') 
+                        ? 'bg-[#d4af37]/10 dark:bg-slate-800 text-[#1e3a34] dark:text-quran-gold font-bold' 
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+                    }`}
+                >
+                    <Compass className={`w-5 h-5 ${isActive('/waqaf') ? 'text-[#d4af37]' : ''}`} />
+                    <span>{language === 'en' ? 'Waqaf Signs Guide' : 'Panduan Tanda Waqaf'}</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/prayer-times')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/prayer-times') 
+                        ? 'bg-[#d4af37]/10 dark:bg-slate-800 text-[#1e3a34] dark:text-quran-gold font-bold' 
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+                    }`}
+                >
+                    <Clock className={`w-5 h-5 ${isActive('/prayer-times') ? 'text-[#d4af37]' : ''}`} />
+                    <span>{language === 'en' ? 'Prayer Times' : 'Waktu Salat Otomatis'}</span>
+                </button>
+
+                <button 
+                    onClick={() => handleNavigation('/zakat')}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all ${
+                        isActive('/zakat') 
+                        ? 'bg-[#d4af37]/10 dark:bg-slate-800 text-[#1e3a34] dark:text-quran-gold font-bold' 
+                        : 'text-gray-600 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-slate-800'
+                    }`}
+                >
+                    <Coins className={`w-5 h-5 ${isActive('/zakat') ? 'text-[#d4af37]' : ''}`} />
+                    <span>{language === 'en' ? 'Zakat Calculator' : 'Kalkulator Zakat'}</span>
                 </button>
 
                 <button 

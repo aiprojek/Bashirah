@@ -62,6 +62,10 @@ Fokus utama Bashirah adalah:
 - **Al-Qur'an Berdasarkan Emosi / Suasana Hati**: Temukan bimbingan dan ayat penawar dari Al-Quran saat merasakan sedih, cemas, ragu, lelah, atau bersyukur.
 - **Indeks Tematik Komprehensif**: Telusuri ayat-ayat pilihan berdasarkan tema ibadah, akhlak, muamalah, akidah, sains, dan kisah para nabi.
 - **Koleksi Doa & Dzikir Harian**: Kumpulan doa mustajab para Nabi dari Al-Qur'an, Dzikir Pagi & Petang, serta Asmaul Husna (99 Nama Allah beserta arti, dalil rujukan, dan audio).
+- **Koleksi Surat-Surat Pilihan**: Akses kilat ke surat-surat utama harian (Al-Kahfi, Yasin, Al-Mulk, Ar-Rahman, Al-Waqi'ah, 3 Qul) lengkap dengan fadhilah dan dalil shahih.
+- **Waktu Salat Otomatis & Hitung Mundur Adzan**: Jadwal salat otomatis akurat offline (metode Kemenag RI / sudut astronomis matahari), GPS, dan hitung mundur salat berikutnya.
+- **Kalkulator Zakat Syar'i**: Kalkulasi zakat maal (harta simpanan, emas, dan tabungan dengan syarat nisab 85g emas & haul 1 tahun) dan zakat fitrah lengkap dengan dalil dan 8 golongan penerima (asnaf).
+- **Panduan Tanda Waqaf Interaktif**: Panduan 9 tanda waqaf (Lazim, Mamnu', Ja'iz, Aula, Saktah, Mu'anaqah) dengan contoh ayat riil ber-audio dan kuis pemahaman interaktif.
 - **Kuis Wawasan Al-Quran**: Asah dan uji wawasan seputar nama surat, arti, jumlah ayat, dan sejarah Al-Quran secara interaktif.
 
 ### 🛠️ Produktivitas & Pustaka Saya

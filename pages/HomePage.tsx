@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SurahCard from '../components/SurahCard';
-import Search from '../components/Search';
+import Search, { SearchScope } from '../components/Search';
 import Loading from '../components/Loading';
+import FeaturedSurahsQuickBar from '../components/FeaturedSurahsQuickBar';
 import KhatamWidget from '../components/KhatamWidget';
 import AutoLastReadWidget from '../components/AutoLastReadWidget';
 import AyatOfTheDay from '../components/AyatOfTheDay';
@@ -25,6 +26,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
   const { language, t } = useLanguage();
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchScope, setSearchScope] = useState<SearchScope>('surah');
   const [loading, setLoading] = useState(true);
   const [lastRead, setLastRead] = useState<LastReadData | null>(null);
   const [khatamTarget, setKhatamTarget] = useState<KhatamTarget | null>(null);
@@ -175,8 +177,19 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
         <p className="text-gray-500 dark:text-gray-400 max-w-xl mx-auto font-serif italic">{t('home_subtitle')}</p>
       </div>
       
-      {/* Search Bar - NOW PASSING TRANSLATION ID */}
-      <Search value={searchTerm} onChange={setSearchTerm} translationId={translationId} />
+      {/* Search Bar - Dual Scope UX without Overlapping */}
+      <Search
+        value={searchTerm}
+        onChange={(val) => {
+          setSearchTerm(val);
+          if (!val) setSearchScope('surah');
+        }}
+        translationId={translationId}
+        scope={searchScope}
+        onScopeChange={setSearchScope}
+        surahResultCount={filteredSurahs.length}
+        onClear={() => setSearchScope('surah')}
+      />
 
       {/* Only show widgets if not searching */}
       {!searchTerm && (
@@ -190,6 +203,9 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
                     showTranslation={showTranslation}
                 />
             )}
+            
+            {/* Koleksi Surat Pilihan (Quick Access Surah Utama) */}
+            <FeaturedSurahsQuickBar />
             
             {/* Khatam Tracker */}
             <KhatamWidget />
@@ -307,7 +323,7 @@ const HomePage: React.FC<HomePageProps> = ({ showTranslation, translationId }) =
 
       {/* CONTENT LISTS */}
       {/* 1. Surah Grid */}
-      {(activeTab === 'surah' || searchTerm) && (
+      {((!searchTerm && activeTab === 'surah') || (searchTerm && searchScope === 'surah')) && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredSurahs.map((surah) => (
               <SurahCard 

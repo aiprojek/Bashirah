@@ -1,12 +1,15 @@
 
 import React, { useMemo } from 'react';
+import { getWaqafItemByChar, WAQAF_REGEX, WaqafItem } from '../constants/waqafData';
 
 interface TajweedTextProps {
   text: string;
+  onWaqafClick?: (waqaf: WaqafItem) => void;
 }
 
-// Group definitions for the Legend
+// Group definitions for the Legend based on Al-Quran Cloud / International Mushaf Tajweed standards
 export interface TajweedGroup {
+    id: string;
     label: string;
     colorClass: string;
     hexColor: string;
@@ -15,34 +18,56 @@ export interface TajweedGroup {
 
 export const TAJWEED_GROUPS: TajweedGroup[] = [
     { 
-        label: 'Ghunnah / Ikhfa (Dengung)', 
-        colorClass: 'text-[#169b62] dark:text-[#4ade80]', // Brighter green for dark mode
-        hexColor: '#169b62',
-        rules: ['n', 'm', 'f'] 
+        id: 'ghunnah-ikhfa',
+        label: 'Ghunnah, Ikhfa & Iqlab (Dengung)', 
+        colorClass: 'text-[#16a34a] dark:text-[#4ade80]', 
+        hexColor: '#16a34a',
+        rules: ['g', 'f', 'c', 'i', 'a', 'w'] 
+        // g: Ghunnah mushaddadah (نّ, مّ)
+        // f: Ikhfa haqiqi
+        // c: Ikhfa syafawi (م bertemu ب)
+        // i: Iqlab (ن/tanwin bertemu ب)
+        // a: Idgham bighunnah (ي ن م و)
+        // w: Idgham mimi / mutamatsilain
     },
     { 
+        id: 'qalqalah',
         label: 'Qalqalah (Pantulan)', 
-        colorClass: 'text-[#367cba] dark:text-[#60a5fa]', // Brighter blue
-        hexColor: '#367cba',
-        rules: ['q'] 
+        colorClass: 'text-[#2563eb] dark:text-[#60a5fa]', 
+        hexColor: '#2563eb',
+        rules: ['q', 'd'] 
+        // q: Qalqalah sugra
+        // d: Qalqalah kubra
     },
     { 
-        label: 'Mad (Panjang)', 
-        colorClass: 'text-[#d65f12] dark:text-[#fb923c]', // Brighter orange
-        hexColor: '#d65f12',
-        rules: ['o', 'u', 'a', 'i'] 
+        id: 'mad-panjang',
+        label: 'Mad Panjang 4-6 Harakat', 
+        colorClass: 'text-[#dc2626] dark:text-[#f87171]', 
+        hexColor: '#dc2626',
+        rules: ['o', 'm'] 
+        // o: Mad wajib muttashil & mad lazim (4-6 harakat)
+        // m: Mad jaiz munfashil (4-5 harakat)
     },
     { 
-        label: 'Tafkhim (Tebal)', 
-        colorClass: 'text-[#2a5a8a] dark:text-[#93c5fd]', // Light blue
-        hexColor: '#2a5a8a',
-        rules: ['t', 'l', 'r'] 
+        id: 'mad-biasa',
+        label: 'Mad Biasa 2 Harakat (Thabi\'i / \'Aridh)', 
+        colorClass: 'text-[#d97706] dark:text-[#fbbf24]', 
+        hexColor: '#d97706',
+        rules: ['n', 'p'] 
+        // n: Mad thabi'i / asli (2 harakat)
+        // p: Mad 'aridh lissukun
     },
     { 
-        label: 'Idgham (Lebur)', 
-        colorClass: 'text-gray-400 dark:text-gray-500', 
-        hexColor: '#9ca3af',
-        rules: ['p', 'w', 'h'] 
+        id: 'idgham-silent',
+        label: 'Idgham & Tidak Dibaca (Lebur/Samar)', 
+        colorClass: 'text-[#64748b] dark:text-[#94a3b8]', 
+        hexColor: '#64748b',
+        rules: ['u', 'b', 'l', 'h', 's'] 
+        // u: Idgham bila ghunnah (ل, ر)
+        // b: Idgham mutajanisain / mutaqaribain
+        // l: Lam shamsiyyah
+        // h: Hamzatul wasl
+        // s: Silent letter (alif/waw ziyadah)
     },
 ];
 
@@ -58,14 +83,12 @@ export const getActiveTajweedGroups = (text: string): TajweedGroup[] => {
     if (!text) return [];
     
     // Simple regex to find the rule part inside [rule[...]]
-    // We are looking for the pattern [code[
     // Example text: ٱلْحَمْدُ لِلَّهِ رَبِّ [h:4[ٱ]لْعَ[n[ـٰ]لَم[p[ِي]نَ
     const ruleRegex = /\[([a-zA-Z0-9:]+)\[/g;
     
     const foundRules = new Set<string>();
     let match;
     while ((match = ruleRegex.exec(text)) !== null) {
-        // match[1] is the rule code (e.g. "n" or "h:4")
         const baseRule = match[1].split(':')[0].toLowerCase();
         foundRules.add(baseRule);
     }
@@ -77,15 +100,47 @@ export const getActiveTajweedGroups = (text: string): TajweedGroup[] => {
     );
 };
 
-const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
+const TajweedText: React.FC<TajweedTextProps> = ({ text, onWaqafClick }) => {
   const elements = useMemo(() => {
     if (!text) return null;
+
+    const renderWithWaqaf = (str: string, prefix: string): React.ReactNode => {
+      if (!str) return null;
+      if (!onWaqafClick) return str;
+      const segments = str.split(WAQAF_REGEX);
+      if (segments.length === 1) return str;
+      return (
+        <>
+          {segments.map((seg, sIdx) => {
+            const waqaf = getWaqafItemByChar(seg);
+            if (waqaf) {
+              const cleanChar = seg.replace(/[\u200C\u200D\s]/g, '');
+              return (
+                <button
+                  key={`${prefix}-wq-${sIdx}`}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onWaqafClick(waqaf);
+                  }}
+                  className="waqaf-mark-btn inline-flex items-center justify-center mx-1 px-1 py-0.5 rounded text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15 hover:bg-amber-500/30 active:scale-125 transition-all cursor-pointer align-baseline select-none"
+                  title={`${waqaf.name} (${waqaf.hukum})`}
+                >
+                  {cleanChar || seg}
+                </button>
+              );
+            }
+            return seg;
+          })}
+        </>
+      );
+    };
 
     // Regex to match the format: [rule[content]
     const PARSE_REGEX = /\[([^\[]+)\[([^\]]*)\]/g;
 
     if (!text.match(PARSE_REGEX)) {
-         return <span className="text-quran-dark dark:text-white">{text}</span>;
+         return <span className="text-quran-dark dark:text-white">{renderWithWaqaf(text, 'p')}</span>;
     }
 
     const parts = text.split(PARSE_REGEX);
@@ -99,7 +154,7 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
         if (plainText) {
             result.push(
                 <span key={`t-${i}`} className="text-quran-dark dark:text-white">
-                    {plainText}
+                    {renderWithWaqaf(plainText, `t-${i}`)}
                 </span>
             );
         }
@@ -111,14 +166,14 @@ const TajweedText: React.FC<TajweedTextProps> = ({ text }) => {
              
              result.push(
                 <span key={`c-${i}`} className={colorClass}>
-                    {content}
+                    {renderWithWaqaf(content, `c-${i}`)}
                 </span>
              );
         }
     }
 
     return result;
-  }, [text]);
+  }, [text, onWaqafClick]);
 
   return <span className="tajweed-container">{elements}</span>;
 };

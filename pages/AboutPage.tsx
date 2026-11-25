@@ -5,13 +5,14 @@ import {
     Heart, Mic2, Search, BookMarked, PenTool, LayoutGrid, 
     ShieldCheck, Palette, Trophy, Sparkles, Target, Type,
     Smartphone, Moon, Download, Tag, BookOpen,
-    Compass, BookmarkCheck, HeartHandshake, GraduationCap, CalendarCheck
+    Compass, BookmarkCheck, HeartHandshake, GraduationCap, CalendarCheck,
+    Star, Clock, Coins
 } from 'lucide-react';
 import Logo from '../components/Logo';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const AboutPage: React.FC = () => {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const [activeTab, setActiveTab] = useState<'about' | 'features' | 'contact'>('about');
 
     // Contact Form State
@@ -50,6 +51,9 @@ const AboutPage: React.FC = () => {
         { title: t('feature_names_title'), desc: t('feature_names_desc'), icon: Sparkles },
         { title: t('feature_quiz_title'), desc: t('feature_quiz_desc'), icon: Trophy },
         { title: t('feature_khatam_title'), desc: t('feature_khatam_desc'), icon: Target },
+        { title: language === 'en' ? 'Featured Surahs Collection' : 'Koleksi Surat-Surat Pilihan', desc: language === 'en' ? 'Quick access to frequently recited surahs (Al-Kahf, Yasin, Al-Mulk, Ar-Rahman, Al-Waqi\'ah, 3 Qul) with authentic virtues and hadith references.' : 'Akses kilat ke surat-surat utama harian (Al-Kahfi, Yasin, Al-Mulk, Ar-Rahman, Al-Waqi\'ah, 3 Qul) lengkap dengan fadhilah dan dalil shahih.', icon: Star },
+        { title: language === 'en' ? 'Interactive Waqaf Marks Guide' : 'Panduan Tanda Waqaf Interaktif', desc: language === 'en' ? 'Master all 9 Quranic stopping, continuation, and breathing marks with authentic examples and interactive quiz.' : 'Pelajari 9 tanda waqaf Al-Qur\'an lengkap dengan kaidah hukum, contoh ayat riil ber-audio, dan kuis pemahaman interaktif.', icon: Compass },
+        { title: language === 'en' ? 'Prayer Times & Zakat Calculator' : 'Jadwal Salat & Kalkulator Zakat', desc: language === 'en' ? 'Astronomical offline prayer times with live countdown, GPS, and authentic Zakat calculator (Maal with 85g gold nisab & 1-year haul, and Fitrah).' : 'Jadwal salat otomatis akurat offline (Kemenag RI) dengan hitung mundur adzan, GPS, serta kalkulator zakat syar\'i (Zakat Maal dengan nisab 85g emas & haul 1 tahun, serta Zakat Fitrah).', icon: Clock },
         { title: t('feature_heatmap_title'), desc: t('feature_heatmap_desc'), icon: CalendarCheck },
         { title: t('feature_pwa_title'), desc: t('feature_pwa_desc'), icon: Smartphone },
         { title: t('feature_dark_title'), desc: t('feature_dark_desc'), icon: Moon },

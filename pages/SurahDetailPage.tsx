@@ -21,7 +21,7 @@ import * as DB from '../services/db';
 import { getSurahDetail, getSurahStartPage, getSurahInfo, getAllSurahs, showToast, getPageForVerse, getPageStartLocal } from '../services/quranService';
 import * as StorageService from '../services/storageService';
 import { Surah, SurahDetail, Word, MemorizationLevel, SurahInfo, Verse } from '../types';
-import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass, X, MoreVertical } from 'lucide-react';
+import { BookOpen, ChevronRight, ScrollText, Eye, EyeOff, BrainCircuit, ChevronDown, Type, Info, ChevronLeft, Compass, X, MoreVertical, Palette } from 'lucide-react';
 import { useAudio } from '../contexts/AudioContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ArabicFontId, DEFAULT_ARABIC_FONT_ID, getArabicFontOption } from '../constants/quranFonts';
@@ -34,6 +34,7 @@ interface DetailPageProps {
   showTafsir: boolean;
   showWordByWord: boolean;
   showTajweed: boolean;
+  onToggleTajweed?: (val: boolean) => void;
 }
 
 const EDGE_SWIPE_ZONE_PX = 32;
@@ -44,7 +45,8 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
     showTranslation, 
     showTafsir, 
     showWordByWord,
-    showTajweed 
+    showTajweed,
+    onToggleTajweed
 }) => {
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
@@ -701,6 +703,20 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
                       {hideTranslation ? 'Tampilkan Terjemahan' : 'Sembunyikan Terjemahan'}
                     </button>
                   )}
+                  {onToggleTajweed && (
+                    <button
+                      onClick={() => { onToggleTajweed(!showTajweed); setShowMobileHeaderMenu(false); }}
+                      className="flex w-full items-center justify-between px-3 py-3 text-left text-sm text-stone-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Palette className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Warna Tajwid</span>
+                      </span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${showTajweed ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-stone-200 dark:bg-slate-600 text-stone-500'}`}>
+                        {showTajweed ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  )}
                   <button
                     onClick={() => { setShowFontSettings(true); setShowMobileHeaderMenu(false); }}
                     className="flex w-full items-center gap-2 px-3 py-3 text-left text-sm text-stone-700 dark:text-gray-200 hover:bg-stone-50 dark:hover:bg-slate-700"
@@ -728,11 +744,25 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
               <Type className="h-3.5 w-3.5" />
               {getArabicFontOption(arabicFontFamily).label}
             </span>
-            {showTajweed && (
-              <span className="inline-flex items-center rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+            {onToggleTajweed ? (
+              <button
+                onClick={() => onToggleTajweed(!showTajweed)}
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all cursor-pointer ${
+                  showTajweed 
+                    ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/25' 
+                    : 'bg-stone-100 dark:bg-slate-700/80 text-stone-500 dark:text-gray-400 hover:bg-stone-200 dark:hover:bg-slate-700'
+                }`}
+                title="Klik untuk menyalakan/mematikan warna tajwid"
+              >
+                <Palette className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>{showTajweed ? (language === 'en' ? 'Tajweed ON' : 'Tajwid Aktif') : (language === 'en' ? 'Tajweed OFF' : 'Tajwid Mati')}</span>
+              </button>
+            ) : showTajweed ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                <Palette className="h-3.5 w-3.5" />
                 {language === 'en' ? 'Tajweed Active' : 'Tajwid Aktif'}
               </span>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -786,6 +816,15 @@ const SurahDetailPage: React.FC<DetailPageProps> = ({
             </div>
 
             <div className="flex items-center gap-0.5 bg-stone-100/50 dark:bg-slate-900/50 p-1 rounded-2xl border border-stone-200/50 dark:border-slate-700/50">
+              {onToggleTajweed && (
+                <button 
+                  onClick={() => onToggleTajweed(!showTajweed)} 
+                  className={`p-2 rounded-xl transition-all cursor-pointer ${showTajweed ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold' : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-quran-gold'}`} 
+                  title={showTajweed ? "Warna Tajwid Aktif (Klik untuk Matikan)" : "Aktifkan Warna Tajwid"}
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
+              )}
               <button onClick={() => setShowFontSettings(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-slate-800 hover:text-quran-gold rounded-xl transition-all" title="Font">
                 <Type className="w-4 h-4" />
               </button>

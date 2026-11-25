@@ -7,6 +7,8 @@ import TajweedText, { getActiveTajweedGroups } from './TajweedText';
 import * as StorageService from '../services/storageService'; // Import direct for check
 import { ArabicFontId, getArabicFontStack } from '../constants/quranFonts';
 import { useLanguage } from '../contexts/LanguageContext';
+import WaqafDetailModal from './WaqafDetailModal';
+import { detectWaqafInText, getWaqafItemByChar, WAQAF_REGEX, WaqafItem } from '../constants/waqafData';
 
 interface VerseItemProps {
   verse: Verse;
@@ -89,6 +91,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
   const [revealTranslation, setRevealTranslation] = useState(false);
   const [hasKhatamTarget, setHasKhatamTarget] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [selectedWaqaf, setSelectedWaqaf] = useState<WaqafItem | null>(null);
+
+  const detectedWaqaf = useMemo(() => {
+    return verse.text ? detectWaqafInText(verse.text) : [];
+  }, [verse.text]);
   
   const menuRef = useRef<HTMLDivElement>(null);
   const responsiveArabicFontSize = `${arabicFontSize}px`;
@@ -152,9 +159,44 @@ const VerseItem: React.FC<VerseItemProps> = ({
       return [];
   }, [verse.text, isTajweedMode, memorizationMode.isActive]);
 
+  const renderWithWaqaf = (str: string, prefix: string): React.ReactNode => {
+    if (!str) return null;
+    const segments = str.split(WAQAF_REGEX);
+    if (segments.length === 1) return str;
+    return (
+      <>
+        {segments.map((seg, sIdx) => {
+          const waqaf = getWaqafItemByChar(seg);
+          if (waqaf) {
+            const cleanChar = seg.replace(/[\u200C\u200D\s]/g, '');
+            return (
+              <button
+                key={`${prefix}-wq-${sIdx}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedWaqaf(waqaf);
+                }}
+                className="waqaf-mark-btn inline-flex items-center justify-center mx-0.5 px-1 py-0.5 rounded text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15 hover:bg-amber-500/30 active:scale-125 transition-all cursor-pointer align-baseline select-none"
+                title={`${waqaf.name} (${waqaf.hukum})`}
+              >
+                {cleanChar || seg}
+              </button>
+            );
+          }
+          return seg;
+        })}
+      </>
+    );
+  };
+
   const renderInteractiveWords = () => {
     if (!verse.words || verse.words.length === 0) {
-      return isTajweedMode ? <TajweedText text={verse.text} /> : <span>{verse.text}</span>;
+      return isTajweedMode ? (
+        <TajweedText text={verse.text} onWaqafClick={(wq) => setSelectedWaqaf(wq)} />
+      ) : (
+        <span>{renderWithWaqaf(verse.text, `v-${verse.id}`)}</span>
+      );
     }
     
     // Filter out the end marker if it exists in words array
@@ -162,21 +204,86 @@ const VerseItem: React.FC<VerseItemProps> = ({
     
     return (
       <span className="inline-flex flex-row-reverse flex-wrap gap-x-1.5 justify-start">
-        {interactiveWords.map((word, idx) => (
-          <button
-            key={`${word.id}-${idx}`}
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onWordClick(word);
-            }}
-            className="inline-block rounded-md px-1 py-0.5 text-quran-dark dark:text-white transition-colors hover:bg-quran-gold/20 hover:text-quran-dark dark:hover:text-quran-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40 cursor-pointer"
-            style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
-            title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
-          >
-            {isTajweedMode ? <TajweedText text={word.text_uthmani} /> : word.text_uthmani}
-          </button>
-        ))}
+        {interactiveWords.map((word, idx) => {
+          const isWaqafWord = getWaqafItemByChar(word.text_uthmani.trim());
+          if (isWaqafWord) {
+            const cleanChar = word.text_uthmani.replace(/[\u200C\u200D\s]/g, '');
+            return (
+              <button
+                key={`${word.id}-wq-${idx}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedWaqaf(isWaqafWord);
+                }}
+                className="waqaf-mark-btn inline-flex items-center justify-center mx-1 px-1.5 py-0.5 rounded-md text-amber-600 dark:text-amber-400 font-bold bg-amber-500/20 hover:bg-amber-500/35 hover:scale-110 active:scale-125 transition-all cursor-pointer select-none align-middle"
+                title={`${isWaqafWord.name}: ${isWaqafWord.hukum}`}
+              >
+                {cleanChar || word.text_uthmani}
+              </button>
+            );
+          }
+
+          const segments = word.text_uthmani.split(WAQAF_REGEX);
+          if (segments.length === 1) {
+            return (
+              <button
+                key={`${word.id}-${idx}`}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onWordClick(word);
+                }}
+                className="inline-block rounded-md px-1 py-0.5 text-quran-dark dark:text-white transition-colors hover:bg-quran-gold/20 hover:text-quran-dark dark:hover:text-quran-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40 cursor-pointer"
+                style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
+              >
+                {word.text_uthmani}
+              </button>
+            );
+          }
+
+          return (
+            <span key={`${word.id}-${idx}`} className="inline-flex items-center">
+              {segments.map((seg, sIdx) => {
+                const waqaf = getWaqafItemByChar(seg);
+                if (waqaf) {
+                  const cleanChar = seg.replace(/[\u200C\u200D\s]/g, '');
+                  return (
+                    <button
+                      key={`${word.id}-wq-${sIdx}`}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedWaqaf(waqaf);
+                      }}
+                      className="waqaf-mark-btn inline-flex items-center justify-center mx-0.5 px-1 py-0.5 rounded text-amber-600 dark:text-amber-400 font-bold bg-amber-500/15 hover:bg-amber-500/30 active:scale-125 transition-all cursor-pointer align-baseline select-none"
+                      title={`${waqaf.name} (${waqaf.hukum})`}
+                    >
+                      {cleanChar || seg}
+                    </button>
+                  );
+                }
+                if (!seg) return null;
+                return (
+                  <button
+                    key={`${word.id}-txt-${sIdx}`}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onWordClick(word);
+                    }}
+                    className="inline-block rounded-md px-1 py-0.5 text-quran-dark dark:text-white transition-colors hover:bg-quran-gold/20 hover:text-quran-dark dark:hover:text-quran-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-quran-gold/40 cursor-pointer"
+                    style={{ fontSize: 'inherit', fontFamily: 'inherit' }}
+                    title={word.translation?.text || word.transliteration?.text || (language === 'en' ? 'View word details' : 'Lihat detail kata')}
+                  >
+                    {seg}
+                  </button>
+                );
+              })}
+            </span>
+          );
+        })}
       </span>
     );
   };
@@ -194,7 +301,11 @@ const VerseItem: React.FC<VerseItemProps> = ({
                   fontFamily: arabicFontFamilyStyle
                 }}
              >
-                {renderInteractiveWords()}
+                {isTajweedMode ? (
+                  <TajweedText text={verse.text} onWaqafClick={(wq) => setSelectedWaqaf(wq)} />
+                ) : (
+                  renderInteractiveWords()
+                )}
                 {' '}
                 {renderVerseOrnament()}
              </div>
@@ -209,7 +320,7 @@ const VerseItem: React.FC<VerseItemProps> = ({
                 className="font-arabic leading-[2.5] text-quran-dark dark:text-white animate-fade-in relative"
                 style={{ fontSize: responsiveArabicFontSize, fontFamily: arabicFontFamilyStyle }}
              >
-                <TajweedText text={verse.text} />
+                <TajweedText text={verse.text} onWaqafClick={(wq) => setSelectedWaqaf(wq)} />
                 {' '}
                 {renderVerseOrnament()}
                 {/* Close Button to hide again */}
@@ -373,6 +484,23 @@ const VerseItem: React.FC<VerseItemProps> = ({
                         <CheckCircle className="w-3 h-3" /> {language === 'en' ? 'Last Read' : 'Terakhir Dibaca'}
                     </span>
                 )}
+
+                {/* Detected Waqaf Signs Pills */}
+                {detectedWaqaf.map(({ waqaf, char }) => (
+                  <button
+                    key={waqaf.id}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedWaqaf(waqaf);
+                    }}
+                    className="text-[10px] text-amber-700 dark:text-amber-300 font-bold px-2 py-0.5 bg-amber-500/15 dark:bg-amber-500/25 border border-amber-500/30 rounded-full flex items-center gap-1 hover:bg-amber-500/30 transition-colors cursor-pointer"
+                    title={`${waqaf.name}: ${waqaf.hukum}`}
+                  >
+                    <span className="font-arabic">{char || waqaf.symbol}</span>
+                    <span className="hidden sm:inline">{waqaf.name}</span>
+                  </button>
+                ))}
             </div>
             <div className="flex items-center gap-2">
                  {isBookmarked && (
@@ -560,6 +688,12 @@ const VerseItem: React.FC<VerseItemProps> = ({
             </p>
           </div>
       )}
+
+      <WaqafDetailModal
+        isOpen={!!selectedWaqaf}
+        onClose={() => setSelectedWaqaf(null)}
+        waqafItem={selectedWaqaf}
+      />
     </div>
   );
 };

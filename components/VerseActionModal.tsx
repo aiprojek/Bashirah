@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sparkles,
@@ -16,10 +16,13 @@ import {
   ExternalLink,
   WifiOff,
   CheckCircle2,
+  Compass,
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAudio } from '../contexts/AudioContext';
 import UnifiedModal from './UnifiedModal';
+import WaqafDetailModal from './WaqafDetailModal';
+import { detectWaqafInText, WaqafItem } from '../constants/waqafData';
 import {
   getThemeForVerse,
   getTopicsForVerse,
@@ -62,6 +65,8 @@ interface VerseActionModalProps {
   onShare: (verse: any) => void;
   onCopy: (verse: any) => void;
   isBookmarked?: boolean;
+  isLastRead?: boolean;
+  onSetLastRead?: (verseId: number) => void;
   tafsirText?: string | null;
   onLoadTafsir?: () => void;
   isLoadingTafsir?: boolean;
@@ -80,6 +85,8 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
   onShare,
   onCopy,
   isBookmarked = false,
+  isLastRead = false,
+  onSetLastRead,
   tafsirText,
   onLoadTafsir,
   isLoadingTafsir = false,
@@ -96,8 +103,13 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
   const [showTopicsDetails, setShowTopicsDetails] = useState(false);
   const [internalTafsir, setInternalTafsir] = useState<TafsirResult | null>(null);
   const [isInternalLoadingTafsir, setIsInternalLoadingTafsir] = useState(false);
+  const [selectedWaqaf, setSelectedWaqaf] = useState<WaqafItem | null>(null);
 
   const verseNumber = verse ? verse.numberInSurah ?? verse.id ?? 1 : 1;
+
+  const detectedWaqaf = useMemo(() => {
+    return verse?.text ? detectWaqafInText(verse.text) : [];
+  }, [verse?.text]);
 
   useEffect(() => {
     if (!isOpen || !verse) {
@@ -107,6 +119,7 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
       setShowTopicsDetails(false);
       setInternalTafsir(null);
       setIsInternalLoadingTafsir(false);
+      setSelectedWaqaf(null);
       return;
     }
 
@@ -162,6 +175,7 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
   const effectiveEditionName = internalTafsir?.editionName || (tafsirId ? getTafsirName(tafsirId) : getTafsirName(getDefaultTafsirId(language)));
 
   return (
+    <>
     <UnifiedModal
       isOpen={isOpen}
       onClose={onClose}
@@ -199,6 +213,43 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
           </p>
         )}
       </div>
+
+      {/* Interactive Waqaf Signs on this Verse */}
+      {detectedWaqaf.length > 0 && (
+        <div className="bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/25 rounded-2xl p-3.5 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300">
+              <Compass className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>{language === 'en' ? 'Waqaf Signs in this Verse' : 'Tanda Waqaf pada Ayat Ini'} ({detectedWaqaf.length})</span>
+            </div>
+            <span className="text-[10px] text-amber-700/80 dark:text-amber-300/70 font-medium">
+              {language === 'en' ? 'Tap to view rule' : 'Ketuk untuk lihat kaidah'}
+            </span>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {detectedWaqaf.map(({ waqaf, char }) => (
+              <button
+                key={waqaf.id}
+                type="button"
+                onClick={() => setSelectedWaqaf(waqaf)}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-100 border border-amber-500/30 hover:border-amber-500 hover:bg-amber-50 dark:hover:bg-amber-950/30 transition-all shadow-2xs group cursor-pointer text-left"
+              >
+                <span className="w-7 h-7 rounded-lg bg-amber-500/15 dark:bg-amber-500/25 text-amber-700 dark:text-amber-300 font-arabic text-lg font-bold flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  {char || waqaf.symbol}
+                </span>
+                <div>
+                  <span className="block font-bold text-amber-900 dark:text-amber-200 text-xs leading-tight">
+                    {waqaf.name}
+                  </span>
+                  <span className="block text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
+                    {waqaf.hukum}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Theme & Topics Insight Banner (From uploaded QUL databases) */}
       {(theme || topics.length > 0) && (
@@ -264,79 +315,110 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
         </div>
       )}
 
-      {/* Tafsir Expandable Section */}
-      {showTafsirInline && (
-        <div className="bg-stone-50 dark:bg-slate-900/80 rounded-2xl p-4 border border-stone-200 dark:border-slate-700/80 space-y-2.5 animate-in fade-in">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
-                {language === 'en' ? 'Tafsir' : 'Kandungan Tafsir'}
-              </span>
-              <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
-                • {effectiveEditionName}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {internalTafsir?.source === 'offline' && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Offline
-                </span>
-              )}
-              {internalTafsir?.source === 'online' && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">
-                  Online
-                </span>
-              )}
-              {effectiveTafsirLoading && (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
-              )}
-            </div>
-          </div>
-
-          {effectiveTafsirLoading ? (
-            <div className="py-4 flex flex-col items-center justify-center gap-2 text-stone-400">
-              <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
-              <p className="text-xs italic">
-                {language === 'en' ? 'Loading tafsir...' : 'Memuat teks tafsir...'}
-              </p>
-            </div>
-          ) : effectiveTafsirText ? (
-            <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-3 border border-stone-200/60 dark:border-slate-700/60 shadow-2xs">
-              <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed max-h-56 overflow-y-auto pr-1">
-                {effectiveTafsirText}
-              </p>
-            </div>
-          ) : (
-            <div className="py-3 px-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200 space-y-2">
-              <div className="flex items-start gap-2">
-                <WifiOff className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p>
-                  {internalTafsir?.errorMessage ||
-                    (language === 'en'
-                      ? 'Tafsir is not downloaded yet. Please download it in Settings > Tafsir.'
-                      : 'Data tafsir belum tersedia di penyimpanan perangkat. Silakan unduh di menu Pengaturan.')}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  navigate('/settings?tab=reading');
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[11px] transition-colors"
-              >
-                <span>{language === 'en' ? 'Open Tafsir Settings' : 'Buka Pengaturan Tafsir'}</span>
-                <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
       {/* Action Buttons List */}
       <div className="grid grid-cols-1 gap-2 pt-1">
+        {/* Tafsir Toggle (At the top, directly above Play Audio) */}
+        <button
+          onClick={handleToggleTafsir}
+          className={`w-full text-left px-4 py-3 rounded-xl text-xs sm:text-sm font-medium border flex items-center justify-between transition-colors shadow-2xs active:scale-[0.99] ${
+            showTafsirInline
+              ? 'bg-indigo-50/80 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 border-indigo-200 dark:border-indigo-800'
+              : 'text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+              showTafsirInline
+                ? 'bg-indigo-600 text-white shadow-xs'
+                : 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+            }`}>
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <span className="font-semibold block text-gray-800 dark:text-gray-100">
+                {showTafsirInline
+                  ? (language === 'en' ? 'Hide Ayah Tafsir' : 'Tutup Tafsir Ayat')
+                  : (language === 'en' ? 'Read Ayah Tafsir' : 'Baca Tafsir Ayat')}
+              </span>
+              <span className="text-[11px] text-stone-500 dark:text-stone-400 block">
+                {effectiveEditionName}
+              </span>
+            </div>
+          </div>
+          {showTafsirInline ? <ChevronUp className="w-4 h-4 text-indigo-500" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
+        </button>
+
+        {/* Tafsir Expandable Content - Rendered immediately below the Tafsir button */}
+        {showTafsirInline && (
+          <div className="bg-stone-50 dark:bg-slate-900/90 rounded-2xl p-4 border border-indigo-200/70 dark:border-indigo-800/70 space-y-2.5 animate-in fade-in transition-all">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                  {language === 'en' ? 'Tafsir Content' : 'Kandungan Tafsir'}
+                </span>
+                <span className="text-[11px] font-medium text-stone-500 dark:text-stone-400">
+                  • {effectiveEditionName}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {internalTafsir?.source === 'offline' && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Offline
+                  </span>
+                )}
+                {internalTafsir?.source === 'online' && (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-600 dark:text-sky-400 bg-sky-500/10 px-2 py-0.5 rounded-full">
+                    Online
+                  </span>
+                )}
+                {effectiveTafsirLoading && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+                )}
+              </div>
+            </div>
+
+            {effectiveTafsirLoading ? (
+              <div className="py-4 flex flex-col items-center justify-center gap-2 text-stone-400">
+                <Loader2 className="w-5 h-5 animate-spin text-indigo-500" />
+                <p className="text-xs italic">
+                  {language === 'en' ? 'Loading tafsir...' : 'Memuat teks tafsir...'}
+                </p>
+              </div>
+            ) : effectiveTafsirText ? (
+              <div className="bg-white/80 dark:bg-slate-800/80 rounded-xl p-3 border border-stone-200/60 dark:border-slate-700/60 shadow-2xs">
+                <p className="text-xs sm:text-sm text-gray-700 dark:text-gray-200 leading-relaxed max-h-56 overflow-y-auto pr-1">
+                  {effectiveTafsirText}
+                </p>
+              </div>
+            ) : (
+              <div className="py-3 px-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-800 dark:text-amber-200 space-y-2">
+                <div className="flex items-start gap-2">
+                  <WifiOff className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p>
+                    {internalTafsir?.errorMessage ||
+                      (language === 'en'
+                        ? 'Tafsir is not downloaded yet. Please download it in Settings > Tafsir.'
+                        : 'Data tafsir belum tersedia di penyimpanan perangkat. Silakan unduh di menu Pengaturan.')}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    navigate('/settings?tab=reading');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-[11px] transition-colors"
+                >
+                  <span>{language === 'en' ? 'Open Tafsir Settings' : 'Buka Pengaturan Tafsir'}</span>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Play Audio */}
         <button
           onClick={() => {
@@ -380,19 +462,6 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
           <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         </button>
 
-        {/* Tafsir Toggle */}
-        <button
-          onClick={handleToggleTafsir}
-          className="w-full text-left px-4 py-3 rounded-xl text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700/80 border border-stone-200/80 dark:border-slate-700/80 flex items-center justify-between transition-colors shadow-2xs active:scale-[0.99]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-              <BookOpen className="w-4 h-4" />
-            </div>
-            <span>{showTafsirInline ? (language === 'en' ? 'Hide Tafsir' : 'Tutup Tafsir') : (language === 'en' ? 'View Tafsir' : 'Baca Tafsir Ayat')}</span>
-          </div>
-          {showTafsirInline ? <ChevronUp className="w-4 h-4 text-stone-400" /> : <ChevronDown className="w-4 h-4 text-stone-400" />}
-        </button>
 
         {/* Bookmark */}
         <button
@@ -417,6 +486,50 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
             </span>
           )}
         </button>
+
+        {/* Mark as Last Read */}
+        {onSetLastRead && (
+          <button
+            onClick={() => {
+              onSetLastRead(verseNumber);
+            }}
+            className={`w-full text-left px-4 py-3 rounded-xl text-xs sm:text-sm font-medium border flex items-center justify-between transition-colors shadow-2xs active:scale-[0.99] ${
+              isLastRead
+                ? 'bg-amber-500/10 dark:bg-amber-500/20 text-quran-dark dark:text-amber-200 border-quran-gold/50'
+                : 'bg-white dark:bg-slate-800 hover:bg-stone-50 dark:hover:bg-slate-700/80 text-gray-700 dark:text-gray-200 border-stone-200/80 dark:border-slate-700/80'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                isLastRead
+                  ? 'bg-quran-gold text-white shadow-xs'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              }`}>
+                <BookOpen className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-semibold block text-gray-800 dark:text-gray-100">
+                  {language === 'en' ? 'Mark as Last Read' : 'Tandai Terakhir Dibaca'}
+                </span>
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block">
+                  {isLastRead
+                    ? (language === 'en' ? 'Currently saved as your reading bookmark' : 'Sedang ditandai sebagai posisi bacaan terakhir')
+                    : (language === 'en' ? 'Save this verse as your last read mark' : 'Simpan ayat ini sebagai tanda baca terakhir')}
+                </span>
+              </div>
+            </div>
+            {isLastRead ? (
+              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                <CheckCircle2 className="w-3 h-3" />
+                {language === 'en' ? 'Active' : 'Aktif'}
+              </span>
+            ) : (
+              <span className="text-[11px] font-bold text-stone-400 dark:text-stone-500 px-2 py-0.5 shrink-0">
+                {language === 'en' ? 'Set' : 'Tandai'}
+              </span>
+            )}
+          </button>
+        )}
 
         {/* Copy */}
         <button
@@ -447,6 +560,13 @@ const VerseActionModal: React.FC<VerseActionModalProps> = ({
         </button>
       </div>
     </UnifiedModal>
+
+    <WaqafDetailModal
+      isOpen={!!selectedWaqaf}
+      onClose={() => setSelectedWaqaf(null)}
+      waqafItem={selectedWaqaf}
+    />
+    </>
   );
 };
 

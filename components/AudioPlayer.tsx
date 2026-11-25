@@ -184,7 +184,7 @@ const AudioPlayer: React.FC = () => {
   );
 
   return (
-    <div className="audio-player-shell fixed bottom-0 left-0 right-0 z-[100] p-4 pointer-events-none">
+    <div className="audio-player-shell fixed bottom-0 left-0 right-0 z-[50] p-4 pointer-events-none">
         <div className="max-w-xl mx-auto bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-stone-200 dark:border-slate-700 shadow-[0_-8px_30px_rgba(0,0,0,0.12)] rounded-2xl overflow-hidden pointer-events-auto transition-all duration-300">
             
             {/* Mobile Main Bar */}

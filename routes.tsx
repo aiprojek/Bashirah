@@ -14,6 +14,9 @@ import TajweedLearnPage from './pages/TajweedLearnPage';
 import MutashabihatPage from './pages/MutashabihatPage';
 import SurahDetailPage from './pages/SurahDetailPage';
 import SettingsPage from './pages/SettingsPage';
+import PrayerTimesPage from './pages/PrayerTimesPage';
+import ZakatCalculatorPage from './pages/ZakatCalculatorPage';
+import WaqafGuidePage from './pages/WaqafGuidePage';
 import { TranslationOption } from './types';
 
 interface AppRoutesProps {
@@ -67,6 +70,9 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
       <Route path="/asmaul-husna" element={<AsmaulHusnaPage />} />
       <Route path="/tajweed-learn" element={<TajweedLearnPage />} />
       <Route path="/mutashabihat" element={<MutashabihatPage />} />
+      <Route path="/waqaf" element={<WaqafGuidePage />} />
+      <Route path="/prayer-times" element={<PrayerTimesPage />} />
+      <Route path="/zakat" element={<ZakatCalculatorPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route 
         path="/surah/:id" 
@@ -77,7 +83,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
             showTranslation={showTranslation} 
             showTafsir={showTafsir} 
             showWordByWord={showWordByWord} 
-            showTajweed={showTajweed} 
+            showTajweed={showTajweed}
+            onToggleTajweed={setShowTajweed}
           />
         } 
       />

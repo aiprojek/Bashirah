@@ -912,6 +912,8 @@ const fetchContentForSurah = async (editionId: string, surahId: number): Promise
         if (data.code === 200 && data.data && data.data.ayahs) {
             const verses = data.data.ayahs;
             cachedContent[cacheKey] = verses;
+            // Persist to IndexedDB so it is permanently cached offline
+            DB.saveSurahContent(editionId, surahId, verses).catch(() => {});
             return verses;
         }
     } catch (e) {
