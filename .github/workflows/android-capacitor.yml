@@ -17,6 +17,15 @@ jobs:
           node-version: 22
           cache: "npm"
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
       - name: Install NPM dependencies
         run: npm ci || npm install
 
