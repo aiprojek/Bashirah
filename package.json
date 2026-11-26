@@ -79,12 +79,5 @@
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6",
     "vite-plugin-pwa": "^0.20.0"
-  },
-  "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.63.1",
-    "@rollup/rollup-linux-arm64-gnu": "4.63.1",
-    "@rollup/rollup-darwin-x64": "4.63.1",
-    "@rollup/rollup-darwin-arm64": "4.63.1",
-    "@rollup/rollup-win32-x64-msvc": "4.63.1"
   }
 }

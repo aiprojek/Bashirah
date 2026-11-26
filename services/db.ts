@@ -159,6 +159,16 @@ export const saveFullQuranContent = async (editionId: string, data: any) => {
   await tx.done;
 };
 
+export const saveSurahContent = async (
+  editionId: string,
+  surahId: number,
+  ayahs: any[]
+) => {
+  const db = await getDB();
+  const key = `${editionId}_${surahId}`;
+  await db.put("content", ayahs, key);
+};
+
 export const getSurahContent = async (
   editionId: string,
   surahId: number,
